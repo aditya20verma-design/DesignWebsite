@@ -42,7 +42,8 @@ body {
     color: var(--text-primary);
     font-family: var(--font);
     cursor: none;
-    overflow-x: hidden;
+    overflow-x: hidden; /* fallback: older Safari */
+    overflow-x: clip;   /* modern fix: clips without creating scroll container, preserves position:sticky */
     letter-spacing: -0.02em;
     width: 100%;
     /* Push content clear of the bottom home indicator */
@@ -376,7 +377,7 @@ nav.nav-on-light .hamburger span {
 
 /* ── Hero Track & Sticky Hero ───────────────────────────── */
 .hero-track {
-    height: 200vh;  /* 2× viewport — gives 100vh of sticky+animation travel before hero rises */
+    height: 300vh;  /* 3× viewport: 100vh scale + 100vh hold + 100vh natural-rise runway */
     position: relative;
     z-index: 1;
 }
@@ -775,9 +776,9 @@ nav.nav-on-light .hamburger span {
         padding-bottom: 3.5rem;
     }
 
-    /* Hero: keep 200vh track (same as desktop) — gives 100vh sticky travel for animation */
+    /* Hero: 300vh track matches desktop — gives 100vh scale, 100vh hold, then rise */
     .hero-track {
-        height: 200vh;
+        height: 300vh;
     }
 
     /* Keep sticky so the hero pins while the card-collapse animates */

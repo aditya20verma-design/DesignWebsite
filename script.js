@@ -382,7 +382,7 @@ mm.add("(min-width: 601px)", () => {
         scrollTrigger: {
             trigger: ".hero-track",
             start: "top top",
-            end: "bottom bottom",
+            end: () => "+="  + window.innerHeight, // ends after exactly 100vh scroll — hero holds pinned, then rises
             scrub: 1,
             onUpdate: (self) => {
                 const p = self.progress;
@@ -434,7 +434,7 @@ mm.add("(max-width: 600px)", () => {
         scrollTrigger: {
             trigger: ".hero-track",
             start: "top top",
-            end: "bottom bottom",
+            end: () => "+=" + window.innerHeight, // ends after 100vh — holds pinned, then rises naturally
             scrub: 1, // matches Lando Norris desktop feel
         }
     });
