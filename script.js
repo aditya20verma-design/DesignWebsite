@@ -41,26 +41,28 @@
 })();
 
 // ── Scroll-aware Nav State (transparent hero → frosted glass) ─────────────
-// Defined as a global so Lenis can also call it via its own scroll event
-const nav = document.querySelector('nav');
-
-function updateNavState(scrollPos) {
+(function () {
+    const nav = document.querySelector('nav');
     if (!nav) return;
-    // Hero is 100vh; switch to frosted glass after 60% of hero has passed
-    const threshold = window.innerHeight * 0.6;
-    if (scrollPos < threshold) {
-        nav.classList.add('at-hero');
-        nav.classList.remove('scrolled');
-    } else {
-        nav.classList.remove('at-hero');
-        nav.classList.add('scrolled');
-    }
-}
 
-// Run on page load
-updateNavState(window.scrollY || 0);
-// Fallback: native window scroll (works on desktop + when Lenis is passive)
-window.addEventListener('scroll', () => updateNavState(window.scrollY), { passive: true });
+    function updateNav() {
+        const heroHeight = window.innerHeight; // hero is 100vh
+        const scrollY = window.scrollY;
+
+        if (scrollY < heroHeight * 0.6) {
+            // Over the light hero — go transparent with dark text
+            nav.classList.add('at-hero');
+            nav.classList.remove('scrolled');
+        } else {
+            // Past hero — frosted glass on dark background
+            nav.classList.remove('at-hero');
+            nav.classList.add('scrolled');
+        }
+    }
+
+    updateNav(); // run on load
+    window.addEventListener('scroll', updateNav, { passive: true });
+})();
 
 // ── Detect touch/mobile for disabling heavy effects ───────────────────────
 const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -157,11 +159,6 @@ function raf(time) {
 requestAnimationFrame(raf);
 
 lenis.on('scroll', ScrollTrigger.update);
-// CRITICAL: Also drive the nav state from Lenis's scroll on every frame.
-// This is the only reliable way to update the nav on mobile where Lenis
-// intercepts touch scroll before window.scroll events fire.
-lenis.on('scroll', ({ scroll }) => updateNavState(scroll));
-
 gsap.ticker.add((time) => {
     lenis.raf(time * 1000);
 });
