@@ -435,7 +435,7 @@ mm.add("(max-width: 600px)", () => {
             trigger: ".hero-track",
             start: "top top",
             end: "bottom bottom",
-            scrub: 0.8,
+            scrub: 1, // matches Lando Norris desktop feel
         }
     });
 
