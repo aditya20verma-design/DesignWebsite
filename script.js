@@ -342,7 +342,7 @@
 
 // ── Detect touch/mobile for disabling heavy effects ───────────────────────
 const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-const isMobile = window.innerWidth <= 600;
+// isMobile breakpoint — used by gsap.matchMedia() contexts below
 
 // Register GSAP ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
@@ -374,11 +374,11 @@ gsap.to('.av-shape', {
 // ── Hero Scale & Signature Reveal — desktop + mobile via matchMedia ──────
 // Desktop: dramatic horizontal collapse (Lando Norris style)
 // Mobile:  card-style scale-down with rounded corners (same feel, portrait-safe)
-let mm = gsap.matchMedia();
+const mm = gsap.matchMedia();
 
 mm.add("(min-width: 601px)", () => {
     let isLogoHidden = false;
-    let tl = gsap.timeline({
+    const tl = gsap.timeline({
         scrollTrigger: {
             trigger: ".hero-track",
             start: "top top",
@@ -430,7 +430,7 @@ mm.add("(min-width: 601px)", () => {
 mm.add("(max-width: 600px)", () => {
     // Mobile: same pin-then-rise pattern as Lando Norris — just scale + opacity, no clipPath rounding
     // With 200vh track: 100vh of sticky animation travel, then hero rises naturally
-    let tl = gsap.timeline({
+    const tl = gsap.timeline({
         scrollTrigger: {
             trigger: ".hero-track",
             start: "top top",
@@ -815,7 +815,7 @@ if (dotCanvas) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
 
         for (let i = 0; i < dots.length; i++) {
-            let dot = dots[i];
+            const dot = dots[i];
             
             // Step 1: Independently calculate distance of this specific dot to the cursor
             const dx = localMouseX - dot.ox;
@@ -893,7 +893,7 @@ if (emailCopyBtn) {
         const copyIcon1   = emailCopyBtn.querySelector('.copy-icon-1');
         const copyIcon2   = emailCopyBtn.querySelector('.copy-icon-2');
         const checkIcon   = emailCopyBtn.querySelector('.check-icon-1');
-        const iconStack   = emailCopyBtn.querySelector('.icon-stack');
+        // iconStack reserved for future icon animation
         const originalEmail = 'aditya20verma@gmail.com';
 
         try {

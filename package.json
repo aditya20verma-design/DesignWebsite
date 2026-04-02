@@ -1,0 +1,26 @@
+{
+  "name": "aditya-verma-portfolio",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Aditya Verma — Product Design Portfolio",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write \"**/*.{html,css,js}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{html,css,js}\" --ignore-path .prettierignore",
+    "lint": "eslint script.js",
+    "lint:fix": "eslint script.js --fix",
+    "serve": "python3 -m http.server 8080"
+  },
+  "dependencies": {
+    "@studio-freight/lenis": "1.0.42",
+    "gsap": "3.12.5",
+    "split-type": "^0.3.4"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.4",
+    "prettier": "^3.8.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
