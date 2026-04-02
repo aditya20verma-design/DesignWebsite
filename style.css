@@ -1,0 +1,511 @@
+:root {
+    --main-dark: #1d1d1d;
+    --main-dark-alt: #252525;
+    --main-light: #e5e4e0;
+    --main-light-alt: #f1f0ec;
+    --primary-color: #ff642f;
+    --dark-grey: rgba(218, 218, 218, 0.2);
+    --dark-grey60: rgba(218, 218, 218, 0.6);
+    --light-grey: rgba(111, 111, 111, 0.2);
+    --light-grey60: rgba(111, 111, 111, 0.6);
+    --grey-rotate: #bfbebe;
+    --large-radius: 6.25em;
+    --med-radius: 1.375em;
+    --small-radius: 0.625em;
+    --perspective: 4000px;
+    --grid-inner-scale: 1;
+    --grid-item-ratio: 1.5;
+
+    /* Semantic Mappings */
+    --bg-color: var(--main-dark);
+    --surface-color: var(--main-dark-alt);
+    --text-primary: var(--main-light);
+    --text-secondary: var(--grey-rotate);
+    --accent: var(--primary-color);
+    --font: 'Geist', 'Helvetica Neue', 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font);
+    cursor: none;
+    overflow-x: hidden;
+    letter-spacing: -0.02em;
+}
+
+/* Custom Cursors */
+.cursor-dot {
+    position: fixed;
+    top: 0; left: 0; width: 8px; height: 8px;
+    background-color: #fff;
+    border-radius: 50%; pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+}
+
+.cursor-outline {
+    position: fixed;
+    top: 0; left: 0; width: 40px; height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Default grey stroke */
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: width 200ms cubic-bezier(0.2, 0, 0, 1), height 200ms cubic-bezier(0.2, 0, 0, 1), border-color 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.cursor-outline.hover-state {
+    transform: translate(-50%, -50%) scale(2);
+    border-color: #ff642f; /* Orange stroke on hover */
+    background-color: transparent;
+}
+
+/* Loader */
+.loader {
+    display: none !important;
+}
+
+.loader-text {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 4px;
+}
+
+/* Navigation */
+nav {
+    position: fixed;
+    top: 0; width: 100%;
+    padding: 2.5rem 4rem;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    z-index: 100;
+    mix-blend-mode: difference;
+    color: #fff;
+}
+
+.nav-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.logo {
+    font-weight: 900; font-size: 2rem;
+    letter-spacing: -0.05em;
+    color: inherit;
+    text-decoration: none;
+    line-height: 0.9;
+}
+
+.wordmark-logo {
+    display: inline-block;
+}
+
+/* Custom Vector 'AV' Shape */
+.av-shape {
+    height: 28px;
+    width: auto;
+    display: block;
+    overflow: visible;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+.av-shape:hover {
+    transform: scale(1.05) translateY(-2px);
+}
+.av-path {
+    fill: #ffffff;
+    stroke: none;
+    stroke-linejoin: miter;
+}
+
+/* Header Navigation Links */
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem; 
+    color: var(--main-light);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 400;
+    padding-bottom: 0.25rem;
+    position: relative;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* Base Grey Underline */
+.nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* White Sweep Underline */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #fff;
+    transform: scaleX(0);
+    transform-origin: right; /* Un-hover sweep out to right */
+    transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left; /* Hover sweep in from left */
+}
+
+.nav-link:hover .hover-stagger .stagger-up span { 
+    transform: translateY(-100%); 
+}
+
+.nav-link:hover .hover-stagger .stagger-down span { 
+    transform: translateY(-100%); 
+}
+
+/* Hero Track & Sticky Hero (Lando Norris Effect) */
+.hero-track {
+    height: 150vh; /* Gives 50vh scroll room to shrink the hero before wiping to next content */
+    position: relative;
+    z-index: 1;
+}
+
+.hero-sticky-container {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+
+.hero { 
+    height: 100vh; 
+    width: 100%;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    position: absolute; 
+    top: 0; 
+    left: 0;
+    overflow: hidden; 
+    background-color: var(--main-light);
+    color: var(--main-dark);
+    z-index: 1;
+    transform-origin: center center; /* Scales into the middle */
+}
+
+/* AV Signature */
+.signature-container {
+    position: absolute;
+    width: 90vw;
+    max-width: 1200px;
+    z-index: 2; /* Superimposed heavily over hero and dark background */
+    pointer-events: none;
+    transform: rotate(0deg); /* The path is already drawn with a slant */
+}
+
+.av-signature {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.av-signature path {
+    stroke-dasharray: 1000; /* Uses pathLength native normalization */
+    stroke-dashoffset: 1000; 
+}
+
+/* Unicorn Studio WebGL Canvas */
+.unicorn-canvas {
+    position: absolute;
+    top: 12.5vh; 
+    left: -2vw; 
+    width: 104vw; 
+    height: 100vh; 
+    transform: scale(1.25); 
+    z-index: 3; /* Foreground: 3D Human model */
+    pointer-events: auto; 
+    mix-blend-mode: multiply; /* Perfectly forces the hard-baked WebGL white background to become mathematically transparent! */
+}
+
+
+/* Dynamic Particle Overlay with Radial Fade */
+.hero-grid-overlay {
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    pointer-events: none;
+    z-index: 2; /* Midground: Sits ABOVE background text 1, safely BEHIND canvas model 3 */
+    
+    /* Radial Vignette/Fade-out Effect preserved on the parent container */
+    -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    
+    opacity: 1;
+    transform-origin: center;
+    transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1), opacity 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+
+#dotsCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* 3D Kinetic 'Bend' effect when user interacts with hero */
+.hero:hover .hero-grid-overlay {
+    opacity: 1;
+    /* Applies a perspective matrix to mimic the grid bowing/bending backwards */
+    transform: perspective(1200px) rotateX(2deg) rotateY(-1deg) scale(1.02);
+}
+
+.hero h1 {
+    font-size: 12vw;
+    text-transform: uppercase;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    font-weight: 900;
+}
+
+/* Projects - Gestalt Proximity & Space */
+.project {
+    padding: 8rem 6rem;   /* Generous horizontal margin, comfortable vertical breathing */
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05); /* Subtle rule separates cards (Law of Continuity) */
+}
+
+.project-bg-text {
+    position: absolute;
+    font-size: 18vw;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05); /* Light stroke for dark background */
+    color: transparent;
+    white-space: nowrap;
+    z-index: 0;
+}
+
+/* Dynamic Content Wrapper */
+.content-wrapper {
+    position: relative;
+    z-index: 2;
+    background-color: var(--bg-color);
+    padding-top: 6rem; /* Offset from hero transition */
+}
+
+.project-content {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr; /* Info narrower: image dominates (visual weight) */
+    gap: 5rem;             /* Generous gap: Law of Proximity — info and image are related but distinct */
+    align-items: center;   /* Vertically center info column beside image */
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    z-index: 2;
+}
+
+.project.reverse .project-content {
+    grid-template-columns: 1.6fr 1fr; /* Mirror for reversed layout */
+}
+
+.project.reverse .project-info {
+    order: 2;
+}
+
+.project-image-wrapper {
+    aspect-ratio: 1212 / 948; /* Match actual image proportions */
+    max-height: 70vh;         /* Cap height on tall viewports */
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: none;
+}
+
+.parallax-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.project-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0; /* Precise spacing controlled per-child below */
+}
+
+.project-info h2 {
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    margin-top: 0.5rem;    /* Tight proximity to meta label */
+    margin-bottom: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+}
+
+.project-info p.project-meta {
+    font-size: 0.8rem;      /* Subdued: supports title, doesn't compete */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-secondary);
+    margin-bottom: 0;       /* Tight to title (Gestalt proximity) */
+}
+
+.project-info p.project-desc {
+    font-size: 1.05rem;    /* Comfortable reading size */
+    line-height: 1.65;     /* Optimal readability: ~1.5–1.7x */
+    max-width: 38ch;       /* ~65 chars max: Typographic Line Length law */
+    color: var(--text-secondary);
+    margin-top: 1.25rem;   /* Clear separation from title group */
+    margin-bottom: 2rem;   /* Space before CTA (Fitts's Law: isolate action) */
+}
+
+.view-btn {
+    margin-top: 2rem;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;  /* Don't stretch in flex column */
+    width: fit-content;      /* Shrink to content width */
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--main-light);
+    border-radius: 40px; text-decoration: none; font-weight: 500;
+    transition: border-color 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.view-btn:hover { border-color: rgba(255, 255, 255, 0.5); }
+.view-btn:hover .hover-stagger .stagger-up span { transform: translateY(-100%); }
+.view-btn:hover .hover-stagger .stagger-down span { transform: translateY(-100%); }
+
+/* Arrow animations are now entirely handled by dual-arrow GSAP wipe engine in script.js */
+.view-btn .cta-arrow, 
+.nav-link .nav-arrow {
+    display: inline-block;
+}
+
+/* Footer OffBrand Style (Grid Layout restored) */
+.footer-section {
+    padding: 10rem 4rem 10rem 4rem;
+    background-color: var(--main-dark);
+    color: var(--main-light);
+    border-top: 1px solid rgba(255,255,255,0.05); /* Subtle border matching reference */
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 4rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.footer-heading {
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    font-weight: 400; /* Light/un-bolded typography as extracted from Ataero Retina reference */
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+}
+
+.footer-heading span {
+    color: var(--text-secondary); /* Text variation focus */
+}
+
+/* Specific Inline Embedded CTA Pill */
+.footer-heading .footer-pill {
+    margin-top: 0; /* Clear global view-btn margin */
+    margin-left: 1rem;
+    padding: 0.75rem 1.5rem; /* Tighter padding for text block fitting */
+    border-radius: 50px;
+    font-size: clamp(0.9rem, 2vw, 1.1rem); /* Relative scaling down so it fits smoothly in line height */
+    vertical-align: middle; 
+    transform: translateY(-0.15em); /* Nudge up optically */
+    padding-bottom: 0.85rem; /* Subtly shift text upwards inside pill */
+    letter-spacing: 0;
+}
+
+.footer-subheading {
+    margin: 2rem 0 3rem 0; 
+    font-size: 1.25rem; 
+    color: var(--text-secondary); 
+    max-width: 500px; 
+    line-height: 1.6;
+}
+
+.footer-right {
+    display: flex;
+    justify-content: flex-end; /* Align right links to the right edge */
+    gap: 6rem;
+    padding-top: 1rem;
+}
+
+.footer-links-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem; /* Balanced proximity and whitespace */
+}
+
+.footer-links-col h4 {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+}
+
+
+/* OffBrand Text Roll-up Stagger Hover */
+.hover-stagger {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    overflow: hidden;
+    line-height: 1; /* Match tight box */
+    text-decoration: none;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.hover-stagger .stagger-up, .hover-stagger .stagger-down { display: flex; }
+.hover-stagger .stagger-down { position: absolute; top: 100%; left: 0; }
+.hover-stagger span { display: inline-block; transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1); }
+/* Removed individual hover-stagger:hover rules as they are now handled by parent containers */
+
+/* Utilities */
+.reveal-text,
+.reveal-text-scroll {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+@media (max-width: 900px) {
+    .project-content,
+    .project.reverse .project-content {
+        grid-template-columns: 1fr;
+    }
+}

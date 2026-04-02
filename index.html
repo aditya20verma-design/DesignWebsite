@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfolio of Aditya Verma, an interactive experience.">
+    <title>Aditya Verma | Product Designer</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Dependencies -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <!-- Unicorn Studio WebGL -->
+    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
+</head>
+
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Entrance Loader -->
+    <div class="loader">
+        <div class="loader-text">Loading Experience...</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-left">
+            <a href="#" class="logo text-logo hover-trigger" style="display:block; text-transform:uppercase; font-size: 1.5rem;">ADITYA<br>VERMA</a>
+        </div>
+        <div class="nav-center">
+            <a href="#" class="logo wordmark-logo">
+                <svg viewBox="-5 -5 190 110" class="av-shape">
+                    <path class="av-path" fill="#ffffff" d="M 0 100 L 34 15 C 38 5, 45 0, 55 0 L 70 0 C 80 0, 85 5, 85 15 L 85 48 L 60 48 L 60 12.5 L 44.2 52 L 85 52 L 85 100 L 60 100 L 60 75 L 35 75 L 25 100 Z M 95 0 L 95 75 C 95 85, 107 100, 120 100 C 133 100, 141 85, 145 75 L 175 0 L 150 0 L 120 75 L 120 0 Z" />
+                </svg>
+            </a>
+        </div>
+        <div class="nav-right" style="display: flex; gap: 2rem; align-items: center;">
+            <a href="#work" class="nav-link"><span class="hover-stagger" style="display:inline-block; line-height: 1.2;">WORK</span></a>
+            <a href="#about" class="nav-link"><span class="hover-stagger" style="display:inline-block; line-height: 1.2;">ABOUT</span></a>
+            <a href="#contact" class="nav-link"><span class="hover-stagger" style="display:inline-block; line-height: 1.2;">CONTACT</span></a>
+        </div>
+    </nav>
+
+    <!-- Smooth Scroll Wrapper -->
+    <div class="lenis-wrapper">
+
+        <!-- Lando Norris Sticky Hero Track -->
+        <div class="hero-track">
+            
+            <div class="hero-sticky-container">
+            
+                <section class="hero hover-trigger" id="hero">
+            <!-- Dedicated Internal White Box to replicate original canvas backdrop -->
+            <div class="hero-white-box" style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;"></div>
+            
+            <!-- Unicorn Studio WebGL Background -->
+            <div class="unicorn-canvas" data-us-project="VUmB8Ym97iye9ZS9hDbi"></div>
+            
+            <!-- Dynamic Micro-Grid Overlay -->
+            <div class="hero-grid-overlay">
+                <canvas id="dotsCanvas"></canvas>
+            </div>
+            
+            <div class="scroll-down">
+                <div class="line-container"><div class="line"></div></div>
+                <span>Scroll</span>
+            </div>
+        </section>
+
+        <!-- AV Signature Overlay -->
+        <div class="signature-container">
+            <svg class="av-signature" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+                <!-- Av handwritten signature -->
+                <path id="av-path" pathLength="1000" d="
+                    M 300 250 
+                    C 150 250, 100 350, 250 320 
+                    C 400 290, 520 100, 560 50 
+                    C 470 200, 410 320, 400 350 
+                    M 180 250 
+                    C 350 240, 450 220, 500 200 
+                    C 450 280, 480 320, 540 300 
+                    C 600 280, 640 200, 650 180
+                    C 660 170, 670 170, 680 160
+                    M 710 150 
+                    L 730 140
+                    M 120 380
+                    Q 400 350, 750 320
+                " fill="none" stroke="var(--primary-color)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        </div> <!-- End Sticky Container -->
+        </div> <!-- End Hero Track -->
+
+        <!-- Dynamic Content Wrapper (Slides over Hero) -->
+        <div class="content-wrapper" id="work">
+
+        <!-- Project 1: UniShare -->
+        <section class="project hover-trigger" id="project-1">
+            <div class="project-bg-text marquee-left">UNISHARE APP</div>
+            <div class="project-content">
+                <div class="project-info">
+                    <p class="project-meta reveal-text-scroll">2023 · App Design</p>
+                    <h2 class="project-title reveal-text-scroll">UniShare</h2>
+                    <p class="project-desc reveal-text-scroll">A comprehensive platform for university students to share resources and connect.</p>
+                    <a href="https://www.behance.net/gallery/173110489/UniShare" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
+                </div>
+                <div class="project-image-wrapper">
+                    <div class="parallax-image" style="background-image: url('/Images/unishare.jpg');"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project 2: Delhi Metro -->
+        <section class="project reverse hover-trigger" id="project-2">
+            <div class="project-bg-text marquee-right">DELHI METRO</div>
+            <div class="project-content">
+                <div class="project-info">
+                    <p class="project-meta reveal-text-scroll">2024 · UI/UX Redesign</p>
+                    <h2 class="project-title reveal-text-scroll">Metro Route Finder</h2>
+                    <p class="project-desc reveal-text-scroll">Redesigning the transit companion app for better route clarity and ticketing.</p>
+                    <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
+                </div>
+                <div class="project-image-wrapper">
+                    <div class="parallax-image" style="background-image: url('/Images/dmrc.png');"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project 3: NutriBuddy -->
+        <section class="project hover-trigger" id="project-3">
+            <div class="project-bg-text marquee-left">NUTRIBUDDY</div>
+            <div class="project-content">
+                <div class="project-info">
+                    <p class="project-meta reveal-text-scroll">2023 · Health & Wellness</p>
+                    <h2 class="project-title reveal-text-scroll">Healthier food choices</h2>
+                    <p class="project-desc reveal-text-scroll">Personalized diet tracking and macro management tailored for Indian demographics.</p>
+                    <a href="https://www.behance.net/gallery/159157943/NutriBuddy-Healthier-food-choices" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
+                </div>
+                <div class="project-image-wrapper">
+                    <div class="parallax-image" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2653&auto=format&fit=crop');"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project 4: mFine -->
+        <section class="project reverse hover-trigger" id="project-4">
+            <div class="project-bg-text marquee-right">MFINE REDESIGN</div>
+            <div class="project-content">
+                <div class="project-info">
+                    <p class="project-meta reveal-text-scroll">2025 · Competitive Analysis</p>
+                    <h2 class="project-title reveal-text-scroll">mFine App Redesign</h2>
+                    <p class="project-desc reveal-text-scroll">A complete competitive teardown and UX optimization of a prominent health platform.</p>
+                    <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
+                </div>
+                <div class="project-image-wrapper">
+                    <div class="parallax-image" style="background-image: url('/Images/mfine.jpg');"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact / Footer -->
+        <footer class="footer-section" id="contact">
+            <div class="footer-grid">
+                <div class="footer-left">
+                    <h2 class="footer-heading reveal-text-scroll">
+                        GOT AN IDEA<br>
+                        OR 
+                        <a href="#" id="email-copy-btn" class="view-btn footer-pill" title="Copy Email" style="display: inline-flex; align-items: center; justify-content: center;">
+                            <span class="text-stack" style="display: inline-grid; place-items: center;">
+                                <span class="email-text" style="grid-area: 1/1; transition: opacity 0.3s ease;">
+                                    <span class="hover-stagger" style="line-height:1; font-weight:400; text-transform:none;">aditya20verma@gmail.com</span>
+                                </span>
+                                <span class="copied-text" style="grid-area: 1/1; transition: opacity 0.3s ease; opacity: 0; line-height:1; font-weight:400; text-transform:none; pointer-events: none;">Copied</span>
+                            </span>
+                            <span class="icon-stack" style="margin-left:0.5rem; display:inline-flex; align-items:center; position:relative; width:16px; height:16px; overflow:hidden;">
+                                <!-- Dual-span wipe: icon1 exits up, icon2 enters from below on hover -->
+                                <span class="copy-icon copy-icon-1" style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </span>
+                                <span class="copy-icon copy-icon-2" style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%; transform:translateY(100%);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </span>
+                                <!-- Check icons for copied state -->
+                                <span class="check-icon check-icon-1" style="position:absolute; display:none; align-items:center; justify-content:center; width:100%; height:100%;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </span>
+                            </span>
+                        </a><br>
+                        OPPORTUNITY?
+                    </h2>
+                </div>
+                <div class="footer-right">
+                    <div class="footer-links-col">
+                        <a href="https://www.linkedin.com/in/aditya20verma/" target="_blank" rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span class="hover-stagger" style="display:inline-block; line-height: 1;">LINKEDIN</span> <span class="nav-arrow">&nearr;</span></a>
+                        <a href="https://www.behance.net/aditya20vrm" target="_blank" rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span class="hover-stagger" style="display:inline-block; line-height: 1;">BEHANCE</span> <span class="nav-arrow">&nearr;</span></a>
+                    </div>
+                    <div class="footer-links-col">
+                        <a href="https://drive.google.com/file/d/1m9uWCMo32K5j0sqaknWDgNk4mHHYnSEF/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span class="hover-stagger" style="display:inline-block; line-height: 1;">DOWNLOAD RESUME</span> <span class="nav-arrow">&darr;</span></a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        </div> <!-- End of content-wrapper -->
+
+    </div>
+    
+    <!-- Robust UnicornStudio Initialization provided by user -->
+    <script type="text/javascript">!function(){var u=window.UnicornStudio;if(u&&u.init){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){u.init()})}else{u.init()}}else{window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js",i.onload=function(){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){UnicornStudio.init()})}else{UnicornStudio.init()}},(document.head||document.body).appendChild(i)}}();</script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
