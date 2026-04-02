@@ -64,6 +64,72 @@
     window.addEventListener('scroll', updateNav, { passive: true });
 })();
 
+// ── Progressive Blur Stack — Heat Bureau technique ────────────────────────
+// 8 stacked layers with increasing blur (10px at top → 0.08px at bottom)
+// Zero tint anywhere — pure progressive blur dissolve. No harsh edges.
+(function () {
+    const nav = document.querySelector('nav');
+    if (!nav) return;
+
+    const stack = document.createElement('div');
+    stack.id = 'nav-blur-stack';
+
+    // Strongest blur at top (where text is), weakest at bottom (the dissolve zone)
+    const blurLevels = [10, 5, 2.5, 1.25, 0.63, 0.31, 0.16, 0.08];
+    const n = blurLevels.length;
+    const sliceH = 100 / n; // each layer = 12.5% of nav height
+
+    blurLevels.forEach(function(blur, i) {
+        const layer = document.createElement('div');
+        const start  = i * sliceH;
+        const end    = (i + 1) * sliceH;
+        const fadeIn  = start + sliceH * 0.15;
+        const fadeOut = end   - sliceH * 0.15;
+
+        // Gradient mask: each layer is opaque in its own slice, transparent outside
+        const mask = [
+            'linear-gradient(to bottom,',
+            '  transparent '  + start.toFixed(2)   + '%,',
+            '  black '        + fadeIn.toFixed(2)  + '%,',
+            '  black '        + fadeOut.toFixed(2) + '%,',
+            '  transparent '  + end.toFixed(2)     + '%',
+            ')'
+        ].join(' ');
+
+        layer.style.cssText = [
+            'position:absolute',
+            'inset:0',
+            'backdrop-filter:blur(' + blur + 'px)',
+            '-webkit-backdrop-filter:blur(' + blur + 'px)',
+            '-webkit-mask-image:' + mask,
+            'mask-image:' + mask,
+            'pointer-events:none'
+        ].join(';');
+
+        stack.appendChild(layer);
+    });
+
+    nav.appendChild(stack);
+
+    // Toggle visibility in sync with the scrolled/at-hero class
+    const navEl = nav;
+    function syncBlurStack() {
+        if (navEl.classList.contains('scrolled')) {
+            stack.classList.add('visible');
+        } else {
+            stack.classList.remove('visible');
+        }
+    }
+
+    // Watch for class changes on nav
+    new MutationObserver(syncBlurStack).observe(navEl, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+    syncBlurStack(); // initial state
+})();
+
+
 // ── Detect touch/mobile for disabling heavy effects ───────────────────────
 const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 const isMobile = window.innerWidth <= 600;
