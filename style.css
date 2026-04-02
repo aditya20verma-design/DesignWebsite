@@ -97,26 +97,26 @@ nav {
     top: 0;
     width: 100%;
     /* Extra bottom padding gives the gradient mask room to dissolve */
-    padding: 1.75rem 3rem 3.5rem;
+    padding: 1.75rem 3rem 4.5rem;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* align to top so text stays in solid zone */
+    align-items: flex-start;
     z-index: 1000;
     color: #fff;
     background: transparent;
     border-bottom: none;
-    transition: background 0.5s ease;
+    transition: background 0.6s ease;
 
-    /* iOS-style soft dissolve: opaque at top, fades to transparent at bottom */
-    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    /* Longer, smoother iOS dissolve — solid top 40%, fades gently to transparent */
+    -webkit-mask-image: linear-gradient(to bottom, black 38%, transparent 88%);
+    mask-image: linear-gradient(to bottom, black 38%, transparent 88%);
 }
 
 /* Frosted glass once past the hero */
 nav.scrolled {
-    background: rgba(18, 18, 18, 0.80);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    background: rgba(18, 18, 18, 0.90);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
     border-bottom: none;
 }
 
