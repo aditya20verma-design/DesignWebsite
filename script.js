@@ -40,6 +40,30 @@
     });
 })();
 
+// ── Scroll-aware Nav State (transparent hero → frosted glass) ─────────────
+(function () {
+    const nav = document.querySelector('nav');
+    if (!nav) return;
+
+    function updateNav() {
+        const heroHeight = window.innerHeight; // hero is 100vh
+        const scrollY = window.scrollY;
+
+        if (scrollY < heroHeight * 0.6) {
+            // Over the light hero — go transparent with dark text
+            nav.classList.add('at-hero');
+            nav.classList.remove('scrolled');
+        } else {
+            // Past hero — frosted glass on dark background
+            nav.classList.remove('at-hero');
+            nav.classList.add('scrolled');
+        }
+    }
+
+    updateNav(); // run on load
+    window.addEventListener('scroll', updateNav, { passive: true });
+})();
+
 // ── Detect touch/mobile for disabling heavy effects ───────────────────────
 const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 const isMobile = window.innerWidth <= 600;
