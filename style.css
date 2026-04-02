@@ -111,13 +111,15 @@ nav {
     justify-content: space-between;
     align-items: flex-start;
     z-index: 1000;
-    color: #fff;
+    /* Warm off-white matching the site's main light palette */
+    color: #E5E4E0;
     /* Container itself has no background or blur */
     background: transparent !important;
     border: none;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    transition: color 0.6s ease;
+    /* Smooth premium colour shift across all states */
+    transition: color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 
@@ -159,11 +161,7 @@ nav.scrolled::before {
     opacity: 1;
 }
 
-/* Over the light hero — fully see-through, dark text */
-nav.at-hero {
-    color: #1d1d1d;
-}
-
+/* Over the light hero — fully see-through (blur hidden by JS stack) */
 nav.at-hero::before {
     background: transparent;
     backdrop-filter: none;
@@ -172,12 +170,19 @@ nav.at-hero::before {
     mask-image: none;
 }
 
-nav.at-hero .av-path {
-    fill: #1d1d1d;
+/* ── Smart colour sensing — set by JS elementsFromPoint ─ */
+/* Default: white text on dark bg (most of the site is dark) */
+nav {
+    color: #fff;
 }
 
-nav.at-hero .hamburger span {
-    background: #1d1d1d;
+/* Light background detected — switch to subtle dark grey */
+nav.nav-on-light {
+    color: rgba(20, 20, 20, 0.75);
+}
+
+nav.nav-on-light .hamburger span {
+    background: var(--main-dark);
 }
 
 .nav-center {
@@ -213,9 +218,11 @@ nav.at-hero .hamburger span {
 }
 
 .av-path {
-    fill: #ffffff;
+    /* currentColor = inherits from nav's text color, changes with nav-on-light */
+    fill: currentColor !important;
     stroke: none;
     stroke-linejoin: miter;
+    transition: fill 0.4s ease;
 }
 
 /* Nav Links */
@@ -229,7 +236,7 @@ nav.at-hero .hamburger span {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: var(--main-light);
+    color: inherit; /* inherits from nav — changes with nav-on-light automatically */
     text-decoration: none;
     font-size: clamp(0.75rem, 1.2vw, 1rem);
     font-weight: 400;
@@ -244,7 +251,10 @@ nav.at-hero .hamburger span {
     position: absolute;
     bottom: 0; left: 0;
     width: 100%; height: 1px;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: currentColor;
+    opacity: 0.2;
+    /* Smoothly transitions when nav colour flips */
+    transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-link::after {
@@ -252,10 +262,12 @@ nav.at-hero .hamburger span {
     position: absolute;
     bottom: 0; left: 0;
     width: 100%; height: 1px;
-    background-color: #fff;
+    background-color: currentColor;
     transform: scaleX(0);
     transform-origin: right;
-    transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+    /* Dual transition: hover slide + colour flip */
+    transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1),
+                background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-link:hover::after {
@@ -285,9 +297,11 @@ nav.at-hero .hamburger span {
     display: block;
     width: 100%;
     height: 1.5px;
-    background: #fff;
+    /* Matches nav text colour */
+    background: #E5E4E0;
     transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1),
-                opacity 0.35s cubic-bezier(0.2, 0, 0, 1);
+                opacity 0.35s cubic-bezier(0.2, 0, 0, 1),
+                background 0.65s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: center;
 }
 

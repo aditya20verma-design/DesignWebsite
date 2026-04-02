@@ -64,9 +64,9 @@
     window.addEventListener('scroll', updateNav, { passive: true });
 })();
 
-// ── Progressive Blur Stack — Heat Bureau technique ────────────────────────
-// 8 stacked layers with increasing blur (10px at top → 0.08px at bottom)
-// Zero tint anywhere — pure progressive blur dissolve. No harsh edges.
+// ── Progressive Blur Stack — exact Heat Bureau values ────────────────────
+// Source: computed CSS extracted directly from heatbureau.com/about
+// 8 layers, each doubles the blur. 'to top' = bottom is dissolve, top is glass.
 (function () {
     const nav = document.querySelector('nav');
     if (!nav) return;
@@ -74,27 +74,27 @@
     const stack = document.createElement('div');
     stack.id = 'nav-blur-stack';
 
-    // Strongest blur at top (where text is), weakest at bottom (the dissolve zone)
-    const blurLevels = [10, 5, 2.5, 1.25, 0.63, 0.31, 0.16, 0.08];
-    const n = blurLevels.length;
-    const sliceH = 100 / n; // each layer = 12.5% of nav height
+    // Exact blur values from heatbureau — each doubles (0.078125 × 2^n → 10)
+    const blurLevels = [0.078125, 0.15625, 0.3125, 0.625, 1.25, 2.5, 5, 10];
+    const n     = blurLevels.length; // 8
+    const slice = 100 / n;           // 12.5% per slice
 
-    blurLevels.forEach(function(blur, i) {
+    blurLevels.forEach(function (blur, i) {
         const layer = document.createElement('div');
-        const start  = i * sliceH;
-        const end    = (i + 1) * sliceH;
-        const fadeIn  = start + sliceH * 0.15;
-        const fadeOut = end   - sliceH * 0.15;
 
-        // Gradient mask: each layer is opaque in its own slice, transparent outside
-        const mask = [
-            'linear-gradient(to bottom,',
-            '  transparent '  + start.toFixed(2)   + '%,',
-            '  black '        + fadeIn.toFixed(2)  + '%,',
-            '  black '        + fadeOut.toFixed(2) + '%,',
-            '  transparent '  + end.toFixed(2)     + '%',
-            ')'
-        ].join(' ');
+        // Exact heatbureau mask pattern (direction: to top)
+        // Each layer: transparent → opaque → transparent, spanning 3 slices (37.5%)
+        // Adjacent layers share their fade zones → seamless, no gaps
+        const t0 = (i * slice).toFixed(4);           // fade starts
+        const t1 = ((i + 1) * slice).toFixed(4);     // fully opaque start
+        const t2 = ((i + 2) * slice).toFixed(4);     // fully opaque end
+        const t3 = ((i + 3) * slice).toFixed(4);     // fade ends
+
+        const mask = 'linear-gradient(to top,'
+            + ' rgba(0,0,0,0) '  + t0 + '%,'
+            + ' rgb(0,0,0) '     + t1 + '%,'
+            + ' rgb(0,0,0) '     + t2 + '%,'
+            + ' rgba(0,0,0,0) '  + t3 + '%)';
 
         layer.style.cssText = [
             'position:absolute',
@@ -111,22 +111,232 @@
 
     nav.appendChild(stack);
 
-    // Toggle visibility in sync with the scrolled/at-hero class
-    const navEl = nav;
-    function syncBlurStack() {
-        if (navEl.classList.contains('scrolled')) {
+    // Show/hide in sync with scrolled class
+    function syncBlurStack () {
+        if (nav.classList.contains('scrolled')) {
             stack.classList.add('visible');
         } else {
             stack.classList.remove('visible');
         }
     }
 
-    // Watch for class changes on nav
-    new MutationObserver(syncBlurStack).observe(navEl, {
-        attributes: true,
-        attributeFilter: ['class']
+    new MutationObserver(syncBlurStack).observe(nav, {
+        attributes: true, attributeFilter: ['class']
     });
-    syncBlurStack(); // initial state
+    syncBlurStack();
+})();
+
+// ── Smart Nav Colour Sensing ───────────────────────────────────────────────
+// Reads the luminance of whatever is behind the nav at runtime.
+// Adds .nav-on-light when over a light section → text flips dark.
+// Works with ANY section colour, not just the hero.
+(function () {
+    const nav = document.querySelector('nav');
+    if (!nav) return;
+
+    let rafId = null;
+
+    // Walk up the DOM tree to find the first element with a non-transparent background
+    function getEffectiveBg(el) {
+        let node = el;
+        while (node && node !== document.documentElement) {
+            const bg = window.getComputedStyle(node).backgroundColor;
+            if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
+            node = node.parentElement;
+        }
+        return window.getComputedStyle(document.body).backgroundColor;
+    }
+
+    // Perceived luminance (0-255)
+    function luminance(r, g, b) {
+        return 0.299 * r + 0.587 * g + 0.114 * b;
+    }
+
+    function senseBackground() {
+        const navH   = nav.offsetHeight;
+        const sampleY = navH * 0.35; // sample near nav top — where text lives
+
+        // Three horizontal sample points: left, centre, right
+        const xs = [
+            window.innerWidth * 0.08,
+            window.innerWidth * 0.50,
+            window.innerWidth * 0.92
+        ];
+
+        let totalLum = 0;
+        let count    = 0;
+
+        xs.forEach(function (x) {
+            // elementsFromPoint returns ALL elements at that point (z-sorted)
+            const stack = document.elementsFromPoint(x, sampleY);
+            for (let i = 0; i < stack.length; i++) {
+                // Skip the nav itself and its descendants
+                if (!nav.contains(stack[i]) && stack[i] !== nav) {
+                    const bg = getEffectiveBg(stack[i]);
+                    const m  = bg.match(/\d+/g);
+                    if (m && m.length >= 3) {
+                        totalLum += luminance(+m[0], +m[1], +m[2]);
+                        count++;
+                    }
+                    break;
+                }
+            }
+        });
+
+        const avgLum = count > 0 ? totalLum / count : 0;
+
+        // Threshold at 140 — gives comfortable headroom for off-white and light-grey
+        if (avgLum > 140) {
+            nav.classList.add('nav-on-light');
+        } else {
+            nav.classList.remove('nav-on-light');
+        }
+
+        rafId = null;
+    }
+
+    function onScroll() {
+        if (!rafId) rafId = requestAnimationFrame(senseBackground);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    // Also re-sense after fonts/images load in case layout shifts
+    window.addEventListener('load', senseBackground);
+    senseBackground(); // run immediately on page load
+})();
+
+
+// ── Footer Headline Per-Letter Cursor Repel ────────────────────────────────
+// Mirrors gabrielveres.com technique: div.word wrappers prevent space collapse,
+// div.char inside each word handles the per-letter repel transform.
+// Values calibrated to match the reference: 200px radius, 25px max push.
+(function () {
+    var heading = document.querySelector('.footer-heading');
+    if (!heading || window.matchMedia('(hover: none)').matches) return;
+
+    var RADIUS  = 200;   // px — influence zone (matches reference ~200px)
+    var MAX_PX  = 25;    // px — max displacement (reference is ~20-30px)
+    var SLACK   = 250;   // extra px for coarse bounding-box early-exit
+
+    // ── 1. Build word-aware char split ────────────────────────────────────────
+    // Strategy: split text by words → wrap each word in an inline-block span
+    // (keeps chars tight) → put plain text-node " " between word spans
+    // → only letter spans get data-repel + inline-block
+    function wordSplit(text) {
+        var frag  = document.createDocumentFragment();
+        var words = text.split(' ');
+        words.forEach(function (word, wi) {
+            if (word.length === 0) {
+                // Handle multiple consecutive spaces (rare but safe)
+                frag.appendChild(document.createTextNode(' '));
+                return;
+            }
+            // Word wrapper: inline-block + nowrap keeps letters from wrapping mid-word
+            var wordEl = document.createElement('span');
+            wordEl.style.cssText = 'display:inline-block;white-space:nowrap;';
+
+            Array.from(word).forEach(function (ch) {
+                var s = document.createElement('span');
+                s.textContent = ch;
+                s.dataset.repel = '';
+                s.style.cssText = 'display:inline-block;will-change:transform;vertical-align:baseline;';
+                wordEl.appendChild(s);
+            });
+
+            frag.appendChild(wordEl);
+            // Natural text-node space between words — renders exactly as original
+            if (wi < words.length - 1) {
+                frag.appendChild(document.createTextNode(' '));
+            }
+        });
+        return frag;
+    }
+
+    // Walk DOM: split TEXT NODES only — skip the email button and <br> tags
+    (function walk(node) {
+        Array.from(node.childNodes).forEach(function (kid) {
+            if (kid.nodeType === Node.ELEMENT_NODE) {
+                if (kid.id !== 'email-copy-btn' && kid.tagName !== 'BR') {
+                    walk(kid);
+                }
+            } else if (kid.nodeType === Node.TEXT_NODE && kid.textContent.trim()) {
+                kid.parentNode.replaceChild(wordSplit(kid.textContent), kid);
+            }
+        });
+    }(heading));
+
+    // ── 2. Build quickTo proxies — one per axis, per character ────────────────
+    // IMPORTANT: single quickTo per axis. No gsap.to calls anywhere in the loop.
+    // Dual-animation (quickTo + gsap.to) causes tween conflicts → letters freeze.
+    // We use TWO quickTo instances per axis: fast for push, slow for return.
+    var chars = Array.from(heading.querySelectorAll('[data-repel]'));
+    if (!chars.length) return;
+
+    var proxies = chars.map(function (el) {
+        return {
+            el:       el,
+            // Fast snap away from cursor (expo.out)
+            pushX:    gsap.quickTo(el, 'x', { duration: 0.35, ease: 'expo.out',   overwrite: true }),
+            pushY:    gsap.quickTo(el, 'y', { duration: 0.35, ease: 'expo.out',   overwrite: true }),
+            // Slow floaty drift back to origin (power2.out — decelerates like settling)
+            returnX:  gsap.quickTo(el, 'x', { duration: 0.75, ease: 'power2.out', overwrite: true }),
+            returnY:  gsap.quickTo(el, 'y', { duration: 0.75, ease: 'power2.out', overwrite: true }),
+            inRange:  false
+        };
+    });
+
+    // ── 3. Cursor tracking + cached bounding rect ─────────────────────────────
+    var mx = -9999, my = -9999;
+    var hRect = heading.getBoundingClientRect();
+
+    window.addEventListener('mousemove', function (e) {
+        mx = e.clientX;
+        my = e.clientY;
+    }, { passive: true });
+
+    function refreshRect() { hRect = heading.getBoundingClientRect(); }
+    window.addEventListener('scroll', refreshRect, { passive: true });
+    window.addEventListener('resize', refreshRect);
+
+    // ── 4. GSAP ticker — continuous, no competing tweens ──────────────────────
+    gsap.ticker.add(function () {
+        // Coarse bounding-box exit — zero cost when cursor is far from footer
+        if (mx < hRect.left   - SLACK || mx > hRect.right  + SLACK ||
+            my < hRect.top    - SLACK || my > hRect.bottom + SLACK) {
+            // Cursor left the whole zone — smoothly return any pushed letters
+            proxies.forEach(function (p) {
+                if (p.inRange) {
+                    p.returnX(0);
+                    p.returnY(0);
+                    p.inRange = false;
+                }
+            });
+            return;
+        }
+
+        proxies.forEach(function (p) {
+            var r  = p.el.getBoundingClientRect();
+            var cx = r.left + r.width  * 0.5;
+            var cy = r.top  + r.height * 0.5;
+            var dx = cx - mx;
+            var dy = cy - my;
+            var d  = Math.sqrt(dx * dx + dy * dy);
+
+            if (d < RADIUS && d > 0) {
+                // In range — fast expo push away
+                var f = (1 - d / RADIUS) * (1 - d / RADIUS);
+                p.pushX((dx / d) * f * MAX_PX);
+                p.pushY((dy / d) * f * MAX_PX);
+                p.inRange = true;
+            } else if (p.inRange) {
+                // Just left range — slow power2 drift back (no competing tween)
+                p.returnX(0);
+                p.returnY(0);
+                p.inRange = false;
+            }
+            // else: never been in range — do nothing (no redundant calls)
+        });
+    });
 })();
 
 
