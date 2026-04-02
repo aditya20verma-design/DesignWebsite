@@ -135,17 +135,16 @@ nav::before {
     transition: background 0.6s ease, backdrop-filter 0.6s ease;
 }
 
-/* Scrolled state: very subtle tint, strong blur, smooth mask fade at the bottom */
+/* Scrolled state — whisper-thin tint, pure blur, ultra-smooth dissolve edge */
 nav.scrolled::before {
-    /* Almost no tint! Just pure glass feeling (down from 0.50 to 0.20) */
-    background: rgba(18, 18, 18, 0.20);
-    /* Bumped blur and saturation slightly to compensate for the lower tint opacity */
-    backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
-    -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+    /* Near-invisible tint — let the blur do all the work */
+    background: rgba(18, 18, 18, 0.08);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
     
-    /* Smooth curve fade: Opaque top, gently easing into transparency */
-    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 25%, rgba(0,0,0,0.6) 60%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 0%, black 25%, rgba(0,0,0,0.6) 60%, transparent 100%);
+    /* Very gentle dissolved edge — barely perceptible, like iOS material */
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 30%, rgba(0,0,0,0.4) 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 30%, rgba(0,0,0,0.4) 70%, transparent 100%);
 }
 
 /* Over the light hero — fully see-through, dark text */
@@ -689,9 +688,12 @@ nav.at-hero .hamburger span {
 /* ── Tablet (≤ 900px) ───────────────────────────────────── */
 @media (max-width: 900px) {
 
-    /* Nav */
+    /* Nav — preserve safe-area-inset so notch stays respected */
     nav {
-        padding: 1.5rem 2rem;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+        padding-left:  calc(env(safe-area-inset-left, 0px)  + 2rem);
+        padding-right: calc(env(safe-area-inset-right, 0px) + 2rem);
+        padding-bottom: 4rem;
     }
 
     .nav-right {
@@ -739,14 +741,17 @@ nav.at-hero .hamburger span {
 /* ── Mobile (≤ 600px) ───────────────────────────────────── */
 @media (max-width: 600px) {
 
-    /* Nav */
+    /* Nav — keep safe-area-inset on mobile so text clears Dynamic Island/notch */
     nav {
-        padding: 1.25rem 1.25rem;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+        padding-left:  calc(env(safe-area-inset-left, 0px)  + 1.25rem);
+        padding-right: calc(env(safe-area-inset-right, 0px) + 1.25rem);
+        padding-bottom: 3.5rem;
     }
 
     /* Hero: disable scale shrink animation on small screens */
     .hero-track {
-        height: 100vh; /* Remove extra scroll room — effect is pinned not useful on mobile */
+        height: 100vh;
     }
 
     .hero-sticky-container {
@@ -759,9 +764,19 @@ nav.at-hero .hamburger span {
         width: 95vw;
     }
 
-    /* Projects */
+    /* Projects: full-bleed sections — no horizontal padding on the section itself.
+       Inner .project-content keeps its padding so text is indented,
+       but backgrounds and large decorative type go fully edge-to-edge */
     .project {
-        padding: 3rem 1.25rem;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .project-content {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
     }
 
     .project-bg-text {
