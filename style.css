@@ -96,37 +96,46 @@ nav {
     position: fixed;
     top: 0;
     width: 100%;
-    /* Extra bottom padding gives the gradient mask room to dissolve */
-    padding: 1.75rem 3rem 4.5rem;
+    /* Taller nav so the gradient blur zone has room to breathe */
+    padding: 1.75rem 3rem 4rem;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     z-index: 1000;
     color: #fff;
     background: transparent;
-    border-bottom: none;
+    border: none;
+    /* NO mask-image — blur must flow through freely */
     transition: background 0.6s ease;
-
-    /* Longer, smoother iOS dissolve — solid top 40%, fades gently to transparent */
-    -webkit-mask-image: linear-gradient(to bottom, black 38%, transparent 88%);
-    mask-image: linear-gradient(to bottom, black 38%, transparent 88%);
 }
 
-/* Frosted glass once past the hero */
+/* Frosted glass once scrolled past the hero */
 nav.scrolled {
-    background: rgba(18, 18, 18, 0.90);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border-bottom: none;
+    /*
+     * Apple's real trick:
+     * — backdrop-filter (blur) applies uniformly to the ENTIRE nav box
+     * — background is a gradient so the dark tint fades top → transparent
+     * — where tint is 0%, you see the blur with zero darkening = pure glass
+     */
+    background: linear-gradient(
+        to bottom,
+        rgba(20, 20, 20, 0.78) 0%,    /* Solid dark glass at the very top */
+        rgba(20, 20, 20, 0.50) 45%,   /* Mid transition */
+        rgba(20, 20, 20, 0.15) 72%,   /* Nearly clear — blur only */
+        rgba(20, 20, 20, 0.00) 100%   /* Fully transparent — pure blur zone */
+    );
+    backdrop-filter: blur(40px) saturate(180%) brightness(0.96);
+    -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(0.96);
+    border: none;
 }
 
-/* Over the light hero — transparent, dark text */
+/* Over the light hero — fully see-through, dark text */
 nav.at-hero {
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     color: #1d1d1d;
-    /* No mask needed — it's fully transparent anyway */
+    /* Ensure no mask from inherited state */
     -webkit-mask-image: none;
     mask-image: none;
 }
