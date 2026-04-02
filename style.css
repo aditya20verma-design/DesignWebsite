@@ -376,7 +376,7 @@ nav.nav-on-light .hamburger span {
 
 /* ── Hero Track & Sticky Hero ───────────────────────────── */
 .hero-track {
-    height: 150vh;
+    height: 200vh;  /* 2× viewport — gives 100vh of sticky+animation travel before hero rises */
     position: relative;
     z-index: 1;
 }
@@ -775,13 +775,14 @@ nav.nav-on-light .hamburger span {
         padding-bottom: 3.5rem;
     }
 
-    /* Hero: disable scale shrink animation on small screens */
+    /* Hero: keep 200vh track (same as desktop) — gives 100vh sticky travel for animation */
     .hero-track {
-        height: 100vh;
+        height: 200vh;
     }
 
+    /* Keep sticky so the hero pins while the card-collapse animates */
     .hero-sticky-container {
-        position: relative;
+        position: sticky;
         height: 100vh;
     }
 

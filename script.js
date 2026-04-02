@@ -346,14 +346,20 @@ const isMobile = window.innerWidth <= 600;
 
 // Register GSAP ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
+// On touch/mobile: normalise scroll so iOS Safari batched events fire correctly for scrub
+// (only safe when Lenis is NOT active — they conflict)
+if (isTouchDevice) { ScrollTrigger.normalizeScroll(true); }
 
-// 1. Initialize Lenis Smooth Scroll
-const lenis = new Lenis({
-    duration: 0.8, // M3 tuning: faster, less floaty scroll
+// 1. Initialize Lenis Smooth Scroll (desktop/mouse only)
+// On touch devices, Lenis intercepts touchmove and creates a virtual scroll position
+// that desynchronises from GSAP ScrollTrigger's scrub — animations never fire.
+// Native scroll drives ScrollTrigger perfectly on its own for touch devices.
+const lenis = !isTouchDevice ? new Lenis({
+    duration: 0.8,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smooth: true,
     mouseMultiplier: 1,
-});
+}) : null;
 
 // Initial AV Logo Reveal (Single Wipe Masking)
 gsap.set('.av-shape', { clipPath: "inset(100% 0% 0% 0%)" });
@@ -365,60 +371,97 @@ gsap.to('.av-shape', {
     ease: "power2.inOut"
 });
 
-// Landonorris Scale & Signature Reveal Effect — desktop only
-if (!isMobile) {
-let isLogoHidden = false;
-let tl = gsap.timeline({
-    scrollTrigger: {
-        trigger: ".hero-track",
-        start: "top top", /* Starts instantly when scrolling down from top */
-        end: "bottom bottom", /* Finishes when track completes */
-        scrub: 1, // Add a bit of smoothing (1 sec delay) to the scrub for premium feel
-        onUpdate: (self) => {
-            const p = self.progress;
-            // Hide the logo while actively traversing the scale gap
-            if (p > 0.05 && p < 0.95) {
-                if (!isLogoHidden) {
-                    gsap.to('.av-shape', { clipPath: "inset(0% 0% 100% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" });
-                    isLogoHidden = true;
-                }
-            } else {
-                // Return the logo beautifully when scroll is at rest (either top or fully bottom)
-                if (isLogoHidden) {
-                    gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
-                    isLogoHidden = false;
+// ── Hero Scale & Signature Reveal — desktop + mobile via matchMedia ──────
+// Desktop: dramatic horizontal collapse (Lando Norris style)
+// Mobile:  card-style scale-down with rounded corners (same feel, portrait-safe)
+let mm = gsap.matchMedia();
+
+mm.add("(min-width: 601px)", () => {
+    let isLogoHidden = false;
+    let tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: ".hero-track",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1,
+            onUpdate: (self) => {
+                const p = self.progress;
+                if (p > 0.05 && p < 0.95) {
+                    if (!isLogoHidden) {
+                        gsap.to('.av-shape', { clipPath: "inset(0% 0% 100% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" });
+                        isLogoHidden = true;
+                    }
+                } else {
+                    if (isLogoHidden) {
+                        gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
+                        isLogoHidden = false;
+                    }
                 }
             }
         }
-    }
+    });
+
+    gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)" });
+
+    tl.to('.hero', {
+        scale: 0.35,
+        clipPath: "inset(0vh calc(50vw - 80vh) 0vh calc(50vw - 80vh) round 0px)",
+        opacity: 0.35,
+        ease: "power2.inOut"
+    }, 0);
+
+    tl.to('.unicorn-canvas', {
+        scale: 1.6,
+        yPercent: 10,
+        ease: "power2.inOut"
+    }, 0);
+
+    tl.to('.signature-container', {
+        scale: 0.6,
+        ease: "power2.inOut"
+    }, 0);
+
+    tl.to('.av-signature path', {
+        strokeDashoffset: 0,
+        ease: "power2.inOut"
+    }, 0);
 });
 
-gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)" });
+mm.add("(max-width: 600px)", () => {
+    // Mobile: same pin-then-rise pattern as Lando Norris — just scale + opacity, no clipPath rounding
+    // With 200vh track: 100vh of sticky animation travel, then hero rises naturally
+    let tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: ".hero-track",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.8,
+        }
+    });
 
-tl.to('.hero', {
-    scale: 0.35, /* Container shrinks significantly down to form an elegant wide block */
-    clipPath: "inset(0vh calc(50vw - 80vh) 0vh calc(50vw - 80vh) round 0px)", /* Perfect Horizontal Golden Ratio (1.6x width, 1x height) */
-    opacity: 0.35, /* Reduce transparency */
-    ease: "power2.inOut"
-}, 0);
+    // NO clipPath on mobile — Lando Norris uses sharp edges, rounding feels out of place
+    tl.to('.hero', {
+        scale: 0.82,
+        opacity: 0.55,
+        ease: "power2.inOut"
+    }, 0);
 
-tl.to('.unicorn-canvas', {
-    scale: 1.6, /* Moderate parallax counter-scale */
-    yPercent: 10, /* Slight downward crop during scroll */
-    ease: "power2.inOut"
-}, 0);
+    tl.to('.unicorn-canvas', {
+        scale: 1.3,
+        yPercent: 5,
+        ease: "power2.inOut"
+    }, 0);
 
-tl.to('.signature-container', {
-    scale: 0.6, /* Makes it significantly smaller in the end state */
-    ease: "power2.inOut"
-}, 0);
+    tl.to('.signature-container', {
+        scale: 0.75,
+        ease: "power2.inOut"
+    }, 0);
 
-tl.to('.av-signature path', {
-    strokeDashoffset: 0, /* Draws the signature path fully */
-    ease: "power2.inOut"
-}, 0);
-
-} // end !isMobile
+    tl.to('.av-signature path', {
+        strokeDashoffset: 0,
+        ease: "power2.inOut"
+    }, 0);
+});
 
 // Hide persistent AV logo when entering content section
 ScrollTrigger.create({
@@ -428,17 +471,14 @@ ScrollTrigger.create({
     onLeaveBack: () => gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" })
 });
 
-function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
+// Drive Lenis via GSAP ticker (desktop only — null on touch devices)
+if (lenis) {
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => {
+        lenis.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0, 0);
 }
-requestAnimationFrame(raf);
-
-lenis.on('scroll', ScrollTrigger.update);
-gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-});
-gsap.ticker.lagSmoothing(0, 0);
 
 // Shared mouse coordinates (used by cursor + particle system)
 let mouseX = 0; let mouseY = 0;
@@ -506,7 +546,7 @@ tlLoader.fromTo('.loader-text',
         { y: 0, opacity: 1, duration: 0.8, ease: "expo.out" } // M3 Emphasized
     )
     .to('.loader-text', { y: -50, opacity: 0, duration: 0.5, ease: "power4.in", delay: 0.3 })
-    .to('.loader', { yPercent: -100, duration: 0.6, ease: "power2.inOut", onComplete: () => lenis.start() }) // M3 Long 4
+    .to('.loader', { yPercent: -100, duration: 0.6, ease: "power2.inOut", onComplete: () => { if (lenis) lenis.start(); } }) // M3 Long 4
     .fromTo('.reveal-text', 
         { y: 100, opacity: 0 }, 
         { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: "expo.out" }, // Fast staggers
@@ -823,19 +863,20 @@ document.querySelectorAll('nav a[href^="#"]').forEach(link => {
         
         if (targetId === '#') {
             // Scroll to top
-            lenis.scrollTo(0, {
-                duration: 1.2,
-                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-            });
+            if (lenis) {
+                lenis.scrollTo(0, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         } else {
             // Scroll to target section
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                lenis.scrollTo(targetElement, {
-                    duration: 1.2,
-                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-                    offset: 0
-                });
+                if (lenis) {
+                    lenis.scrollTo(targetElement, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), offset: 0 });
+                } else {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
             }
         }
     });
