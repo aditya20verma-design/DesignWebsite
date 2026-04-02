@@ -30,10 +30,17 @@
         <div class="loader-text">Loading Experience...</div>
     </div>
 
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-nav">
+        <a href="#work"    class="nav-link" id="m-work"><span class="hover-stagger">WORK</span></a>
+        <a href="#about"   class="nav-link" id="m-about"><span class="hover-stagger">ABOUT</span></a>
+        <a href="#contact" class="nav-link" id="m-contact"><span class="hover-stagger">CONTACT</span></a>
+    </div>
+
     <!-- Navigation -->
     <nav>
         <div class="nav-left">
-            <a href="#" class="logo text-logo hover-trigger" style="display:block; text-transform:uppercase; font-size: 1.5rem;">ADITYA<br>VERMA</a>
+            <a href="#" class="logo text-logo hover-trigger">ADITYA<br>VERMA</a>
         </div>
         <div class="nav-center">
             <a href="#" class="logo wordmark-logo">
@@ -42,11 +49,15 @@
                 </svg>
             </a>
         </div>
-        <div class="nav-right" style="display: flex; gap: 2rem; align-items: center;">
-            <a href="#work" class="nav-link"><span class="hover-stagger" style="display:inline-block; line-height: 1.2;">WORK</span></a>
-            <a href="#about" class="nav-link"><span class="hover-stagger" style="display:inline-block; line-height: 1.2;">ABOUT</span></a>
-            <a href="#contact" class="nav-link"><span class="hover-stagger" style="display:inline-block; line-height: 1.2;">CONTACT</span></a>
+        <div class="nav-right">
+            <a href="#work"    class="nav-link"><span class="hover-stagger">WORK</span></a>
+            <a href="#about"   class="nav-link"><span class="hover-stagger">ABOUT</span></a>
+            <a href="#contact" class="nav-link"><span class="hover-stagger">CONTACT</span></a>
         </div>
+        <!-- Hamburger (mobile only) -->
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
     </nav>
 
     <!-- Smooth Scroll Wrapper -->
@@ -114,7 +125,7 @@
                     <a href="https://www.behance.net/gallery/173110489/UniShare" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('/Images/unishare.jpg');"></div>
+                    <div class="parallax-image" style="background-image: url('Images/unishare.jpg');"></div>
                 </div>
             </div>
         </section>
@@ -130,7 +141,7 @@
                     <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('/Images/dmrc.png');"></div>
+                    <div class="parallax-image" style="background-image: url('Images/dmrc.png');"></div>
                 </div>
             </div>
         </section>
@@ -162,7 +173,7 @@
                     <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('/Images/mfine.jpg');"></div>
+                    <div class="parallax-image" style="background-image: url('Images/mfine.jpg');"></div>
                 </div>
             </div>
         </section>

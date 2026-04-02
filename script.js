@@ -1,3 +1,49 @@
+// ── Hamburger / Mobile Nav ────────────────────────────────────────────────
+(function () {
+    const hamburger   = document.getElementById('hamburger');
+    const mobileNav   = document.getElementById('mobile-nav');
+    const mobileLinks = mobileNav ? mobileNav.querySelectorAll('a') : [];
+
+    function openMenu() {
+        hamburger.classList.add('open');
+        hamburger.setAttribute('aria-expanded', 'true');
+        mobileNav.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    if (hamburger) {
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.contains('open') ? closeMenu() : openMenu();
+        });
+    }
+
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            closeMenu();
+            const targetId = link.getAttribute('href');
+            if (targetId && targetId.startsWith('#') && targetId !== '#') {
+                const target = document.querySelector(targetId);
+                if (target) {
+                    setTimeout(() => {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }, 350); // wait for overlay to close
+                }
+            }
+        });
+    });
+})();
+
+// ── Detect touch/mobile for disabling heavy effects ───────────────────────
+const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+const isMobile = window.innerWidth <= 600;
+
 // Register GSAP ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
 
@@ -19,7 +65,8 @@ gsap.to('.av-shape', {
     ease: "power2.inOut"
 });
 
-// Landonorris Scale & Signature Reveal Effect
+// Landonorris Scale & Signature Reveal Effect — desktop only
+if (!isMobile) {
 let isLogoHidden = false;
 let tl = gsap.timeline({
     scrollTrigger: {
@@ -71,6 +118,8 @@ tl.to('.av-signature path', {
     ease: "power2.inOut"
 }, 0);
 
+} // end !isMobile
+
 // Hide persistent AV logo when entering content section
 ScrollTrigger.create({
     trigger: ".content-wrapper",
@@ -91,12 +140,15 @@ gsap.ticker.add((time) => {
 });
 gsap.ticker.lagSmoothing(0, 0);
 
-// 2. Custom Cursor Implementation
+// Shared mouse coordinates (used by cursor + particle system)
+let mouseX = 0; let mouseY = 0;
+
+// 2. Custom Cursor Implementation (desktop only)
+if (!isTouchDevice) {
 const cursorDot = document.querySelector('.cursor-dot');
 const cursorOutline = document.querySelector('.cursor-outline');
 const hoverTriggers = document.querySelectorAll('.hover-trigger, .view-btn, a, .magnetic');
 
-let mouseX = 0; let mouseY = 0;
 let outlineX = 0; let outlineY = 0;
 
 window.addEventListener('mousemove', (e) => {
@@ -120,6 +172,7 @@ hoverTriggers.forEach(el => {
     el.addEventListener('mouseenter', () => cursorOutline.classList.add('hover-state'));
     el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hover-state'));
 });
+} // end !isTouchDevice
 
 // 3. Magnetic UI Elements (M3 Physics - No Elastic)
 const magneticElements = document.querySelectorAll('.magnetic');
