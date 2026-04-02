@@ -1,4 +1,39 @@
+// ══════════════════════════════════════════════════════════════════════════════
+// ASSET CONFIG — swap any asset by updating this block only.
+// Animations and layout are decoupled from these paths/IDs.
+// Full config with import syntax: assets/config.js
+// ══════════════════════════════════════════════════════════════════════════════
+const ASSETS = {
+    hero: {
+        unicornProjectId: 'VUmB8Ym97iye9ZS9hDbi', // ← swap WebGL visual here
+    },
+    work: {
+        images: {
+            unishare:  'assets/work/images/unishare.jpg',
+            dmrc:      'assets/work/images/dmrc.png',
+            mfine:     'assets/work/images/mfine.jpg',
+        },
+        thumbnails: {
+            project1:  'assets/work/thumbnails/project1.png',
+            project2:  'assets/work/thumbnails/project2.png',
+            project3:  'assets/work/thumbnails/project3.png',
+        },
+    },
+    about:  {},  // add portrait, resume PDF, etc. when built
+    footer: {},  // add footer icons/assets when built
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECTION SCRIPTS LIVE IN /scripts/ — see stubs there for migration guide:
+//   scripts/hero/animation.js   → hero GSAP collapse + signature reveal
+//   scripts/hero/canvas.js      → dot matrix repel canvas
+//   scripts/work/animation.js   → project section scroll reveals
+//   scripts/shared/cursor.js    → magnetic cursor
+//   scripts/shared/scroll.js    → Lenis + ScrollTrigger init
+// ══════════════════════════════════════════════════════════════════════════════
+
 // ── Hamburger / Mobile Nav ────────────────────────────────────────────────
+
 (function () {
     const hamburger   = document.getElementById('hamburger');
     const mobileNav   = document.getElementById('mobile-nav');
@@ -404,7 +439,7 @@ mm.add("(min-width: 601px)", () => {
     gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)" });
 
     tl.to('.hero', {
-        scale: 0.35,
+        scale: 0.35,                  // original — elegant wide block (initial commit values)
         clipPath: "inset(0vh calc(50vw - 80vh) 0vh calc(50vw - 80vh) round 0px)",
         opacity: 0.35,
         ease: "power2.inOut"
@@ -441,7 +476,7 @@ mm.add("(max-width: 600px)", () => {
 
     // NO clipPath on mobile — Lando Norris uses sharp edges, rounding feels out of place
     tl.to('.hero', {
-        scale: 0.82,
+        scale: 0.70,                  // signature extends visually beyond the compact card
         opacity: 0.55,
         ease: "power2.inOut"
     }, 0);
