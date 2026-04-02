@@ -377,7 +377,7 @@ nav.nav-on-light .hamburger span {
 
 /* ── Hero Track & Sticky Hero ───────────────────────────── */
 .hero-track {
-    height: 300vh;  /* 3× viewport: 100vh scale + 100vh hold + 100vh natural-rise runway */
+    height: 200vh;  /* 2× viewport: animation (0→70vh) + hold (70→100vh) + rise (100vh+, seamless into content) */
     position: relative;
     z-index: 1;
 }
@@ -776,9 +776,9 @@ nav.nav-on-light .hamburger span {
         padding-bottom: 3.5rem;
     }
 
-    /* Hero: 300vh track matches desktop — gives 100vh scale, 100vh hold, then rise */
+    /* Hero: 200vh track — animation + brief hold before seamless rise into content */
     .hero-track {
-        height: 300vh;
+        height: 200vh;
     }
 
     /* Keep sticky so the hero pins while the card-collapse animates */
