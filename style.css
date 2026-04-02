@@ -126,15 +126,16 @@ nav::before {
     transition: background 0.6s ease, backdrop-filter 0.6s ease;
 }
 
-/* Scrolled state: dark tint, strong blur, smooth gradient mask out at the bottom */
+/* Scrolled state: very subtle tint, strong blur, smooth mask fade at the bottom */
 nav.scrolled::before {
-    background: rgba(18, 18, 18, 0.65); /* softer black tint */
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    /* Very subtle flat tint — no visual gradients */
+    background: rgba(18, 18, 18, 0.50);
+    backdrop-filter: blur(32px) saturate(160%);
+    -webkit-backdrop-filter: blur(32px) saturate(160%);
     
-    /* Apple merge fade effect - smooth gradient mask fades both tint and blur */
-    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+    /* Smooth curve fade: Opaque top, gently easing into transparency */
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 25%, rgba(0,0,0,0.6) 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 25%, rgba(0,0,0,0.6) 60%, transparent 100%);
 }
 
 /* Over the light hero — fully see-through, dark text */
