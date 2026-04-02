@@ -96,46 +96,56 @@ nav {
     position: fixed;
     top: 0;
     width: 100%;
-    /* Taller nav so the gradient blur zone has room to breathe */
-    padding: 1.75rem 3rem 4rem;
+    /* Extra bottom padding gives the blur layer room to fade out seamlessly */
+    padding: 1.75rem 3rem 4.5rem;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     z-index: 1000;
     color: #fff;
-    background: transparent;
+    /* Container itself has no background or blur */
+    background: transparent !important;
     border: none;
-    /* NO mask-image — blur must flow through freely */
-    transition: background 0.6s ease;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: color 0.6s ease;
 }
 
-/* Frosted glass once scrolled past the hero */
-nav.scrolled {
-    /*
-     * Apple's real trick:
-     * — backdrop-filter (blur) applies uniformly to the ENTIRE nav box
-     * — background is a gradient so the dark tint fades top → transparent
-     * — where tint is 0%, you see the blur with zero darkening = pure glass
-     */
-    background: linear-gradient(
-        to bottom,
-        rgba(20, 20, 20, 0.78) 0%,    /* Solid dark glass at the very top */
-        rgba(20, 20, 20, 0.50) 45%,   /* Mid transition */
-        rgba(20, 20, 20, 0.15) 72%,   /* Nearly clear — blur only */
-        rgba(20, 20, 20, 0.00) 100%   /* Fully transparent — pure blur zone */
-    );
-    backdrop-filter: blur(40px) saturate(180%) brightness(0.96);
-    -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(0.96);
-    border: none;
+/* 
+ * The blurred glass layer 
+ * Separated into a pseudo-element so we can mask it (fade it out) 
+ * WITHOUT fading out the text inside the nav.
+ */
+nav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: transparent;
+    transition: background 0.6s ease, backdrop-filter 0.6s ease;
+}
+
+/* Scrolled state: dark tint, strong blur, smooth gradient mask out at the bottom */
+nav.scrolled::before {
+    background: rgba(18, 18, 18, 0.65); /* softer black tint */
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    
+    /* Apple merge fade effect - smooth gradient mask fades both tint and blur */
+    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 }
 
 /* Over the light hero — fully see-through, dark text */
 nav.at-hero {
+    color: #1d1d1d;
+}
+
+nav.at-hero::before {
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    color: #1d1d1d;
-    /* Ensure no mask from inherited state */
     -webkit-mask-image: none;
     mask-image: none;
 }
