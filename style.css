@@ -391,6 +391,7 @@ nav.nav-on-light .hamburger span {
     justify-content: center;
     align-items: center;
     z-index: 1;
+    overflow: visible;   /* allow signature SVG strokes to go beyond container edges */
 }
 
 .hero {
@@ -401,40 +402,67 @@ nav.nav-on-light .hamburger span {
     align-items: center;
     position: absolute;
     top: 0; left: 0;
-    overflow: hidden;
+    overflow: visible;   /* signature-container bleeds outside; hero-inner handles canvas clip */
     background-color: var(--main-light);
     color: var(--main-dark);
     z-index: 1;
-    transform-origin: center center;
+    transform-origin: center 40%;  /* collapse toward upper viewport — less dark gap above card */
 }
 
-/* AV Signature */
-.signature-container {
+/* hero-inner: clips unicorn canvas + grid overlay to the card's visible bounds */
+.hero-inner {
     position: absolute;
-    width: min(90vw, 1200px);
-    z-index: 2;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* ── AV Signature (Lando Norris-style) ───────────────────────────────────────
+ * Hero card scales to 35% of viewport.
+ * Signature stays at FULL fixed size — it does NOT scale with the hero.
+ * Result: signature towers over the small collapsed card, extending beyond
+ * its edges (like Lando's signature bursting out of the photo rectangle).
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.signature-container {
+    position: absolute;       /* relative to .hero-sticky-container */
+    top: 0; left: 0;
+    width: 100%;              /* covers full sticky-container (100vw × 100vh) */
+    height: 100%;
+    z-index: 5;               /* above .hero (z-index:1) and its contents */
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;        /* NO clipping — let strokes go beyond container */
 }
 
-.av-signature {
-    width: 100%;
-    height: auto;
-    overflow: visible;
+/* Fixed-size Lottie container — does NOT scale with the hero card */
+#sig-lottie {
+    width: min(72vw, 820px);  /* ← signature width. Hero collapses to ~35vw, so
+                                  signature is ~2× the card — overflows on all sides */
+    aspect-ratio: 1;          /* Lottie canvas is 512×512 (square) */
+    flex-shrink: 0;           /* never compress the signature */
+    overflow: visible;        /* let SVG trim-path strokes render beyond the element box */
 }
 
-.av-signature path {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
+/* Stroke colour — hardcoded #FF5509, overrides any Lottie baked-in value */
+#sig-lottie path,
+#sig-lottie polyline,
+#sig-lottie ellipse {
+    stroke: #FF5509 !important;
 }
+
 
 /* Unicorn Studio WebGL Canvas */
 .unicorn-canvas {
     position: absolute;
-    top: 12.5vh;
-    left: -2vw;
-    width: 104vw;
-    height: 100vh;
-    transform: scale(1.25);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: scale(1.1) translateY(8%);  /* figure bottom at 99% of hero — flush, no white gap */
+    transform-origin: 58% 0%;              /* TOP anchor — scale grows downward */
     z-index: 3;
     pointer-events: auto;
     mix-blend-mode: multiply;
@@ -787,9 +815,10 @@ nav.nav-on-light .hamburger span {
         height: 100vh;
     }
 
-    /* Signature: scale down */
-    .signature-container {
-        width: 95vw;
+    /* Signature: mobile hero collapses to scale 0.70 (not 0.35 like desktop).
+       At 0.70, the card is 70vw wide. Use 85vw signature so it overflows ~7.5vw each side. */
+    #sig-lottie {
+        width: 85vw;
     }
 
     /* Projects: full-bleed sections — no horizontal padding on the section itself.
@@ -854,11 +883,14 @@ nav.nav-on-light .hamburger span {
         gap: 1.25rem;
     }
 
-    /* Unicorn canvas: scale less aggressively */
+    /* Unicorn canvas: mobile — same 0.95 start, GSAP handles parallax */
     .unicorn-canvas {
-        left: -5vw;
-        width: 110vw;
-        transform: scale(1.1);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: scale(1.1) translateY(8%); /* mobile: same flush-bottom approach */
+        transform-origin: 50% 0%;
     }
 
     /* Disable 3D tilt on touch */

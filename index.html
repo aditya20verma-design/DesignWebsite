@@ -18,6 +18,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <!-- Unicorn Studio WebGL -->
     <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
+    <!-- Lottie Web (for AV signature draw-on animation) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
 
 <body>
@@ -69,47 +71,31 @@
             <div class="hero-sticky-container">
             
                 <section class="hero hover-trigger" id="hero">
-            <!-- Dedicated Internal White Box to replicate original canvas backdrop -->
-            <div class="hero-white-box" style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;"></div>
-            
-            <!-- Unicorn Studio WebGL Background -->
-            <div class="unicorn-canvas" data-us-project="VUmB8Ym97iye9ZS9hDbi"></div>
-            
-            <!-- Dynamic Micro-Grid Overlay -->
-            <div class="hero-grid-overlay">
-                <canvas id="dotsCanvas"></canvas>
-            </div>
-            
-            <div class="scroll-down">
-                <div class="line-container"><div class="line"></div></div>
-                <span>Scroll</span>
-            </div>
-        </section>
 
-        <!-- AV Signature Overlay -->
-        <div class="signature-container">
-            <svg class="av-signature" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
-                <!-- Av handwritten signature -->
-                <path id="av-path" pathLength="1000" d="
-                    M 300 250 
-                    C 150 250, 100 350, 250 320 
-                    C 400 290, 520 100, 560 50 
-                    C 470 200, 410 320, 400 350 
-                    M 180 250 
-                    C 350 240, 450 220, 500 200 
-                    C 450 280, 480 320, 540 300 
-                    C 600 280, 640 200, 650 180
-                    C 660 170, 670 170, 680 160
-                    M 710 150 
-                    L 730 140
-                    M 120 380
-                    Q 400 350, 750 320
-                " fill="none" stroke="var(--primary-color)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
+                <!-- hero-inner: ALL visual content clipped to card bounds -->
+                <div class="hero-inner">
+                    <div class="hero-white-box" style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;"></div>
+                    <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL"></div>
+                    <div class="hero-grid-overlay">
+                        <canvas id="dotsCanvas"></canvas>
+                    </div>
+                    <div class="scroll-down">
+                        <div class="line-container"><div class="line"></div></div>
+                        <span>Scroll</span>
+                    </div>
+                </div> <!-- End hero-inner -->
 
-        </div> <!-- End Sticky Container -->
-        </div> <!-- End Hero Track -->
+            </section>
+
+            <!-- Signature: OUTSIDE hero — does NOT scale with hero card.
+                 Hero shrinks to 35%, signature stays full viewport size.
+                 Signature towers over the collapsed card (like Lando Norris). -->
+            <div class="signature-container">
+                <div id="sig-lottie" class="av-signature" aria-label="AV signature animation"></div>
+            </div>
+
+            </div> <!-- End Sticky Container -->
+            </div> <!-- End Hero Track -->
 
         <!-- Dynamic Content Wrapper (Slides over Hero) -->
         <div class="content-wrapper" id="work">
@@ -125,7 +111,7 @@
                     <a href="https://www.behance.net/gallery/173110489/UniShare" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('assets/work/images/unishare.jpg');"></div>
+                    <div class="parallax-image" style="background-image: url('sections/work/assets/unishare/cover.jpg');"></div>
                 </div>
             </div>
         </section>
@@ -141,7 +127,7 @@
                     <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('assets/work/images/dmrc.png');"></div>
+                    <div class="parallax-image" style="background-image: url('sections/work/assets/dmrc/cover.png');"></div>
                 </div>
             </div>
         </section>
@@ -157,7 +143,7 @@
                     <a href="https://www.behance.net/gallery/159157943/NutriBuddy-Healthier-food-choices" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2653&auto=format&fit=crop');"></div>
+                    <div class="parallax-image" style="background-image: url('sections/work/assets/nutribuddy/cover.png');"></div>
                 </div>
             </div>
         </section>
@@ -173,7 +159,7 @@
                     <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
                 </div>
                 <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('assets/work/images/mfine.jpg');"></div>
+                    <div class="parallax-image" style="background-image: url('sections/work/assets/mfine/cover.jpg');"></div>
                 </div>
             </div>
         </section>

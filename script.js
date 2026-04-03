@@ -1,26 +1,30 @@
 // ══════════════════════════════════════════════════════════════════════════════
 // ASSET CONFIG — swap any asset by updating this block only.
-// Animations and layout are decoupled from these paths/IDs.
-// Full config with import syntax: assets/config.js
+// ★ Source of truth: sections/{section}/{section}.config.js
+// Phase 2: replace with ES module imports from each section config.
 // ══════════════════════════════════════════════════════════════════════════════
 const ASSETS = {
     hero: {
-        unicornProjectId: 'VUmB8Ym97iye9ZS9hDbi', // ← swap WebGL visual here
+        unicornProjectId: 'kt5EwBtAEDtnn2IDefYL', // ← sections/hero/hero.config.js
     },
     work: {
-        images: {
-            unishare:  'assets/work/images/unishare.jpg',
-            dmrc:      'assets/work/images/dmrc.png',
-            mfine:     'assets/work/images/mfine.jpg',
+        // Project-first: sections/work/assets/{slug}/cover.*
+        // Full config including tags, links, gallery: sections/work/work.config.js
+        covers: {
+            unishare:   'sections/work/assets/unishare/cover.jpg',
+            dmrc:       'sections/work/assets/dmrc/cover.png',
+            nutribuddy: 'sections/work/assets/nutribuddy/cover.png',
+            mfine:      'sections/work/assets/mfine/cover.jpg',
         },
         thumbnails: {
-            project1:  'assets/work/thumbnails/project1.png',
-            project2:  'assets/work/thumbnails/project2.png',
-            project3:  'assets/work/thumbnails/project3.png',
+            unishare:   'sections/work/assets/unishare/thumbnail.png',
+            dmrc:       'sections/work/assets/dmrc/thumbnail.png',
+            nutribuddy: 'sections/work/assets/nutribuddy/thumbnail.png',
+            mfine:       null,  // add when ready
         },
     },
-    about:  {},  // add portrait, resume PDF, etc. when built
-    footer: {},  // add footer icons/assets when built
+    about:  {},  // → sections/about/about.config.js
+    footer: {},  // → sections/footer/footer.config.js
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -409,6 +413,13 @@ gsap.to('.av-shape', {
 // ── Hero Scale & Signature Reveal — desktop + mobile via matchMedia ──────
 // Desktop: dramatic horizontal collapse (Lando Norris style)
 // Mobile:  card-style scale-down with rounded corners (same feel, portrait-safe)
+
+// pin canvas transform-origin to TOP so GSAP scale grows downward (matches CSS)
+gsap.set('.unicorn-canvas', { transformOrigin: '58% 0%' });
+
+// pin hero transform-origin so card collapses toward upper viewport (matches CSS)
+gsap.set('.hero', { transformOrigin: 'center 40%' });
+
 const mm = gsap.matchMedia();
 
 mm.add("(min-width: 601px)", () => {
@@ -445,22 +456,13 @@ mm.add("(min-width: 601px)", () => {
         ease: "power2.inOut"
     }, 0);
 
-    tl.to('.unicorn-canvas', {
-        scale: 1.6,
-        yPercent: 10,
-        ease: "power2.inOut"
-    }, 0);
+    // parallax depth: canvas counter-scales as hero collapses
+    // hero: 1.0→0.35  |  canvas within hero: 0.95→1.2  |  effective viewport: 0.42 > 0.35 = foreground feel
+    tl.to('.unicorn-canvas', { scale: 1.2, ease: "power2.inOut" }, 0);
 
-    tl.to('.signature-container', {
-        scale: 0.6,
-        ease: "power2.inOut"
-    }, 0);
-
-    tl.to('.av-signature path', {
-        strokeDashoffset: 0,
-        ease: "power2.inOut"
-    }, 0);
+    // Signature tracks the hero automatically — it's a child of .hero now
 });
+
 
 mm.add("(max-width: 600px)", () => {
     // Mobile: same pin-then-rise pattern as Lando Norris — just scale + opacity, no clipPath rounding
@@ -481,22 +483,112 @@ mm.add("(max-width: 600px)", () => {
         ease: "power2.inOut"
     }, 0);
 
-    tl.to('.unicorn-canvas', {
-        scale: 1.3,
-        yPercent: 5,
-        ease: "power2.inOut"
-    }, 0);
+    // parallax depth on mobile (gentler — 1.08 within 0.70 hero = effective 0.756)
+    tl.to('.unicorn-canvas', { scale: 1.08, ease: "power2.inOut" }, 0);
 
-    tl.to('.signature-container', {
-        scale: 0.75,
-        ease: "power2.inOut"
-    }, 0);
-
-    tl.to('.av-signature path', {
-        strokeDashoffset: 0,
-        ease: "power2.inOut"
-    }, 0);
+    // Signature tracks the hero automatically — it's a child of .hero now
 });
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOTTIE SIGNATURE — scroll-scrubbed draw-on animation
+// File:   sections/hero/assets/AV sign Lotie v2.json  (150 frames @ 30fps)
+// Swap:   drop new .json in hero/assets/, update SIG_CONFIG.file below
+// Color:  update strokeColor below (CSS also enforces via !important)
+// Timing: update revealDelay below (see cheat sheet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SIG_CONFIG = {
+    file:        'sections/hero/assets/AV sign Lotie v2.json',
+    strokeColor: '#FF5509',   // ← hex color for signature stroke
+    strokeWidth: null,        // ← px override, null = use Lottie default
+    //
+    // ── TIMING ────────────────────────────────────────────────────────────
+    // Fraction of scroll progress before first stroke appears (0.0 – 1.0).
+    // Hero always starts scaling at 0. Signature is secondary, delayed.
+    // Cheat sheet: 0.30 = 20% visual collapse | 0.46 = 30% ← current
+    //              0.62 = 40% collapse         | 0.77 = 50%
+    revealDelay: 0.46,        // ← tune this to shift when drawing starts
+};
+
+function initLottieSignature() {
+    const container = document.getElementById('sig-lottie');
+    if (!container || typeof lottie === 'undefined') return;
+
+    // Apply stroke colour as CSS custom property → picked up by style.css
+    document.documentElement.style.setProperty('--sig-stroke-color', SIG_CONFIG.strokeColor);
+    if (SIG_CONFIG.strokeWidth) {
+        document.documentElement.style.setProperty('--sig-stroke-width', SIG_CONFIG.strokeWidth + 'px');
+    }
+
+    const anim = lottie.loadAnimation({
+        container:  container,
+        renderer:   'svg',       // SVG = vector, scales to any size perfectly
+        loop:       SIG_CONFIG.loop,
+        autoplay:   false,       // scroll controls playback, not autoplay
+        path:       SIG_CONFIG.file,
+    });
+
+    anim.addEventListener('DOMLoaded', () => {
+        const totalFrames = anim.totalFrames;   // 150
+
+        // If strokeWidth override is set, apply to all rendered paths
+        if (SIG_CONFIG.strokeWidth) {
+            container.querySelectorAll('path, polyline, ellipse').forEach(el => {
+                if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
+                    el.setAttribute('stroke-width', SIG_CONFIG.strokeWidth);
+                }
+            });
+        }
+
+        // ── GSAP ScrollTrigger → Lottie frame scrubbing (Lando Norris-style) ────────
+        // Responsive reveal: same proportional timing regardless of screen size
+        //
+        // Desktop/tablet (≥601px): hero collapses 1.0→0.35 (range 0.65)
+        //   30% of range = 0.30/0.65 ≈ 0.46 → revealDelay = 0.46
+        //
+        // Mobile (≤600px): hero collapses 1.0→0.70 (range 0.30)
+        //   30% of range = 0.09/0.30 = 0.30 → revealDelay = 0.30
+        //
+        // Bidirectional: scroll down = draw, scroll up = un-draw (same speed)
+        // Frame clamp: Math.min(..., totalFrames-1) prevents wrap-to-0 bug
+        // ─────────────────────────────────────────────────────────────────────────────
+        const isMobile = window.innerWidth <= 600;
+        const delay    = isMobile ? 0.30 : SIG_CONFIG.revealDelay;
+
+        ScrollTrigger.create({
+            trigger: '.hero-track',
+            start:   'top top',
+            // Matches hero collapse end (0.7×vh) — both finish at the same moment
+            end:     () => '+=' + Math.round(window.innerHeight * 0.7),
+            scrub:   true,
+            onUpdate: (self) => {
+                const p = self.progress;
+
+                if (p < delay) {
+                    // Hero scaling, signature not started yet — hold at frame 0 (invisible)
+                    anim.goToAndStop(0, true);
+                } else {
+                    // Remap [delay → 1.0] to [0 → 1.0] then drive Lottie frames
+                    const adjustedProgress = (p - delay) / (1 - delay);
+                    // Clamp to last valid frame (totalFrames-1) — prevents wrap-to-0 bug
+                    const frame = Math.min(
+                        Math.round(adjustedProgress * totalFrames),
+                        totalFrames - 1
+                    );
+                    anim.goToAndStop(frame, true);  // stroke-dashoffset via trim-path
+                }
+            }
+        });
+    });
+
+    anim.addEventListener('data_failed', () => {
+        console.warn('[Lottie] Failed to load av-signature.json — check file path');
+        container.style.display = 'none';
+    });
+}
+initLottieSignature();
+
 
 // Hide persistent AV logo when entering content section
 ScrollTrigger.create({
