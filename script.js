@@ -423,15 +423,33 @@ gsap.set('.hero', { transformOrigin: 'center center' }); // collapse toward view
 const mm = gsap.matchMedia();
 
 mm.add("(min-width: 601px)", () => {
-    let isLogoHidden = false;
+    let isLogoHidden  = false;
+    let isNavHero     = true;   // tracks current nav--hero state
+    const navEl       = document.querySelector('nav');
+
+    // ── Nav hero state: large on load, shrinks on first scroll ────────────
+    // All sizing is in CSS under nav.nav--hero — only the class is toggled here.
+    // Threshold 0.03 = first ~2% of scroll (feels instant, like Lando Norris).
+    // CSS transitions handle the smooth size animation.
+    navEl.classList.add('nav--hero'); // large on page load
+
     const tl = gsap.timeline({
         scrollTrigger: {
             trigger: ".hero-track",
             start: "top top",
-            end: () => "+=" + Math.round(window.innerHeight * 0.7), // 70vh scroll = exactly when sticky releases (track=170vh)
+            end: () => "+=" + Math.round(window.innerHeight * 0.7),
             scrub: 1,
             onUpdate: (self) => {
                 const p = self.progress;
+
+                // ── Nav hero size toggle ───────────────────────────────────
+                if (p > 0.03) {
+                    if (isNavHero) { navEl.classList.remove('nav--hero'); isNavHero = false; }
+                } else {
+                    if (!isNavHero) { navEl.classList.add('nav--hero');    isNavHero = true;  }
+                }
+
+                // ── AV shape (kept for future use, element removed from DOM) ─
                 if (p > 0.05 && p < 0.95) {
                     if (!isLogoHidden) {
                         gsap.to('.av-shape', { clipPath: "inset(0% 0% 100% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" });
