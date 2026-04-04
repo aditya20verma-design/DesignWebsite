@@ -846,6 +846,72 @@ magneticElements.forEach((el) => {
 
 }());
 
+/**
+ * 4b. HERO TILT — Subtle high-end mouse-tracking parallax.
+ * Reacts to the cursor within the #hero container by gently tilting 
+ * the Unicorn Studio canvas using math-based coordinate mapping.
+ */
+(function initHeroTilt() {
+    const hero = document.getElementById('hero');
+    const target = document.querySelector('.unicorn-canvas');
+    if (!hero || !target) return;
+
+    // We only want this interactive physics on desktop where there's a mouse
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 1024px)", () => {
+        let rafId;
+        
+        function onMouseMove(e) {
+            const { width, height, left, top } = hero.getBoundingClientRect();
+            
+            // Normalize cursor position from -1 to 1 relative to center
+            const mouseX = ((e.clientX - left) / width) * 2 - 1;
+            const mouseY = ((e.clientY - top) / height) * 2 - 1;
+
+            // Super-Subtle High-End Physics 
+            const moveX = mouseX * -3;    
+            const moveY = mouseY * -3;    
+            
+            // Ultra-minimal tilt for a high-end "whisper" of depth
+            const tiltX = mouseY * -2.4;   
+            const tiltY = mouseX * 2.4;    
+
+            // Use GSAP to interpolate from current state to target 
+            gsap.to(target, {
+                x: 40 + moveX,   
+                yPercent: 8,     
+                y: moveY,       
+                rotateX: tiltX,
+                rotateY: tiltY,
+                transformPerspective: 1000,
+                duration: 1.2,   // Balanced "premium" weight
+                ease: 'power2.out',
+                overwrite: 'auto'
+            });
+        }
+
+        function reset() {
+            gsap.to(target, {
+                x: 40,
+                yPercent: 8,
+                y: 0,
+                rotateX: 0,
+                rotateY: 0,
+                duration: 1.5,
+                ease: 'power3.out'
+            });
+        }
+
+        hero.addEventListener('mousemove', onMouseMove);
+        hero.addEventListener('mouseleave', reset);
+
+        return () => {
+            hero.removeEventListener('mousemove', onMouseMove);
+            hero.removeEventListener('mouseleave', reset);
+        };
+    });
+})();
+
 // 5. ScrollTrigger Animations
 gsap.to('#hero-bg-text', {
     xPercent: -30,
@@ -1082,8 +1148,8 @@ const dotCanvas = document.getElementById('dotsCanvas');
 if (dotCanvas) {
     const ctx = dotCanvas.getContext('2d');
     const dotSpacing = 24;
-    const repelRadius = 150;
-    const maxDisplacement = 12; // Controls how far points mathematically glitch away
+    const repelRadius = 220;
+    const maxDisplacement = 20; // Controls how far points mathematically glitch away
     let dots = [];
 
     function initDots() {
@@ -1115,8 +1181,8 @@ if (dotCanvas) {
         const localMouseX = mouseX - parentRect.left;
         const localMouseY = mouseY - parentRect.top;
 
-        // Increased opacity for better visibility
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+        // Subtler 20% opacity for premium minimalism
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.20)';
 
         for (let i = 0; i < dots.length; i++) {
             const dot = dots[i];
@@ -1138,12 +1204,12 @@ if (dotCanvas) {
             }
 
             // Step 3: Fast, tight spring physics pulling the particle toward its calculated target
-            dot.vx += (targetX - dot.x) * 0.3; // Spring strength (tight)
-            dot.vy += (targetY - dot.y) * 0.3;
+            dot.vx += (targetX - dot.x) * 0.08; // Spring strength (tight)
+            dot.vy += (targetY - dot.y) * 0.08;
             
             // Friction damping stops any continuous wave "blob" physics by absorbing the kinetic energy instantly
-            dot.vx *= 0.6; 
-            dot.vy *= 0.6;
+            dot.vx *= 0.82; 
+            dot.vy *= 0.82;
             
             dot.x += dot.vx;
             dot.y += dot.vy;
