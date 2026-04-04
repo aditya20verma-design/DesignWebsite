@@ -175,17 +175,6 @@ const ASSETS = {
 
     let rafId = null;
 
-    // Walk up the DOM tree to find the first element with a non-transparent background
-    function getEffectiveBg(el) {
-        let node = el;
-        while (node && node !== document.documentElement) {
-            const bg = window.getComputedStyle(node).backgroundColor;
-            if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
-            node = node.parentElement;
-        }
-        return window.getComputedStyle(document.body).backgroundColor;
-    }
-
     // Perceived luminance (0-255)
     function luminance(r, g, b) {
         return 0.299 * r + 0.587 * g + 0.114 * b;
@@ -209,16 +198,35 @@ const ASSETS = {
             // elementsFromPoint returns ALL elements at that point (z-sorted)
             const stack = document.elementsFromPoint(x, sampleY);
             for (let i = 0; i < stack.length; i++) {
+                const el = stack[i];
+                
                 // Skip the nav itself and its descendants
-                if (!nav.contains(stack[i]) && stack[i] !== nav) {
-                    const bg = getEffectiveBg(stack[i]);
-                    const m  = bg.match(/\d+/g);
-                    if (m && m.length >= 3) {
-                        totalLum += luminance(+m[0], +m[1], +m[2]);
-                        count++;
+                if (nav.contains(el) || el === nav) continue;
+
+                const bg = window.getComputedStyle(el).backgroundColor;
+                
+                // If this element is transparent, keep passing through to the visually deeper elements
+                if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
+                    // Fallback to body color if we've drilled all the way down
+                    if (el === document.body || el === document.documentElement) {
+                        const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+                        const m = bodyBg.match(/\d+/g);
+                        if (m && m.length >= 3) {
+                            totalLum += luminance(+m[0], +m[1], +m[2]);
+                            count++;
+                        }
+                        break;
                     }
-                    break;
+                    continue;
                 }
+
+                // We hit a solid background color!
+                const m = bg.match(/\d+/g);
+                if (m && m.length >= 3) {
+                    totalLum += luminance(+m[0], +m[1], +m[2]);
+                    count++;
+                }
+                break; // Stop drilling at the first opaque element
             }
         });
 
@@ -245,7 +253,9 @@ const ASSETS = {
     // Also re-sense after fonts/images load in case layout shifts
     window.addEventListener('load', senseBackground);
     senseBackground(); // run immediately on page load
-})();
+    // Expose so the loader can force a re-sense after it finishes
+    window._senseNavBg = senseBackground;
+}());
 
 
 // ── Footer Headline Per-Letter Cursor Repel ────────────────────────────────
@@ -712,25 +722,129 @@ magneticElements.forEach((el) => {
     });
 });
 
-// 4. Initial Loader Sequence (Disabled visually in CSS, keeping timeline for entrance reveals only)
-const tlLoader = gsap.timeline();
+// ═══════════════════════════════════════════════════════════════
+// 4. LOADER — Premium AV Brand Mask Reveal
+// ═══════════════════════════════════════════════════════════════
+//
+// Stage 1  →  Full #FF5509 orange background (instantaneous)
+// Stage 2  →  Black AV wordmark fades + scales in
+// Stage 3  →  Logo image fades; AV-shaped hole punches through orange
+// Stage 4  →  AV hole scales up from center → full site revealed
+// Stage 5  →  Loader removed, scroll restored
+//
+// HOW THE MASK WORKS:
+//  - SVG <mask> with a large white rect (= orange shows) plus black AV paths (= transparent)
+//  - At scale 0  → zero-area hole → solid orange covers site
+//  - At scale 1  → logo-sized hole → site visible through AV letter shapes
+//  - At scale 50 → hole covers entire screen → full site revealed
 
-tlLoader.fromTo('.loader-text', 
-        { y: 50, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.8, ease: "expo.out" } // M3 Emphasized
-    )
-    .to('.loader-text', { y: -50, opacity: 0, duration: 0.5, ease: "power4.in", delay: 0.3 })
-    .to('.loader', { yPercent: -100, duration: 0.6, ease: "power2.inOut", onComplete: () => { if (lenis) lenis.start(); } }) // M3 Long 4
-    .fromTo('.reveal-text', 
-        { y: 100, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: "expo.out" }, // Fast staggers
-        "-=0.2"
-    )
-    .fromTo('.reveal-text-delay', 
-        { y: 50, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 
-        "-=0.4"
-    );
+(function initLoader() {
+
+    /* ── DOM refs ── */
+    const panel   = document.getElementById('loader-panel');
+    const logoImg = document.getElementById('loader-logo-img');
+    const maskSvg = document.getElementById('loader-mask-svg');
+    const twoPath = document.getElementById('two-mask-path');
+    const navEl   = document.querySelector('nav');
+
+    /* ── Geometry ──────────────────────────────────────────────────
+     * "2" path lives in 0 0 139 137 coordinate space.
+     * translate(cx,cy) scale(s) translate(-pw,-ph) keeps it centred.
+     */
+    const cx = window.innerWidth  / 2;
+    const cy = window.innerHeight / 2;
+    const pw = 139 / 2;
+    const ph = 137 / 2;
+
+    function twoT(s) {
+        return `translate(${cx},${cy}) scale(${s}) translate(${-pw},${-ph})`;
+    }
+
+    /* ── Initial states ──────────────────────────────────────────── */
+    const INIT_SCALE = 0.007;  // ≈ 1px wide — invisible point, zero jerk on appear
+    gsap.set(twoPath, { attr: { transform: twoT(INIT_SCALE) } });
+
+    /* KEY FIX — blink prevention:
+       Pre-position the SVG at full opacity so when we swap it in
+       for the div-panel there is ZERO visible difference.
+       The "2" hole is 0.12x so it's invisible to the naked eye.
+       We keep the div-panel on top momentarily via a tiny delay. */
+    gsap.set(maskSvg, { opacity: 1 });   // SVG is ready, same look as panel
+    gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
+
+    /* ── Timeline ───────────────────────────────────────────────── */
+    const tl = gsap.timeline();
+
+    tl
+        /* ━━━━ STAGE 1 — Orange hold ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           [T1] = 0.3s                                            */
+        .set({}, {}, 0.3)                          // T1 = 0.3s
+
+        /* ━━━━ STAGE 2 — AV logo FADE IN ━━━━━━━━━━━━━━━━━━━━━━━━━
+           [T2_FADE] = 0.7s  [T2_DELAY] = 0.1s                    */
+        .to(logoImg, {
+            opacity:  1,
+            scale:    1,                           // T2_SCALE: 0.85 → 1
+            duration: 0.7,                         // T2_FADE = 0.7s
+            delay:    0.1,                         // T2_DELAY = 0.1s
+            ease:     'power3.out'
+        })
+
+        /* [T3] Logo hold — brand breathes                         */
+        .to({}, { duration: 0.45 })                // T3 = 0.45s
+
+        /* ━━━━ STAGE 3 — Swap panel → SVG (blink-free) ━━━━━━━━━━━
+           SVG already at opacity 1 behind panel. Just drop panel. */
+        .to(panel, {
+            opacity:  0,
+            zIndex:   -1,
+            duration: 0.05,                        // instant crossover
+            ease:     'none'
+        })
+
+        /* ━━━━ STAGE 4 — Logo fades + "2" explodes in ONE breath ━━
+           [T4_LOGO] = 0.4s  [T4_SCALE] = 2.8s  [T4_OFFSET] = 0.2s */
+        .to(logoImg, {
+            opacity:  0,
+            duration: 0.4,                         // T4_LOGO = 0.4s
+            ease:     'power2.inOut'
+        })
+        .to(twoPath, {
+            duration: 2.8,                         // T4_SCALE = 2.8s
+            ease:     'power3.inOut',              // majestic smooth sweep instead of pure acceleration
+            attr:     { transform: twoT(2400) }
+        }, '-=0.2')                                // T4_OFFSET = 0.2s overlap
+
+        /* ━━━━ EARLY TRIGGER: Start reveal while loader completes ━━━━━━━━
+           Nav and circuit start drawing 0.7 seconds BEFORE the loader finishes. */
+        .call(() => {
+            const el = document.getElementById('site-loader');
+            // Allow the luminance sensor to x-ray right through the expanding mask
+            if (el) el.style.pointerEvents = 'none'; 
+
+            if (window._senseNavBg) window._senseNavBg();
+
+            if (navEl) {
+                void navEl.offsetHeight;                 
+                navEl.classList.add('nav-color-ready');  
+                
+                gsap.to(navEl, {
+                    opacity: 1,
+                    duration: 0.35,
+                    ease: 'power2.out'
+                });
+            }
+
+            if (window.__circuitIntro) window.__circuitIntro();
+        }, null, '-=1.0')
+
+        /* ━━━━ FINAL CLEANUP — Safely hide loader out of DOM ━━━━━━━━━ */
+        .call(() => {
+            const el = document.getElementById('site-loader');
+            if (el) el.style.display = 'none';
+        });
+
+}());
 
 // 5. ScrollTrigger Animations
 gsap.to('#hero-bg-text', {

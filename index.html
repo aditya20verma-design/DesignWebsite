@@ -11,8 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-    <!-- Circuit Nav Component -->
-    <link rel="stylesheet" href="sections/circuit/circuit.css">
+    <link rel="stylesheet" href="sections/circuit/circuit.css?v=17">
 
     <!-- Dependencies -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -30,8 +29,42 @@
     <div class="cursor-outline"></div>
 
     <!-- Entrance Loader -->
-    <div class="loader">
-        <div class="loader-text">Loading Experience...</div>
+    <div class="loader" id="site-loader">
+
+        <!-- ① Orange curtain panel — full screen, z sits on top -->
+        <div class="loader-panel" id="loader-panel"></div>
+
+        <!-- ② AV wordmark — centered, smaller size, editorial slide-up reveal -->
+        <div class="loader-logo-wrap" id="loader-logo-wrap">
+            <!-- .loader-logo-mask is overflow:hidden — logo slides up from beneath -->
+            <div class="loader-logo-mask">
+                <img id="loader-logo-img"
+                     src="sections/loader/assets/AV wordmark.svg"
+                     class="loader-logo-img" alt="AV">
+            </div>
+        </div>
+
+        <!-- ③ "2" shape mask — expands from center revealing the site -->
+        <!-- This SVG draws the "2" as a black fill; we use it as an
+             SVG <mask> so the orange curtain has a "2"-shaped hole that
+             grows until it covers the whole screen. -->
+        <svg class="loader-mask-svg" id="loader-mask-svg"
+             xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <mask id="two-reveal-mask" maskUnits="userSpaceOnUse">
+                    <!-- White  = orange curtain visible -->
+                    <rect x="-100000" y="-100000"
+                          width="200000" height="200000" fill="white"/>
+                    <!-- Black  = transparent hole (site shows through) -->
+                    <path id="two-mask-path" d="M107.422 136.719H0L9.57031 91.8945C15.625 63.1836 38.1836 48.8281 77.2461 48.8281H87.0117C93.5221 48.8281 97.0703 47.4935 97.6562 44.8242C98.5026 40.9831 95.6706 39.0625 89.1602 39.0625H30.5664L38.8672 0H87.6953C126.758 0 143.099 14.9414 136.719 44.8242C130.599 73.5352 108.008 87.8906 68.9453 87.8906C55.9245 87.8906 49.1536 89.2253 48.6328 91.8945L47.3633 97.6562H115.723L107.422 136.719Z" fill="black"/>
+                </mask>
+            </defs>
+            <!-- Orange curtain rendered by SVG with the "2" hole cut out -->
+            <rect id="two-curtain" width="100%" height="100%"
+                  fill="#FF5509" mask="url(#two-reveal-mask)"/>
+        </svg>
+
+    </div>
     </div>
 
     <!-- Mobile Nav Overlay -->
@@ -259,9 +292,9 @@
     <!-- Robust UnicornStudio Initialization provided by user -->
     <script type="text/javascript">!function(){var u=window.UnicornStudio;if(u&&u.init){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){u.init()})}else{u.init()}}else{window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js",i.onload=function(){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){UnicornStudio.init()})}else{UnicornStudio.init()}},(document.head||document.body).appendChild(i)}}();</script>
     
-    <script src="script.js"></script>
+    <script src="script.js?v=14"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
-    <script src="sections/circuit/circuit.config.js"></script>
-    <script src="sections/circuit/circuit.js"></script>
+    <script src="sections/circuit/circuit.config.js?v=11"></script>
+    <script src="sections/circuit/circuit.js?v=11"></script>
 </body>
 </html>

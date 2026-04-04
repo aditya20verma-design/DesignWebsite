@@ -91,41 +91,91 @@ body {
     background-color: transparent;
 }
 
-/* ── Loader ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════
+   LOADER — Premium "2" Mask Reveal
+   ═══════════════════════════════════════════════════════ */
+
+/* Outer container — sits over everything */
 .loader {
-    display: none !important;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    pointer-events: all;
 }
 
-.loader-text {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--accent);
-    letter-spacing: 4px;
+/* ① Solid orange panel — Phase 1 */
+.loader-panel {
+    position: absolute;
+    inset: 0;
+    background: #FF5509;
+    /* Hidden via JS once the SVG mask takes over */
 }
 
-/* ── Navigation ─────────────────────────────────────────── */
+/* ② AV wordmark wrapper — centered, clips children for line-reveal */
+.loader-logo-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;         /* always above the "2" SVG (z-index 2) */
+    pointer-events: none;
+}
+
+/* Inner wrapper — no longer clips, kept for layout */
+.loader-logo-mask {
+    display: flex;
+}
+
+.loader-logo-img {
+    width: 130px;
+    height: auto;
+    display: block;
+    opacity: 0;
+    transform: scale(0.85);   /* starts slightly smaller — JS scales up to 1 */
+    will-change: opacity, transform;
+}
+
+
+
+/* ③ SVG mask overlay — starts hidden; fades in when "2" reveal begins */
+.loader-mask-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;       /* above panel, below logo wrap */
+    /* Initially invisible — JS positions + scales the path then fades this in */
+    pointer-events: none;
+}
+
+
+/* ── Navigation ─────────────────────────────────────────────────── */
 nav {
     position: fixed;
     top: 0;
     width: 100%;
-    /* Standard 1.25rem (20px) baseline on all sides — matches logo and scroll indicator */
     padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
     padding-left:  calc(env(safe-area-inset-left, 0px)  + 1.25rem);
     padding-right: calc(env(safe-area-inset-right, 0px) + 1.25rem);
-    /* Extra bottom slack for the glass fade zone */
     padding-bottom: 4.5rem;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     z-index: 1000;
-    /* Warm off-white matching the site's main light palette */
     color: #E5E4E0;
-    /* Container itself has no background or blur */
     background: transparent !important;
     border: none;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    /* Smooth premium colour shift across all states */
+    /* Starts invisible — loader Stage 5 fades it in via GSAP after snapping
+       the correct dark color. This guarantees text is dark from frame 1. */
+    opacity: 0;
+    /* No color transition initially; enabled by .nav-color-ready after reveal */
+    transition: none;
+}
+/* Color transition enabled only after loader finishes */
+nav.nav-color-ready {
     transition: color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

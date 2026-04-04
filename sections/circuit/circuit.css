@@ -228,7 +228,10 @@
     text-transform: uppercase;
     color: #ffffff;
     /* Dark pill — works on both light + dark page sections */
-    background: rgba(20, 20, 20, 0.92);
+    /* Changed from robust 0.92 opacity to a more transparent 0.82 glass */
+    background: rgba(20, 20, 20, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 2px solid rgba(255, 255, 255, 0.12);
     padding: 18px 30px;
     border-radius: 24px;

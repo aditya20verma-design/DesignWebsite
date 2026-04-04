@@ -72,7 +72,6 @@
         svgEl.id = 'circuit-svg';
         svgEl.removeAttribute('width');
         svgEl.removeAttribute('height');
-        // Crop viewBox to actual track area
         svgEl.setAttribute('viewBox', '480 30 860 1040');
         svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
@@ -80,17 +79,43 @@
         animPath          = svgEl.querySelector('#track-path') || trackProgressPath;
         if (!animPath) { console.error('[Circuit] #track-progress not found'); return; }
 
-        tiltEl.appendChild(svgEl);
-        pathLength = animPath.getTotalLength();
+        // ── PRE-HIDE BEFORE DOM INSERTION ───────────────────────────────
+        // Setting opacity on the parsed SVG document (still off-screen) guarantees
+        // ZERO flash window between insertion and hide. No frame can slip through.
+        const _trackBase  = svgEl.querySelector('#track-base');
+        const _trackDepth = svgEl.querySelector('#track-depth');
+        if (_trackDepth) _trackDepth.style.opacity = '0';
+        // trackBase: use opacity for now; we'll swap to dashoffset after pathLength is known
+        if (_trackBase)  _trackBase.style.opacity  = '0';
+        // Hide rider elements pre-insertion
+        // NOTE: rider elements are built dynamically by buildRider() and do NOT
+        // exist in the SVG file, so we only pre-hide the static track layers here.
 
-        // Bootstrap progress stroke
-        trackProgressPath.style.strokeDasharray  = pathLength;
-        trackProgressPath.style.strokeDashoffset = pathLength;
+        // Insert into DOM (all elements already invisible)
+        tiltEl.appendChild(svgEl);
+        pathLength = animPath.getTotalLength(); // requires DOM presence
+
+        // Bootstrap progress stroke (in SVG user units via setAttribute)
+        trackProgressPath.setAttribute('stroke-dasharray',  pathLength);
+        trackProgressPath.setAttribute('stroke-dashoffset', pathLength);
+
+        // Keep trackBase HIDDEN via opacity:0 — belt-and-suspenders with dashoffset.
+        // introAnimation() will cross-fade it to opacity:1 in Stage 3 only.
+        if (_trackBase) {
+            _trackBase.setAttribute('stroke-dasharray',  pathLength);
+            _trackBase.setAttribute('stroke-dashoffset', 0); // fully drawn but opacity hides it
+            _trackBase.style.opacity = '0'; // stay hidden — introAnimation reveals it
+        }
 
         // Inject overlays
         buildFilters();
         buildSectionZones();
         buildRider();
+        // Hide ALL rider elements (dynamically created by buildRider — must hide after it runs)
+        const _riderIds = ['rider-bg', 'rider-ring-1', 'rider-ring-2', 'rider-glow-blob', 'rider-core'];
+        const _riderEls = [..._riderIds.map(id => svgEl.getElementById(id)).filter(Boolean),
+                           riderCircle].filter(Boolean);
+        _riderEls.forEach(el => gsap.set(el, { opacity: 0 }));
 
         computeMilestones();
         window.addEventListener('resize', computeMilestones);
@@ -98,81 +123,154 @@
         initScroll();
         initTicker();
         update(0);
-        introAnimation(); // Page-load: track draws in, then rider appears
+
+        // Sync luminance state immediately now that pill exists in DOM 
+        // (Fixes hover styles not working before first scroll)
+        if (window._senseNavBg) window._senseNavBg();
+
+        // ── Deferred intro: loader calls window.__circuitIntro() after curtain drops.
+        // Fallback: if no loader present (dev/direct access), play after 300ms.
+        window.__circuitIntro = function () {
+            window.__circuitIntro = null; // prevent double-call
+            introAnimation();
+        };
+        if (!document.getElementById('site-loader')) {
+            setTimeout(() => { if (window.__circuitIntro) window.__circuitIntro(); }, 300);
+        }
     }
 
-    // ── 2b. INTRO ANIMATION ────────────────────────────────────────────────
-    // On load: grey track draws in via sweep path → rider fades + glow-bursts in
+    // ── 2b. INTRO ANIMATION ───────────────────────────────────────────────
+    //
+    //  STAGE 1 ──  Track is truly invisible (opacity:0 on #track-base).
+    //              Nothing renders. Zero flash on any background color.
+    //
+    //  STAGE 2 ──  A CLONE of the track (same grey color) is painted from
+    //              scratch using stroke-dashoffset going from pathLength → 0.
+    //              The tracer dot rides the leading edge of the paint.
+    //              Physics: slow creep → energy pulse at 1% → full sprint.
+    //
+    //  STAGE 3 ──  Clone is 100% painted. Tracer implodes. Clone cross-fades
+    //              to real #track-base. Rider dot bursts in.
+    //
     function introAnimation() {
         const trackBase  = svgEl.querySelector('#track-base');
         const trackDepth = svgEl.querySelector('#track-depth');
-        const riderIds   = ['rider-bg', 'rider-ring-1', 'rider-ring-2', 'rider-glow-blob', 'rider-core'];
+        const riderIds   = ['rider-bg','rider-ring-1','rider-ring-2','rider-glow-blob','rider-core'];
+        const riderEls   = [...riderIds.map(id => svgEl.getElementById(id)).filter(Boolean),
+                             riderCircle].filter(Boolean);
 
-        // ── Hide real track layers initially (they'll show after sweep) ───
-        if (trackBase)  gsap.set(trackBase,  { opacity: 0 });
-        if (trackDepth) gsap.set(trackDepth, { opacity: 0 });
+        // ── ENSURE #track-base stays hidden throughout stages 1 & 2 ───────
+        // loadSVG already set dashoffset=pathLength, but re-enforce via opacity
+        // as a belt-and-suspenders guarantee (no browser can leak it through).
+        if (trackBase) {
+            trackBase.style.opacity = '0';
+        }
+        if (trackDepth) {
+            trackDepth.style.opacity = '0';
+        }
 
-        // ── Hide rider (opacity ONLY — never use CSS transform on SVG cx/cy) ──
-        const riderEls = [...riderIds.map(id => svgEl.getElementById(id)).filter(Boolean),
-                          riderCircle].filter(Boolean);
-        riderEls.forEach(el => gsap.set(el, { opacity: 0 }));
+        // ── PAINT PATH (clone of track-base, same geometry + color) ───────
+        // Starts with stroke-dashoffset = pathLength (fully hidden).
+        // Animating dashoffset → 0 "paints" it from start to end.
+        const paintPath = document.createElementNS(NS, 'path');
+        paintPath.setAttribute('d', animPath.getAttribute('d'));
+        paintPath.setAttribute('fill', 'none');
+        // Match exact track-base visual style
+        paintPath.setAttribute('stroke', 'rgba(200, 200, 200, 0.85)');
+        paintPath.setAttribute('stroke-width', '20');
+        paintPath.setAttribute('stroke-linecap', 'round');
+        paintPath.setAttribute('stroke-linejoin', 'round');
+        paintPath.style.filter = 'drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.30))';
+        // Fully hidden at start
+        paintPath.setAttribute('stroke-dasharray',  pathLength);
+        paintPath.setAttribute('stroke-dashoffset', pathLength); // hidden
+        paintPath.style.pointerEvents = 'none';
+        // Insert just above track-base (before trackProgressPath which is after it)
+        if (trackBase && trackBase.parentNode) {
+            trackBase.parentNode.insertBefore(paintPath, trackBase.nextSibling);
+        } else {
+            svgEl.appendChild(paintPath);
+        }
 
-        // ── Build sweep overlay path (grey, same visual as #track-base) ───
-        // Uses the same dashoffset trick as the completion sweep — proven to work
-        const introSweep = document.createElementNS(NS, 'path');
-        introSweep.setAttribute('d', animPath.getAttribute('d'));
-        introSweep.setAttribute('fill', 'none');
-        introSweep.setAttribute('stroke', 'rgba(200, 200, 200, 0.85)');
-        introSweep.setAttribute('stroke-width', '20');
-        introSweep.setAttribute('stroke-linecap', 'round');
-        introSweep.setAttribute('stroke-linejoin', 'round');
-        introSweep.style.pointerEvents = 'none';
+        // ── PROXY: animates the dashoffset to reveal the paint path ────────
+        // p = 0 → nothing painted
+        // p = 1 → fully painted
+        // dashoffset = pathLength * (1 - p)
+        const proxy = { p: 0 };
 
-        // Start fully collapsed (nothing drawn)
-        introSweep.setAttribute('stroke-dasharray',  pathLength);
-        introSweep.setAttribute('stroke-dashoffset', pathLength);
-        svgEl.insertBefore(introSweep, svgEl.firstChild); // behind all overlays
+        function onProxyUpdate() {
+            const len = pathLength * proxy.p;
+            // Reveal painted track up to current p
+            paintPath.setAttribute('stroke-dashoffset', pathLength - len);
+        }
 
-        // ── Phase 1: Draw the sweep from 0% → 100% of track ──────────────
-        gsap.to(introSweep, {
-            strokeDashoffset: 0,
-            duration: 1.5,
-            delay: 0.35,
+        // ── MASTER TIMELINE ───────────────────────────────────────────────
+        const tl = gsap.timeline();
+
+        // ═══ STAGE 2: Continuous sweep to 100% ═══════════════════════════
+        // Smooth reveal in one go from start to end
+        tl.to(proxy, {
+            p: 1.0,
+            duration: 2.0,
             ease: 'power2.inOut',
-            onStart: () => {
-                // Depth shadow fades in as track draws, adding dimension
-                if (trackDepth) gsap.to(trackDepth, { opacity: 1, duration: 0.8, delay: 0.2 });
-            },
-            onComplete: () => {
-                // Crossfade: show real #track-base, remove the sweep overlay
-                if (trackBase) gsap.to(trackBase, { opacity: 1, duration: 0.15,
-                    onComplete: () => introSweep.remove()
-                });
+            onUpdate: onProxyUpdate
+        }, 0); // start instantly
 
-                // ── Phase 2: Rider appears ─────────────────────────────────
-                // Small stagger — rings appear slightly after the dot for a layered feel
-                gsap.to(riderEls, {
+        // ═══ STAGE 3: Real track crossfades, rider bursts in ══════════════
+        tl.add(() => {
+
+            // 3b. Swap paintPath for real trackBase seamlessly without a dip
+            // The blink happens because dual 50% opacities combine to 75% opacity (bleeding bg).
+            // Fix: Keep paintPath solid (100%), fade trackBase in ON TOP, then delete paintPath.
+            if (trackBase) {
+                gsap.to(trackBase, {
                     opacity: 1,
                     duration: 0.35,
-                    ease: 'power2.out'
+                    ease: 'power1.out',
+                    onComplete: () => paintPath.remove() // Safely delete once trackBase is 100% visible
                 });
+            } else {
+                paintPath.remove(); // Fallback
+            }
+            // Depth (3D side/extrusion) reveals with the real track — same timing
+            if (trackDepth) {
+                gsap.to(trackDepth, {
+                    opacity: 1,
+                    duration: 0.4,
+                    ease: 'power2.inOut'
+                });
+            }
 
-                // Glow blob: burst from 0 → 90 → 55 (breathe in, settle)
-                const glowBlob = svgEl.getElementById('rider-glow-blob');
-                if (glowBlob) {
-                    gsap.fromTo(glowBlob,
-                        { attr: { r: 0, 'fill-opacity': 0.6 } },
-                        { attr: { r: 90, 'fill-opacity': 0.5 }, duration: 0.3, ease: 'power2.out',
-                          onComplete: () => gsap.to(glowBlob, {
-                              attr: { r: 55, 'fill-opacity': 0.28 },
-                              duration: 0.8, ease: 'power3.inOut'
-                          })
-                        }
-                    );
-                }
+            // 3c. Rider bursts in — staggered for premium feel
+            gsap.to(riderEls, {
+                opacity: 1,
+                duration: 0.5,
+                delay: 0.18,
+                stagger: 0.05,
+                ease: 'power2.out'
+            });
+
+            // 3d. Rider glow "birth" burst
+            const glowBlob = svgEl.getElementById('rider-glow-blob');
+            if (glowBlob) {
+                gsap.fromTo(glowBlob,
+                    { attr: { r: 0, 'fill-opacity': 0.85 } },
+                    {
+                        attr: { r: 100, 'fill-opacity': 0.55 },
+                        delay: 0.18,
+                        duration: 0.4,
+                        ease: 'power2.out',
+                        onComplete: () => gsap.to(glowBlob, {
+                            attr: { r: 55, 'fill-opacity': 0.28 },
+                            duration: 0.9,
+                            ease: 'power3.inOut'
+                        })
+                    }
+                );
             }
         });
     }
+
 
 
     // ── 3. FILTERS ─────────────────────────────────────────────────────────
