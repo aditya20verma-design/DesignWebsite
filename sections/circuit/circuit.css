@@ -285,23 +285,37 @@
     top: auto;
     transform: none;
 
-    right: calc(env(safe-area-inset-right, 0px) + 2rem);
-    top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+    /* Standard 1.25rem (20px) baseline on all sides — matches logo and scroll indicator */
+    right: calc(env(safe-area-inset-right, 0px) + 0.25rem);
+    top: calc(env(safe-area-inset-top, 0px) + 0.25rem);
 
-    /* DEFAULT = what was previously the "expanded hover" state */
+    /* Stable size — no longer changes on scroll */
     width: 200px;
     height: 340px;
 
     z-index: 1001;
 
-    transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                width  0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    /* Transition top/right for hover effects only */
+    transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                width  0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* Stable internal scale — matches compact visual balance */
+.nav-mode--track #circuit-root {
+    transform: scale(0.7) translateX(18%) translateY(-18%);
+    transform-origin: top center;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 
 /* HOVER = even bigger for clear visibility and interaction */
 .nav-mode--track #circuit-pill:hover {
     width: 260px;
     height: 440px;
+}
+/* Internal scale on hover matches the bigger size */
+.nav-mode--track #circuit-pill:hover #circuit-root {
+    transform: scale(0.88) translateX(4%) translateY(-6%);
 }
 
 /* Inner wrapper: centered */

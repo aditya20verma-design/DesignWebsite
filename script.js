@@ -439,6 +439,7 @@ mm.add("(min-width: 601px)", () => {
     // Threshold 0.03 = first ~2% of scroll (feels instant, like Lando Norris).
     // CSS transitions handle the smooth size animation.
     navEl.classList.add('nav--hero'); // large on page load
+    // Note: circuit pill starts at hero size via CSS default — no class needed on init
 
     const tl = gsap.timeline({
         scrollTrigger: {
@@ -453,7 +454,7 @@ mm.add("(min-width: 601px)", () => {
                 if (p > 0.03) {
                     if (isNavHero) { navEl.classList.remove('nav--hero'); isNavHero = false; }
                 } else {
-                    if (!isNavHero) { navEl.classList.add('nav--hero');    isNavHero = true;  }
+                    if (!isNavHero) { navEl.classList.add('nav--hero'); isNavHero = true; }
                 }
 
                 // ── AV shape (kept for future use, element removed from DOM) ─

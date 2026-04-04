@@ -35,6 +35,13 @@ html {
     overflow-x: hidden;
     /* Edge-to-edge: fill behind Dynamic Island / Android notch */
     background-color: var(--bg-color);
+    /* Hide system scrollbar — Firefox */
+    scrollbar-width: none;
+}
+
+/* Hide system scrollbar — Chrome, Safari, Edge */
+html::-webkit-scrollbar {
+    display: none;
 }
 
 body {
@@ -101,11 +108,10 @@ nav {
     position: fixed;
     top: 0;
     width: 100%;
-    /* Notch/Dynamic Island safe-area padding at the top,
-       plus normal padding below that for content spacing */
+    /* Standard 1.25rem (20px) baseline on all sides — matches logo and scroll indicator */
     padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
-    padding-left:  calc(env(safe-area-inset-left, 0px)  + 3rem);
-    padding-right: calc(env(safe-area-inset-right, 0px) + 3rem);
+    padding-left:  calc(env(safe-area-inset-left, 0px)  + 1.25rem);
+    padding-right: calc(env(safe-area-inset-right, 0px) + 1.25rem);
     /* Extra bottom slack for the glass fade zone */
     padding-bottom: 4.5rem;
     display: flex;
@@ -201,7 +207,10 @@ nav.nav-on-light .hamburger span {
     line-height: 0.9;
     /* Smooth size change when nav--hero class is toggled */
     transition: font-size 1.2s cubic-bezier(0.22, 1, 0.36, 1),
-                letter-spacing 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+                letter-spacing 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.4s ease-out;
+    /* Visual compensation: nudge left so 'A' hits the 20px grid line */
+    transform: translateX(-12px);
 }
 
 .wordmark-logo {
@@ -379,8 +388,8 @@ nav.nav--hero .nav-link {
 /* ── Scroll Hint ────────────────────────────────────────── */
 .scroll-down {
     position: absolute;
-    bottom: 2rem;
-    right: calc(env(safe-area-inset-right, 0px) + 3rem); /* aligns with CONTACT nav item */
+    bottom: 1.25rem;
+    right: calc(env(safe-area-inset-right, 0px) + 1.25rem); /* Bottom-right alignment matching track gutter */
     display: flex;
     flex-direction: column;
     align-items: center;
