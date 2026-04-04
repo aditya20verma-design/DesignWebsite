@@ -1,6 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════════════
    CIRCUIT  —  circuit.css
-   Left-side frosted pill · Section zones · No track transparency
+   Supports two layout modes (toggled via class on <html>):
+
+   DEFAULT (no class)  → Left-side pill, vertically centred
+   nav-mode--track     → Top-right, inline with nav bar (replaces nav links)
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Pill shell: anchored LEFT, vertically centred ─────────────────────── */
@@ -78,9 +81,10 @@
     width: 100%;
     height: 100%;
     overflow: visible;
+    /* Shadow removed from container — applied on track strokes directly below */
 }
 
-/* ── Base track layers — solid, no opacity reduction ─────────────────── */
+/* ── Base track layers ─────────────────────────────────────────── */
 #track-depth {
     stroke: rgba(100, 100, 100, 0.6);
     stroke-width: 20;
@@ -93,6 +97,17 @@
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+
+    /* ── TRACK SHADOW — hugs the stroke line only, no spread
+       Zero offset = shadow rings the path symmetrically
+       Low blur (3px) = tight, doesn't bleed outside the stroke
+       Opacity 0.30 = visible on white, invisible on dark
+
+       To tune:
+         Blur   : 3px  → try 2px (crisper) or 5px (softer)
+         Opacity: 0.30 → try 0.15 (subtler) or 0.45 (bolder)
+    ── */
+    filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.30));
 }
 
 /* Progress fill — scroll-synced orange, vivid */
@@ -145,6 +160,28 @@
                 drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
     }
 }
+
+/* ── ON LIGHT BG: flip hover glow to dark ────────────────────────
+   .track-on-light is mirrored onto #circuit-pill by the luminance
+   sensor in script.js (same logic that sets .nav-on-light on <nav>).
+   When page scrolls over a bright section, glow flips dark automatically.
+────────────────────────────────────────────────────────────────── */
+#circuit-pill.track-on-light .section-seg.hovered {
+    stroke: rgba(20, 20, 20, 0.85);
+    animation: section-breathe-dark 1.6s ease-in-out infinite;
+}
+
+@keyframes section-breathe-dark {
+    0%, 100% {
+        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25))
+                drop-shadow(0 0 8px rgba(0, 0, 0, 0.10));
+    }
+    50% {
+        filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.50))
+                drop-shadow(0 0 16px rgba(0, 0, 0, 0.25));
+    }
+}
+
 
 /* ── HOVER: Orange Glow (Completed section) ────────────────────── */
 .section-seg-orange {
@@ -234,3 +271,61 @@
 @media (max-width: 700px) {
     #circuit-pill { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NAV-MODE: TRACK  —  Reposition circuit pill to top-right nav area
+   ─────────────────────────────────────────────────────────────────────────
+   Activated by: <html class="nav-mode--track">
+   Reverted by:  removing that class from <html>
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Override pill position: top-right, matching nav bar alignment */
+.nav-mode--track #circuit-pill {
+    left: auto;
+    top: auto;
+    transform: none;
+
+    right: calc(env(safe-area-inset-right, 0px) + 2rem);
+    top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+
+    /* DEFAULT = what was previously the "expanded hover" state */
+    width: 200px;
+    height: 340px;
+
+    z-index: 1001;
+
+    transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                width  0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* HOVER = even bigger for clear visibility and interaction */
+.nav-mode--track #circuit-pill:hover {
+    width: 260px;
+    height: 440px;
+}
+
+/* Inner wrapper: centered */
+.nav-mode--track #circuit-inner {
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+/* DEFAULT: track at comfortable resting scale (was the hover scale before) */
+.nav-mode--track #circuit-root {
+    transform: scale(0.7) translateX(0%) translateY(-8%);
+    transform-origin: top center;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* HOVER: expand fully — same scale as the original left-pill hover */
+.nav-mode--track #circuit-pill:hover #circuit-root {
+    transform: scale(0.88) translateX(0%) translateY(0%);
+}
+
+/* Stronger shadow on hover — still hugs the line, slightly more visible */
+.nav-mode--track #circuit-pill:hover #track-base {
+    /* Tune: increase blur 3→4px or opacity 0.30→0.45 for more pop on white */
+    filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.40));
+}
+

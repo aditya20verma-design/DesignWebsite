@@ -223,12 +223,15 @@ const ASSETS = {
         });
 
         const avgLum = count > 0 ? totalLum / count : 0;
+        const pill = document.getElementById('circuit-pill');
 
         // Threshold at 140 — gives comfortable headroom for off-white and light-grey
         if (avgLum > 140) {
             nav.classList.add('nav-on-light');
+            if (pill) pill.classList.add('track-on-light');
         } else {
             nav.classList.remove('nav-on-light');
+            if (pill) pill.classList.remove('track-on-light');
         }
 
         rafId = null;

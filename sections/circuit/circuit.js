@@ -28,6 +28,11 @@
     let targetProgress = 0;
     let easedProgress  = 0;
     let activeZone     = '';
+
+    // ── Completion state machine ─────────────────────────────────────
+    // Prevents effects from re-firing on every tick once triggered
+    let completionFired  = false; // true once we've crossed 98.5%
+    let sweepPath        = null;  // the SVG shimmer element
     let milestones     = []; // Stores exact scroll mappings
 
     const NS = 'http://www.w3.org/2000/svg';
@@ -93,7 +98,82 @@
         initScroll();
         initTicker();
         update(0);
+        introAnimation(); // Page-load: track draws in, then rider appears
     }
+
+    // ── 2b. INTRO ANIMATION ────────────────────────────────────────────────
+    // On load: grey track draws in via sweep path → rider fades + glow-bursts in
+    function introAnimation() {
+        const trackBase  = svgEl.querySelector('#track-base');
+        const trackDepth = svgEl.querySelector('#track-depth');
+        const riderIds   = ['rider-bg', 'rider-ring-1', 'rider-ring-2', 'rider-glow-blob', 'rider-core'];
+
+        // ── Hide real track layers initially (they'll show after sweep) ───
+        if (trackBase)  gsap.set(trackBase,  { opacity: 0 });
+        if (trackDepth) gsap.set(trackDepth, { opacity: 0 });
+
+        // ── Hide rider (opacity ONLY — never use CSS transform on SVG cx/cy) ──
+        const riderEls = [...riderIds.map(id => svgEl.getElementById(id)).filter(Boolean),
+                          riderCircle].filter(Boolean);
+        riderEls.forEach(el => gsap.set(el, { opacity: 0 }));
+
+        // ── Build sweep overlay path (grey, same visual as #track-base) ───
+        // Uses the same dashoffset trick as the completion sweep — proven to work
+        const introSweep = document.createElementNS(NS, 'path');
+        introSweep.setAttribute('d', animPath.getAttribute('d'));
+        introSweep.setAttribute('fill', 'none');
+        introSweep.setAttribute('stroke', 'rgba(200, 200, 200, 0.85)');
+        introSweep.setAttribute('stroke-width', '20');
+        introSweep.setAttribute('stroke-linecap', 'round');
+        introSweep.setAttribute('stroke-linejoin', 'round');
+        introSweep.style.pointerEvents = 'none';
+
+        // Start fully collapsed (nothing drawn)
+        introSweep.setAttribute('stroke-dasharray',  pathLength);
+        introSweep.setAttribute('stroke-dashoffset', pathLength);
+        svgEl.insertBefore(introSweep, svgEl.firstChild); // behind all overlays
+
+        // ── Phase 1: Draw the sweep from 0% → 100% of track ──────────────
+        gsap.to(introSweep, {
+            strokeDashoffset: 0,
+            duration: 1.5,
+            delay: 0.35,
+            ease: 'power2.inOut',
+            onStart: () => {
+                // Depth shadow fades in as track draws, adding dimension
+                if (trackDepth) gsap.to(trackDepth, { opacity: 1, duration: 0.8, delay: 0.2 });
+            },
+            onComplete: () => {
+                // Crossfade: show real #track-base, remove the sweep overlay
+                if (trackBase) gsap.to(trackBase, { opacity: 1, duration: 0.15,
+                    onComplete: () => introSweep.remove()
+                });
+
+                // ── Phase 2: Rider appears ─────────────────────────────────
+                // Small stagger — rings appear slightly after the dot for a layered feel
+                gsap.to(riderEls, {
+                    opacity: 1,
+                    duration: 0.35,
+                    ease: 'power2.out'
+                });
+
+                // Glow blob: burst from 0 → 90 → 55 (breathe in, settle)
+                const glowBlob = svgEl.getElementById('rider-glow-blob');
+                if (glowBlob) {
+                    gsap.fromTo(glowBlob,
+                        { attr: { r: 0, 'fill-opacity': 0.6 } },
+                        { attr: { r: 90, 'fill-opacity': 0.5 }, duration: 0.3, ease: 'power2.out',
+                          onComplete: () => gsap.to(glowBlob, {
+                              attr: { r: 55, 'fill-opacity': 0.28 },
+                              duration: 0.8, ease: 'power3.inOut'
+                          })
+                        }
+                    );
+                }
+            }
+        });
+    }
+
 
     // ── 3. FILTERS ─────────────────────────────────────────────────────────
     function buildFilters() {
@@ -234,31 +314,111 @@
                 if (labelEl) labelEl.classList.remove('visible');
             });
 
-            // ── Click → smooth scroll ────────────────────────────────────
+            // ── Click → context-aware scroll ─────────────────────────────────
             if (zone.scrollTo) {
                 hitPath.addEventListener('click', e => {
                     e.stopPropagation();
+                    const lenis = window.__lenisInstance;
+
+                    // ── TAP FEEDBACK: brief expanding pulse at tap point ───────
+                    const pt = svgEl.createSVGPoint();
+                    pt.x = e.clientX; pt.y = e.clientY;
+                    const ctm = svgEl.getScreenCTM();
+                    if (ctm) {
+                        const svgP = pt.matrixTransform(ctm.inverse());
+                        const pulse = document.createElementNS(NS, 'circle');
+                        pulse.setAttribute('cx', svgP.x);
+                        pulse.setAttribute('cy', svgP.y);
+                        pulse.setAttribute('r', '20');
+                        pulse.setAttribute('fill', 'none');
+                        pulse.setAttribute('stroke', '#FF5509');
+                        pulse.setAttribute('stroke-width', '3');
+                        pulse.style.pointerEvents = 'none';
+                        pulse.innerHTML = `
+                            <animate attributeName="r" from="20" to="80" dur="0.6s" fill="freeze"/>
+                            <animate attributeName="stroke-opacity" from="0.9" to="0" dur="0.6s" fill="freeze"/>
+                        `;
+                        svgEl.appendChild(pulse);
+                        setTimeout(() => pulse.remove(), 700);
+                    }
+
+                    // ── CASE A: Tapping the CURRENTLY ACTIVE section ──────────
+                    // Scrub to the exact proportional position within the section
+                    if (zone.id === activeZone) {
+                        // Project cursor to SVG canvas coords
+                        const tapPt = svgEl.createSVGPoint();
+                        tapPt.x = e.clientX; tapPt.y = e.clientY;
+                        const tapCTM = svgEl.getScreenCTM();
+                        if (!tapCTM) return;
+                        const tapSVG = tapPt.matrixTransform(tapCTM.inverse());
+
+                        // Binary search: find nearest point on this zone segment to the tap
+                        const segStart = zone.start * pathLength;
+                        const segEnd   = zone.end   * pathLength;
+                        const segLen   = segEnd - segStart;
+                        
+                        let lo = 0, hi = 1, bestT = 0.5, bestDist = Infinity;
+                        for (let iter = 0; iter < 20; iter++) {
+                            const mid = (lo + hi) / 2;
+                            const testPt = animPath.getPointAtLength(segStart + mid * segLen);
+                            const dist = Math.hypot(testPt.x - tapSVG.x, testPt.y - tapSVG.y);
+                            if (dist < bestDist) { bestDist = dist; bestT = mid; }
+                            const loPt = animPath.getPointAtLength(segStart + (lo + mid) / 2 * segLen);
+                            const hiPt = animPath.getPointAtLength(segStart + (mid + hi) / 2 * segLen);
+                            if (Math.hypot(loPt.x - tapSVG.x, loPt.y - tapSVG.y) <
+                                Math.hypot(hiPt.x - tapSVG.x, hiPt.y - tapSVG.y)) {
+                                hi = mid;
+                            } else {
+                                lo = mid;
+                            }
+                        }
+
+                        // Convert bestT (0–1 within zone) → global progress → scroll Y
+                        // Using the SAME milestone interpolation as the scroll sensor
+                        // so rider and scroll are guaranteed in sync.
+                        const globalP  = zone.start + bestT * (zone.end - zone.start);
+                        const scrollY  = progressToScroll(globalP);
+
+                        // Do NOT set targetProgress manually — the scroll sensor will
+                        // update it from window.scrollY on the next frame automatically.
+                        if (lenis) {
+                            lenis.scrollTo(scrollY, {
+                                duration: 1.0,
+                                easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+                            });
+                        } else {
+                            window.scrollTo({ top: scrollY, behavior: 'smooth' });
+                        }
+                        return;
+                    }
+
+                    // ── CASE B: Tapping a DIFFERENT section ────────────────
+                    // Jump to the start of that section.
+                    // Special case: contact scrolls to page bottom so the track
+                    // progress reaches 1.0 and the lap fully completes.
                     const target = document.getElementById(zone.scrollTo);
                     if (!target) return;
-                    
-                    // Immediately snap rider logic to the exact start of this track segment
-                    targetProgress = zone.start;
-                    
-                    const lenis = window.__lenisInstance;
-                    
-                    // If it's the hero/first section, we want to scroll to the absolute top of the webpage
-                    const scrollDest = zone.id === 'hero' ? 0 : target;
-                    const scrollOff  = zone.id === 'hero' ? 0 : -(window.innerHeight * 0.15);
+
+                    // Contact: scroll to absolute bottom so rider reaches 100%
+                    const isContact = zone.id === 'contact';
+                    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+                    const scrollDest = zone.id === 'hero' ? 0 : isContact ? maxScroll : target;
+                    const scrollOff  = (zone.id === 'hero' || isContact) ? 0 : -(window.innerHeight * 0.15);
 
                     if (lenis) {
                         lenis.scrollTo(scrollDest, {
                             duration: 1.4,
-                            offset: scrollOff,
+                            // If scrollDest is a number (hero=0 or contact=maxScroll) use it directly
+                            ...(typeof scrollDest === 'number'
+                                ? {}
+                                : { offset: scrollOff }),
                             easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))
                         });
                     } else {
                         if (zone.id === 'hero') {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else if (isContact) {
+                            window.scrollTo({ top: maxScroll, behavior: 'smooth' });
                         } else {
                             target.scrollIntoView({ behavior: 'smooth' });
                         }
@@ -286,8 +446,8 @@
         ring1.setAttribute('stroke', '#FF5509'); ring1.setAttribute('stroke-width', '4');
         ring1.style.pointerEvents = 'none'; // Prevent massive ring from blocking hovers
         ring1.innerHTML = `
-            <animate attributeName="r" from="26" to="70" dur="1.8s" repeatCount="indefinite"/>
-            <animate attributeName="stroke-opacity" from="0.8" to="0" dur="1.8s" repeatCount="indefinite"/>
+            <animate attributeName="r" from="26" to="130" dur="1.8s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity" from="0.9" to="0" dur="1.8s" repeatCount="indefinite"/>
         `;
 
         // Pulse ring 2
@@ -298,16 +458,16 @@
         ring2.setAttribute('stroke', '#FF5509'); ring2.setAttribute('stroke-width', '2');
         ring2.style.pointerEvents = 'none'; // Prevent massive ring from blocking hovers
         ring2.innerHTML = `
-            <animate attributeName="r" from="26" to="95" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
-            <animate attributeName="stroke-opacity" from="0.6" to="0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+            <animate attributeName="r" from="26" to="180" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity" from="0.7" to="0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
         `;
 
         // Glow blob
         const glow = document.createElementNS(NS, 'circle');
         glow.id = 'rider-glow-blob';
-        glow.setAttribute('cx', '0'); glow.setAttribute('cy', '0'); glow.setAttribute('r', '36');
-        glow.setAttribute('fill', 'rgba(255,85,9,0.25)');
-        glow.style.pointerEvents = 'none'; // Prevent massive glow from blocking hovers
+        glow.setAttribute('cx', '0'); glow.setAttribute('cy', '0'); glow.setAttribute('r', '55');
+        glow.setAttribute('fill', 'rgba(255,85,9,0.28)');
+        glow.style.pointerEvents = 'none';
 
         // Main dot
         riderCircle = document.createElementNS(NS, 'circle');
@@ -336,30 +496,44 @@
     // Accurately map DOM sections to track progress markers
     function computeMilestones() {
         milestones = [];
+
+        // maxScroll computed FIRST — contact zone needs it to clamp its trigger
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
         ZONES.forEach((z, i) => {
             const el = document.getElementById(z.target);
-            if (el) {
-                const rect = el.getBoundingClientRect();
-                const absoluteTop = rect.top + window.scrollY;
-                // Trigger transition when section hits 20% from the top of the viewport
-                let triggerScroll = absoluteTop - (window.innerHeight * 0.2);
-                if (i === 0) triggerScroll = 0; // Hero starts exactly at 0
-                
-                milestones.push({ scroll: Math.max(0, triggerScroll), progress: z.start });
-            }
-        });
-        
-        // Final milestone: literal bottom of the page
-        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        milestones.push({ scroll: maxScroll, progress: 1.0 });
+            if (!el) return;
 
-        // Ensure milestones are strictly ascending
+            const rect        = el.getBoundingClientRect();
+            const absoluteTop = rect.top + window.scrollY;
+
+            // ── Contact is special: its offsetTop is near the page bottom, so its
+            //    trigger (offsetTop - 20vh) often EXCEEDS maxScroll, which breaks the
+            //    milestone order and prevents the track from ever reaching 1.0.
+            //    Fix: clamp contact trigger below maxScroll, then add 1.0 at maxScroll.
+            if (z.id === 'contact') {
+                let contactTrigger = absoluteTop - (window.innerHeight * 0.2);
+                contactTrigger = Math.min(contactTrigger, maxScroll - 200); // always reachable
+                contactTrigger = Math.max(0, contactTrigger);
+                milestones.push({ scroll: contactTrigger, progress: z.start });
+                milestones.push({ scroll: maxScroll,       progress: 1.0 });
+                return;
+            }
+
+            // All other zones: trigger at 20% from top of viewport
+            let triggerScroll = absoluteTop - (window.innerHeight * 0.2);
+            if (i === 0) triggerScroll = 0;
+            milestones.push({ scroll: Math.max(0, triggerScroll), progress: z.start });
+        });
+
+        // Safety: ensure milestones are strictly ascending
         for (let i = 1; i < milestones.length; i++) {
-            if (milestones[i].scroll <= milestones[i-1].scroll) {
-                milestones[i].scroll = milestones[i-1].scroll + 10;
+            if (milestones[i].scroll <= milestones[i - 1].scroll) {
+                milestones[i].scroll = milestones[i - 1].scroll + 10;
             }
         }
     }
+
 
     // Interpolate exact progress percentage based on current scrollY
     function getInterpolatedProgress(s) {
@@ -376,6 +550,23 @@
             }
         }
         return 1.0;
+    }
+
+    // Inverse: given a track progress value (0–1), find the scroll position
+    // that would produce it — used by click-scrub in Case A.
+    function progressToScroll(p) {
+        if (!milestones.length) return 0;
+        if (p <= milestones[0].progress) return milestones[0].scroll;
+        if (p >= milestones[milestones.length - 1].progress) return milestones[milestones.length - 1].scroll;
+        for (let i = 0; i < milestones.length - 1; i++) {
+            const m1 = milestones[i];
+            const m2 = milestones[i + 1];
+            if (p >= m1.progress && p <= m2.progress) {
+                const ratio = (p - m1.progress) / (m2.progress - m1.progress);
+                return m1.scroll + ratio * (m2.scroll - m1.scroll);
+            }
+        }
+        return milestones[milestones.length - 1].scroll;
     }
 
     function initScroll() {
@@ -447,6 +638,101 @@
             }
         });
         activeZone = newActive;
+
+        // ── COMPLETION EFFECTS ────────────────────────────────────────
+        const COMPLETE_THRESHOLD = 0.985;
+        const REVERT_THRESHOLD   = 0.97;
+
+        if (prog >= COMPLETE_THRESHOLD && !completionFired) {
+            completionFired = true;
+            triggerCompletionEffects();
+        } else if (prog < REVERT_THRESHOLD && completionFired) {
+            completionFired = false;
+            revertCompletionEffects();
+        }
+    }
+
+    // ── COMPLETION: Energy Settle + Track Sweep ────────────────────────────
+    function triggerCompletionEffects() {
+        const glowBlob = svgEl && svgEl.getElementById('rider-glow-blob');
+        const riderBgEl = svgEl && svgEl.getElementById('rider-bg');
+
+        // 1. ENERGY SETTLE: glow intensifies, then breathes down to a calm stable
+        if (glowBlob) {
+            gsap.killTweensOf(glowBlob);
+            // Quick intensity burst
+            gsap.to(glowBlob, {
+                attr: { r: 90, 'fill-opacity': 0.55 },
+                duration: 0.35,
+                ease: 'power2.out',
+                onComplete: () => {
+                    // Settle to enhanced-but-calm stable state
+                    gsap.to(glowBlob, {
+                        attr: { r: 65, 'fill-opacity': 0.35 },
+                        duration: 0.9,
+                        ease: 'power3.inOut'
+                    });
+                }
+            });
+        }
+        if (riderBgEl) {
+            gsap.to(riderBgEl, { attr: { r: 30 }, duration: 0.35, ease: 'power2.out',
+                onComplete: () => gsap.to(riderBgEl, { attr: { r: 28 }, duration: 0.7, ease: 'power3.inOut' })
+            });
+        }
+
+        // 2. TRACK COMPLETION SWEEP: single soft shimmer from 85% to 100%
+        if (sweepPath) { sweepPath.remove(); sweepPath = null; }
+        sweepPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        sweepPath.setAttribute('d', animPath.getAttribute('d'));
+        sweepPath.setAttribute('fill', 'none');
+        sweepPath.setAttribute('stroke', 'rgba(255, 255, 255, 0.55)');
+        sweepPath.setAttribute('stroke-width', '22');
+        sweepPath.setAttribute('stroke-linecap', 'round');
+        sweepPath.style.pointerEvents = 'none';
+        sweepPath.style.willChange = 'stroke-dashoffset, opacity';
+
+        // Sweep covers the ENTIRE track (100%) — full circuit shimmer on completion
+        const sweepStart = 0;
+        const sweepLen   = pathLength;
+        sweepPath.setAttribute('stroke-dasharray',  `${sweepLen} ${pathLength + sweepLen}`);
+        sweepPath.setAttribute('stroke-dashoffset', `${-sweepStart}`); // starts collapsed
+        svgEl.appendChild(sweepPath);
+
+        // Animate the sweep trailing through the full track
+        gsap.fromTo(sweepPath,
+            { 'stroke-dashoffset': -pathLength, opacity: 0 },
+            {
+                'stroke-dashoffset': 0,
+                opacity: 0.7,
+                duration: 1.2,
+                ease: 'power2.inOut',
+                onComplete: () => {
+                    // Fade out softly after it arrives
+                    gsap.to(sweepPath, { opacity: 0, duration: 0.5, ease: 'power2.out',
+                        onComplete: () => { if (sweepPath) { sweepPath.remove(); sweepPath = null; } }
+                    });
+                }
+            }
+        );
+    }
+
+    function revertCompletionEffects() {
+        const glowBlob  = svgEl && svgEl.getElementById('rider-glow-blob');
+        const riderBgEl = svgEl && svgEl.getElementById('rider-bg');
+
+        // Restore rider glow to default size
+        if (glowBlob) {
+            gsap.killTweensOf(glowBlob);
+            gsap.to(glowBlob, { attr: { r: 55, 'fill-opacity': 0.28 }, duration: 0.6, ease: 'power2.out' });
+        }
+        if (riderBgEl) {
+            gsap.killTweensOf(riderBgEl);
+            gsap.to(riderBgEl, { attr: { r: 26 }, duration: 0.4, ease: 'power2.out' });
+        }
+
+        // Clean up sweep if somehow still running
+        if (sweepPath) { gsap.killTweensOf(sweepPath); sweepPath.remove(); sweepPath = null; }
     }
 
     // ── 9. INIT ────────────────────────────────────────────────────────────

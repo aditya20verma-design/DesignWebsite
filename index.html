@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="nav-mode--track">
 
 <head>
     <meta charset="UTF-8">
@@ -47,7 +47,12 @@
             <a href="#" class="logo text-logo hover-trigger">ADITYA<br>VERMA</a>
         </div>
         <!-- nav-center AV logo removed -->
-        <div class="nav-right">
+        <!-- 
+            NAV-RIGHT: Desktop navigation links.
+            TOGGLE: When 'nav-mode--track' is on <html>, these are HIDDEN (circuit track takes over).
+            To restore nav links: remove 'nav-mode--track' from <html>.
+        -->
+        <div class="nav-right" id="nav-right-links">
             <a href="#work"    class="nav-link"><span class="hover-stagger">WORK</span></a>
             <a href="#about"   class="nav-link"><span class="hover-stagger">ABOUT</span></a>
             <a href="#contact" class="nav-link"><span class="hover-stagger">CONTACT</span></a>

@@ -249,6 +249,26 @@ nav.nav--hero .nav-link {
     align-items: center;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   NAV MODE TOGGLE
+   ─────────────────────────────────────────────────────────────────────
+   TWO MODES — controlled by a single class on <html>:
+
+   MODE A — Traditional (default):
+     <html lang="en">
+     → nav-right links visible, circuit track visible as supplement
+
+   MODE B — Track-only (current):
+     <html lang="en" class="nav-mode--track">
+     → nav-right links HIDDEN, circuit track is the ONLY nav
+
+   To switch: just add/remove "nav-mode--track" from <html> in index.html
+   ══════════════════════════════════════════════════════════════════════ */
+.nav-mode--track #nav-right-links {
+    display: none;          /* Links gone — track takes over */
+    pointer-events: none;
+}
+
 .nav-link {
     display: inline-flex;
     align-items: center;
