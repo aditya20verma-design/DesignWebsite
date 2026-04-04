@@ -1,501 +1,460 @@
 // ══════════════════════════════════════════════════════════════════════════
-// CIRCUIT COMPONENT  —  canvas-based isometric renderer
-// /sections/circuit/circuit.js
-//
-// Rendering pipeline:
-//   1. Raw waypoints → Catmull-Rom spline → dense point array
-//   2. Each point projected through isometric transform
-//   3. Canvas draws: extrusion side walls → base track → progress → rider → nodes
-//   4. ScrollTrigger drives progress (0–1)
-//   5. Mouse tilt via GSAP on container
+// CIRCUIT COMPONENT
+// Left-side frosted pill · Section zones (hover highlight + label + click)
+// Scroll-synced progress rider
 // ══════════════════════════════════════════════════════════════════════════
 
 (function CircuitComponent() {
     'use strict';
 
-    const CFG = window.CIRCUIT_CONFIG;
-    if (!CFG || typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-        console.warn('[Circuit] missing dependencies'); return;
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+        console.warn('[Circuit] missing GSAP'); return;
     }
 
-    // ── State ─────────────────────────────────────────────────────────────
-    let canvas, ctx, tiltEl, rootEl;
-    let canvasW = 0, canvasH = 0;
+    // ── SECTION ZONES: divide track into segments mapped to DOM sections ───
+    const ZONES = [
+        { id: 'hero',    target: 'hero',      start: 0.00, end: 0.22, label: 'HOME',      scrollTo: 'hero' },
+        { id: 'work',    target: 'project-1', start: 0.22, end: 0.65, label: 'WORK',    scrollTo: 'project-1' },
+        { id: 'about',   target: 'about',     start: 0.65, end: 0.85, label: 'ABOUT',   scrollTo: 'about' },
+        { id: 'contact', target: 'contact',   start: 0.85, end: 1.00, label: 'CONTACT', scrollTo: 'contact' },
+    ];
 
-    // Smooth path — dense array of {x,y} in CANVAS space (post-iso)
-    let flatPoints  = [];   // pre-iso, canvas-scaled
-    let isoPoints   = [];   // post-iso screen positions
-    let segLengths  = [];   // cumulative arc lengths for fast lookup
-    let totalLength = 0;
+    // ── DOM refs ───────────────────────────────────────────────────────────
+    let pillEl, innerEl, rootEl, tiltEl, svgEl;
+    let trackProgressPath, animPath;
+    let riderCircle;
 
-    let scrollProgress = 0;  // 0–1 from ScrollTrigger
-    let riderT         = 0;  // smoothed rider position (0–1)
+    let pathLength     = 0;
+    let targetProgress = 0;
+    let easedProgress  = 0;
+    let activeZone     = '';
+    let milestones     = []; // Stores exact scroll mappings
 
-    // Section node screen positions
-    let nodePositions = [];  // [{x, y, cfg, labelEl, active, hover}]
+    const NS = 'http://www.w3.org/2000/svg';
 
-    // Tilt
-    let tiltTargX = 0, tiltTargY = 0;
-    let tiltCurrX = 0, tiltCurrY = 0;
-    const isMobile = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+    // ── 1. BUILD SHELL ─────────────────────────────────────────────────────
+    function buildShell() {
+        const old = document.getElementById('circuit-pill');
+        if (old) old.remove();
 
-    // Hover
-    let hoveredNodeIdx = -1;
-    let isTrackHover   = false;
+        pillEl = document.createElement('div');
+        pillEl.id = 'circuit-pill';
 
-    // ── 1. BUILD DOM ──────────────────────────────────────────────────────
-    function buildDOM() {
+        innerEl = document.createElement('div');
+        innerEl.id = 'circuit-inner';
+        pillEl.appendChild(innerEl);
+
         rootEl = document.createElement('div');
         rootEl.id = 'circuit-root';
         rootEl.setAttribute('aria-hidden', 'true');
+        innerEl.appendChild(rootEl);
 
         tiltEl = document.createElement('div');
         tiltEl.id = 'circuit-tilt';
-
-        canvas = document.createElement('canvas');
-        canvas.id = 'circuit-canvas';
-
-        tiltEl.appendChild(canvas);
         rootEl.appendChild(tiltEl);
-        document.body.appendChild(rootEl);
 
-        ctx = canvas.getContext('2d');
+        document.body.appendChild(pillEl);
     }
 
-    // ── 2. CATMULL-ROM SPLINE ─────────────────────────────────────────────
-    // Converts waypoints → dense smooth point array
-    function catmullRom(pts, steps) {
-        const N = pts.length;
-        const out = [];
-        for (let i = 0; i < N; i++) {
-            const p0 = pts[(i - 1 + N) % N];
-            const p1 = pts[i];
-            const p2 = pts[(i + 1) % N];
-            const p3 = pts[(i + 2) % N];
-            for (let t = 0; t < steps; t++) {
-                const u = t / steps;
-                const u2 = u * u, u3 = u2 * u;
-                const x = 0.5 * (
-                    (2 * p1[0]) +
-                    (-p0[0] + p2[0]) * u +
-                    (2*p0[0] - 5*p1[0] + 4*p2[0] - p3[0]) * u2 +
-                    (-p0[0] + 3*p1[0] - 3*p2[0] + p3[0]) * u3
-                );
-                const y = 0.5 * (
-                    (2 * p1[1]) +
-                    (-p0[1] + p2[1]) * u +
-                    (2*p0[1] - 5*p1[1] + 4*p2[1] - p3[1]) * u2 +
-                    (-p0[1] + 3*p1[1] - 3*p2[1] + p3[1]) * u3
-                );
-                out.push([x, y]);
+    // ── 2. LOAD SVG ────────────────────────────────────────────────────────
+    async function loadSVG() {
+        const res  = await fetch('sections/circuit/assets/Trackfig.svg');
+        const text = await res.text();
+        const doc  = new DOMParser().parseFromString(text, 'image/svg+xml');
+        svgEl      = doc.querySelector('svg');
+        if (!svgEl) { console.error('[Circuit] SVG failed'); return; }
+
+        svgEl.id = 'circuit-svg';
+        svgEl.removeAttribute('width');
+        svgEl.removeAttribute('height');
+        // Crop viewBox to actual track area
+        svgEl.setAttribute('viewBox', '480 30 860 1040');
+        svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+        trackProgressPath = svgEl.querySelector('#track-progress');
+        animPath          = svgEl.querySelector('#track-path') || trackProgressPath;
+        if (!animPath) { console.error('[Circuit] #track-progress not found'); return; }
+
+        tiltEl.appendChild(svgEl);
+        pathLength = animPath.getTotalLength();
+
+        // Bootstrap progress stroke
+        trackProgressPath.style.strokeDasharray  = pathLength;
+        trackProgressPath.style.strokeDashoffset = pathLength;
+
+        // Inject overlays
+        buildFilters();
+        buildSectionZones();
+        buildRider();
+
+        computeMilestones();
+        window.addEventListener('resize', computeMilestones);
+
+        initScroll();
+        initTicker();
+        update(0);
+    }
+
+    // ── 3. FILTERS ─────────────────────────────────────────────────────────
+    function buildFilters() {
+        const defs = document.createElementNS(NS, 'defs');
+        defs.innerHTML = `
+            <filter id="rider-glow" x="-150%" y="-150%" width="400%" height="400%">
+                <feGaussianBlur stdDeviation="10" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        `;
+        svgEl.insertBefore(defs, svgEl.firstChild);
+    }
+
+    // ── 4. SECTION ZONES ───────────────────────────────────────────────────
+    // Each zone = 2 paths sharing the same d:
+    //   (a) Visual segment: thin coloured stroke, pointer-events:none
+    //   (b) Hit zone: thick transparent stroke, pointer-events:stroke
+    // Plus a label at the midpoint
+    function buildSectionZones() {
+        const trackD = animPath.getAttribute('d');
+        const allSegs = []; // Store all visual segments for cross-dimming
+
+        ZONES.forEach(zone => {
+            const segLen    = (zone.end  - zone.start) * pathLength;
+            const segOff    = -(zone.start * pathLength); // negative offset reveals from start
+            const dashArray = `${segLen} ${pathLength + 10}`;
+
+            // ── Visual segment (highlights white for uncompleted on hover) 
+            const segPath = document.createElementNS(NS, 'path');
+            segPath.setAttribute('d', trackD);
+            segPath.setAttribute('class', 'section-seg');
+            segPath.setAttribute('stroke-dasharray', dashArray);
+            segPath.setAttribute('stroke-dashoffset', segOff);
+            segPath.id = `seg-${zone.id}`;
+            
+            // ── Visual segment (highlights orange for completed on hover)
+            const segOrange = document.createElementNS(NS, 'path');
+            segOrange.setAttribute('d', trackD);
+            segOrange.setAttribute('class', 'section-seg-orange');
+            segOrange.setAttribute('stroke-dasharray', dashArray);
+            segOrange.setAttribute('stroke-dashoffset', segOff);
+            segOrange.id = `seg-${zone.id}-orange`;
+
+            // IMPORTANT: Insert visual hover behind the orange progress track so progress isn't hidden
+            if (trackProgressPath && trackProgressPath.parentNode) {
+                trackProgressPath.parentNode.insertBefore(segPath, trackProgressPath);
+                trackProgressPath.parentNode.insertBefore(segOrange, trackProgressPath);
+            } else {
+                svgEl.appendChild(segPath);
+                svgEl.appendChild(segOrange);
             }
-        }
-        return out;
-    }
+            allSegs.push(segPath);
 
-    // ── 3. ISOMETRIC PROJECTION ───────────────────────────────────────────
-    // Takes a flat [x,y] (canvas-scaled) and returns screen {sx, sy}
-    // We apply a 2D affine that simulates isometric view:
-    //   rotate by angleZ then skew/scale to simulate pitch angleX
-    function iso(x, y, z) {
-        z = z || 0;
-        const rad  = CFG.ISO.angleZ * Math.PI / 180;
-        const rx   = x * Math.cos(rad) - y * Math.sin(rad);
-        const ry   = x * Math.sin(rad) + y * Math.cos(rad);
-        const xRad = CFG.ISO.angleX * Math.PI / 180;
-        // Perspective compress Y
-        const sx = rx * CFG.ISO.scale;
-        const sy = (ry * Math.cos(xRad) - z * Math.sin(xRad)) * CFG.ISO.scale;
-        return { sx, sy };
-    }
+            // ── Hit zone (invisible fat stroke for easy hovering) ──────
+            const hitPath = document.createElementNS(NS, 'path');
+            hitPath.setAttribute('d', trackD);
+            hitPath.setAttribute('class', 'section-zone');
+            hitPath.setAttribute('stroke', 'rgba(255,255,255,0.01)'); // Safe transparent 
+            hitPath.setAttribute('stroke-width', '70'); // Ultra wide for effortless hovering
+            hitPath.setAttribute('fill', 'none'); // CRITICAL FIX: Stops implicit path fills spanning across curves and hijacking mouse movements
+            hitPath.setAttribute('stroke-dasharray', dashArray);
+            hitPath.setAttribute('stroke-dashoffset', segOff);
+            hitPath.setAttribute('pointer-events', 'stroke'); // Guarantee it catches hovers even if transparent
+            hitPath.style.cursor = 'pointer';
+            svgEl.appendChild(hitPath);
 
-    // ── 4. BUILD PATH ─────────────────────────────────────────────────────
-    function buildPath() {
-        const { width: tw, smoothSteps } = CFG.TRACK;
-        const PAD = 30; // padding inside canvas
-
-        // Scale waypoints to canvas
-        const usableW = canvasW - PAD * 2;
-        const usableH = canvasH - PAD * 2;
-
-        // Find bbox of waypoints
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        CFG.WAYPOINTS.forEach(([x, y]) => {
-            if (x < minX) minX = x; if (x > maxX) maxX = x;
-            if (y < minY) minY = y; if (y > maxY) maxY = y;
-        });
-        const rangeX = maxX - minX, rangeY = maxY - minY;
-        const scale  = Math.min(usableW / rangeX, usableH / rangeY);
-
-        // Normalized → canvas flat coords (centered)
-        const flatRaw = CFG.WAYPOINTS.map(([x, y]) => [
-            PAD + (x - minX) * scale + (usableW - rangeX * scale) / 2,
-            PAD + (y - minY) * scale + (usableH - rangeY * scale) / 2,
-        ]);
-
-        // Catmull-Rom interpolation
-        const spline = catmullRom(flatRaw, smoothSteps);
-
-        // Project to iso screen coords
-        // First compute center of bounding box for iso pivot
-        let cxFlat = 0, cyFlat = 0;
-        spline.forEach(([x, y]) => { cxFlat += x; cyFlat += y; });
-        cxFlat /= spline.length; cyFlat /= spline.length;
-
-        flatPoints = spline;
-        isoPoints  = spline.map(([x, y]) => {
-            const p = iso(x - cxFlat, y - cyFlat, 0);
-            return { x: p.sx + canvasW / 2, y: p.sy + canvasH / 2 };
-        });
-
-        // Build cumulative arc-length table for precise t → point mapping
-        segLengths  = [0];
-        totalLength = 0;
-        for (let i = 1; i < isoPoints.length; i++) {
-            const dx = isoPoints[i].x - isoPoints[i-1].x;
-            const dy = isoPoints[i].y - isoPoints[i-1].y;
-            totalLength += Math.sqrt(dx*dx + dy*dy);
-            segLengths.push(totalLength);
-        }
-
-        // Section nodes: find closest point for each section progress
-        nodePositions = [];
-        CFG.SECTIONS.forEach(sec => {
-            const target = sec.progress * totalLength;
-            let best = 0;
-            for (let i = 1; i < segLengths.length; i++) {
-                if (Math.abs(segLengths[i] - target) < Math.abs(segLengths[best] - target)) best = i;
-            }
-            const pt = isoPoints[best];
-
-            // Label element
+            // ── Label (foreignObject at midpoint) ─────────────────────────
             let labelEl = null;
-            if (sec.label) {
+            let labelFO = null;
+            if (zone.label) {
+                const midT  = (zone.start + (zone.end - zone.start) / 2) * pathLength;
+                const midPt = animPath.getPointAtLength(midT);
+
+                labelFO = document.createElementNS(NS, 'foreignObject');
+                labelFO.setAttribute('x', midPt.x + 40); 
+                labelFO.setAttribute('y', midPt.y - 48); // Re-centered for the 96px tall pill to prevent bottom crop
+                labelFO.setAttribute('width', '500'); // Immense width safety
+                labelFO.setAttribute('height', '180'); // Immense height safety
+                labelFO.style.pointerEvents = 'none';
+
                 labelEl = document.createElement('div');
-                labelEl.className = 'c-label';
-                labelEl.textContent = sec.label;
-                tiltEl.appendChild(labelEl);
-                // Position label to the LEFT of the point
-                labelEl.style.top  = (pt.y - 10) + 'px';
-                labelEl.style.right = (canvasW - pt.x + 10) + 'px';
+                labelEl.className = 'section-label';
+                labelEl.textContent = zone.label;
+                labelFO.appendChild(labelEl);
+                svgEl.appendChild(labelFO);
             }
 
-            nodePositions.push({ x: pt.x, y: pt.y, idx: best, cfg: sec, labelEl, active: false, hover: false });
+            // ── Hover events ────────────────────────────────────────────────
+            function moveLabel(e) {
+                if (!labelFO || !svgEl) return;
+                const pt = svgEl.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                const ctm = svgEl.getScreenCTM();
+                if (!ctm) return;
+                const svgP = pt.matrixTransform(ctm.inverse());
+                
+                // Set the exact cursor position with a wider floating offset
+                // (Compensating for SVG scale-down factor to achieve ~40px visual gap)
+                labelFO.setAttribute('x', svgP.x + 120);
+                labelFO.setAttribute('y', svgP.y - 100);
+            }
+
+            hitPath.addEventListener('mouseenter', (e) => {
+                // Highlight this segment
+                segPath.classList.add('hovered');
+                segPath.classList.remove('dimmed');
+                segOrange.classList.add('hovered');
+                
+                // Dim siblings
+                allSegs.forEach(s => {
+                    if (s !== segPath) {
+                        s.classList.add('dimmed');
+                        s.classList.remove('hovered');
+                    }
+                });
+                if (labelEl) {
+                    // Smart Layering: Temporarily rip the label out of order and slap it 
+                    // at the very end of the SVG array so it overlays on absolute top of everything
+                    if (labelFO && labelFO.parentNode) {
+                        labelFO.parentNode.appendChild(labelFO);
+                    }
+                    labelEl.classList.add('visible');
+                }
+
+                moveLabel(e); // Snap directly to entry point
+            });
+
+            // Bind the label to fluidly follow cursor scrub over the track
+            hitPath.addEventListener('mousemove', moveLabel);
+
+            hitPath.addEventListener('mouseleave', () => {
+                // Restore all segments
+                segPath.classList.remove('hovered');
+                segOrange.classList.remove('hovered');
+                allSegs.forEach(s => s.classList.remove('dimmed'));
+                
+                if (labelEl) labelEl.classList.remove('visible');
+            });
+
+            // ── Click → smooth scroll ────────────────────────────────────
+            if (zone.scrollTo) {
+                hitPath.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const target = document.getElementById(zone.scrollTo);
+                    if (!target) return;
+                    
+                    // Immediately snap rider logic to the exact start of this track segment
+                    targetProgress = zone.start;
+                    
+                    const lenis = window.__lenisInstance;
+                    
+                    // If it's the hero/first section, we want to scroll to the absolute top of the webpage
+                    const scrollDest = zone.id === 'hero' ? 0 : target;
+                    const scrollOff  = zone.id === 'hero' ? 0 : -(window.innerHeight * 0.15);
+
+                    if (lenis) {
+                        lenis.scrollTo(scrollDest, {
+                            duration: 1.4,
+                            offset: scrollOff,
+                            easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+                        });
+                    } else {
+                        if (zone.id === 'hero') {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            }
         });
     }
 
-    // ── 5. POINT AT T ─────────────────────────────────────────────────────
-    // Binary search in segLengths for precise pixel-accurate position
-    function pointAtT(t) {
-        const target = t * totalLength;
-        let lo = 0, hi = segLengths.length - 1;
-        while (lo < hi - 1) {
-            const mid = (lo + hi) >> 1;
-            if (segLengths[mid] < target) lo = mid; else hi = mid;
-        }
-        const frac = (segLengths[hi] - segLengths[lo]) > 0
-            ? (target - segLengths[lo]) / (segLengths[hi] - segLengths[lo])
-            : 0;
-        const a = isoPoints[lo], b = isoPoints[hi];
-        return {
-            x: a.x + (b.x - a.x) * frac,
-            y: a.y + (b.y - a.y) * frac,
-        };
+    // ── 5. RIDER ───────────────────────────────────────────────────────────
+    function buildRider() {
+        // Dark background plate (creates a visual 'moat' blocking the glowing track)
+        const riderBg = document.createElementNS(NS, 'circle');
+        riderBg.id = 'rider-bg';
+        riderBg.setAttribute('cx', '0'); riderBg.setAttribute('cy', '0'); 
+        riderBg.setAttribute('r', '26');
+        riderBg.setAttribute('fill', '#1d1d1d');
+        riderBg.style.pointerEvents = 'none';
+
+        // Pulse ring 1
+        const ring1 = document.createElementNS(NS, 'circle');
+        ring1.id = 'rider-ring-1';
+        ring1.setAttribute('cx', '0'); ring1.setAttribute('cy', '0'); ring1.setAttribute('r', '26');
+        ring1.setAttribute('fill', 'none');
+        ring1.setAttribute('stroke', '#FF5509'); ring1.setAttribute('stroke-width', '4');
+        ring1.style.pointerEvents = 'none'; // Prevent massive ring from blocking hovers
+        ring1.innerHTML = `
+            <animate attributeName="r" from="26" to="70" dur="1.8s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity" from="0.8" to="0" dur="1.8s" repeatCount="indefinite"/>
+        `;
+
+        // Pulse ring 2
+        const ring2 = document.createElementNS(NS, 'circle');
+        ring2.id = 'rider-ring-2';
+        ring2.setAttribute('cx', '0'); ring2.setAttribute('cy', '0'); ring2.setAttribute('r', '26');
+        ring2.setAttribute('fill', 'none');
+        ring2.setAttribute('stroke', '#FF5509'); ring2.setAttribute('stroke-width', '2');
+        ring2.style.pointerEvents = 'none'; // Prevent massive ring from blocking hovers
+        ring2.innerHTML = `
+            <animate attributeName="r" from="26" to="95" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-opacity" from="0.6" to="0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+        `;
+
+        // Glow blob
+        const glow = document.createElementNS(NS, 'circle');
+        glow.id = 'rider-glow-blob';
+        glow.setAttribute('cx', '0'); glow.setAttribute('cy', '0'); glow.setAttribute('r', '36');
+        glow.setAttribute('fill', 'rgba(255,85,9,0.25)');
+        glow.style.pointerEvents = 'none'; // Prevent massive glow from blocking hovers
+
+        // Main dot
+        riderCircle = document.createElementNS(NS, 'circle');
+        riderCircle.setAttribute('cx', '0'); riderCircle.setAttribute('cy', '0');
+        riderCircle.setAttribute('r', '18');
+        riderCircle.setAttribute('fill', '#FF5509');
+        riderCircle.setAttribute('filter', 'url(#rider-glow)');
+        riderCircle.style.pointerEvents = 'none';
+
+        // White core
+        const core = document.createElementNS(NS, 'circle');
+        core.id = 'rider-core';
+        core.setAttribute('cx', '0'); core.setAttribute('cy', '0'); core.setAttribute('r', '6');
+        core.setAttribute('fill', '#ffffff'); core.style.pointerEvents = 'none';
+
+        svgEl.appendChild(riderBg);
+        svgEl.appendChild(ring1);
+        svgEl.appendChild(ring2);
+        svgEl.appendChild(glow);
+        svgEl.appendChild(riderCircle);
+        svgEl.appendChild(core);
     }
 
-    // ── 6. DRAW ───────────────────────────────────────────────────────────
-    function draw() {
-        ctx.clearRect(0, 0, canvasW, canvasH);
-        if (!isoPoints.length) return;
+    // ── 6. SCROLL MAPPING ──────────────────────────────────────────────────
 
-        const tw = CFG.TRACK.width;
-        const eh = CFG.TRACK.extrudeHeight;
-        const N  = isoPoints.length;
-
-        // Helper: draw a poly-line
-        function polyline(pts) {
-            ctx.beginPath();
-            ctx.moveTo(pts[0].x, pts[0].y);
-            for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[0].x, pts[0].y);
-        }
-
-        // ── Layer 0: Drop shadow
-        ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.55)';
-        ctx.shadowBlur  = 18;
-        ctx.shadowOffsetX = 4;
-        ctx.shadowOffsetY = 6;
-        // Draw the top path outline as shadow source
-        polyline(isoPoints);
-        ctx.strokeStyle = 'rgba(0,0,0,0.01)';
-        ctx.lineWidth   = tw + eh * 2;
-        ctx.stroke();
-        ctx.restore();
-
-        // ── Layer 1: Extrusion side walls
-        // For every segment, draw a quadrilateral connecting top-edge to bottom-edge
-        // "bottom" = same point offset by (+4px X, +eh px Y) to simulate 3D side
-        ctx.save();
-        for (let i = 0; i < N; i++) {
-            const a  = isoPoints[i];
-            const b  = isoPoints[(i + 1) % N];
-            const aB = { x: a.x + 3, y: a.y + eh };
-            const bB = { x: b.x + 3, y: b.y + eh };
-
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.lineTo(bB.x, bB.y);
-            ctx.lineTo(aB.x, aB.y);
-            ctx.closePath();
-
-            // Only draw the bottom-facing sides (where normal faces down-right)
-            const cross = (b.x - a.x) * (aB.y - a.y) - (b.y - a.y) * (aB.x - a.x);
-            if (cross > 0) {
-                ctx.fillStyle = '#111111';
-                ctx.fill();
+    // Accurately map DOM sections to track progress markers
+    function computeMilestones() {
+        milestones = [];
+        ZONES.forEach((z, i) => {
+            const el = document.getElementById(z.target);
+            if (el) {
+                const rect = el.getBoundingClientRect();
+                const absoluteTop = rect.top + window.scrollY;
+                // Trigger transition when section hits 20% from the top of the viewport
+                let triggerScroll = absoluteTop - (window.innerHeight * 0.2);
+                if (i === 0) triggerScroll = 0; // Hero starts exactly at 0
+                
+                milestones.push({ scroll: Math.max(0, triggerScroll), progress: z.start });
             }
-        }
-        ctx.restore();
-
-        // ── Layer 2: Base track surface
-        ctx.save();
-        polyline(isoPoints);
-        ctx.strokeStyle = isTrackHover ? CFG.COLOR.trackTopHover : CFG.COLOR.trackTop;
-        ctx.lineWidth   = tw;
-        ctx.lineJoin    = 'round';
-        ctx.lineCap     = 'round';
-        ctx.stroke();
-        ctx.restore();
-
-        // ── Layer 3: Progress track (orange, up to riderT for smoothness)
-        const progressIdx = Math.floor(scrollProgress * (N - 1));
-        if (progressIdx > 0) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(isoPoints[0].x, isoPoints[0].y);
-            for (let i = 1; i <= progressIdx && i < N; i++) {
-                ctx.lineTo(isoPoints[i].x, isoPoints[i].y);
-            }
-            // Glow
-            ctx.shadowColor = CFG.COLOR.progressGlow;
-            ctx.shadowBlur  = 12;
-            ctx.strokeStyle = CFG.COLOR.progress;
-            ctx.lineWidth   = 3;
-            ctx.lineJoin    = 'round';
-            ctx.lineCap     = 'round';
-            ctx.stroke();
-            ctx.restore();
-        }
-
-        // ── Layer 4: Rider dot (smoothed position)
-        const rPt = pointAtT(riderT);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(rPt.x, rPt.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = CFG.COLOR.rider;
-        ctx.shadowColor = CFG.COLOR.progressGlow;
-        ctx.shadowBlur  = 14;
-        ctx.fill();
-        // Inner bright core
-        ctx.beginPath();
-        ctx.arc(rPt.x, rPt.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#fff';
-        ctx.fill();
-        ctx.restore();
-
-        // ── Layer 5: Section nodes
-        nodePositions.forEach((n, ni) => {
-            if (!n.cfg.label) return; // skip hero node
-            const r = n.active ? CFG.NODE.radiusActive
-                    : n.hover  ? CFG.NODE.radiusHover
-                    :            CFG.NODE.radius;
-
-            ctx.save();
-            // Outer ring
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, r + 2, 0, Math.PI * 2);
-            ctx.strokeStyle = n.active ? 'rgba(255,85,9,0.3)' : 'rgba(255,255,255,0.12)';
-            ctx.lineWidth   = 1.5;
-            ctx.stroke();
-
-            // Fill
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-            ctx.fillStyle   = n.active ? CFG.COLOR.nodeActive
-                             : n.hover  ? CFG.COLOR.nodeHover
-                             :            CFG.COLOR.nodeDefault;
-            if (n.active) {
-                ctx.shadowColor = CFG.COLOR.progressGlow;
-                ctx.shadowBlur  = 12;
-            }
-            ctx.fill();
-            ctx.restore();
         });
+        
+        // Final milestone: literal bottom of the page
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        milestones.push({ scroll: maxScroll, progress: 1.0 });
+
+        // Ensure milestones are strictly ascending
+        for (let i = 1; i < milestones.length; i++) {
+            if (milestones[i].scroll <= milestones[i-1].scroll) {
+                milestones[i].scroll = milestones[i-1].scroll + 10;
+            }
+        }
     }
 
-    // ── 7. RESIZE ─────────────────────────────────────────────────────────
-    function resize() {
-        const rect = rootEl.getBoundingClientRect();
-        const dpr  = window.devicePixelRatio || 1;
-        canvasW = rect.width;
-        canvasH = rect.height; // use actual height, not forced square
-        canvas.width  = canvasW * dpr;
-        canvas.height = canvasH * dpr;
-        canvas.style.width  = canvasW + 'px';
-        canvas.style.height = canvasH + 'px';
-        ctx.scale(dpr, dpr);
-        buildPath();
-        repositionLabels();
-        draw();
+    // Interpolate exact progress percentage based on current scrollY
+    function getInterpolatedProgress(s) {
+        if (!milestones.length) return 0;
+        if (s <= milestones[0].scroll) return milestones[0].progress;
+        if (s >= milestones[milestones.length - 1].scroll) return 1.0;
+        
+        for (let i = 0; i < milestones.length - 1; i++) {
+            const m1 = milestones[i];
+            const m2 = milestones[i+1];
+            if (s >= m1.scroll && s <= m2.scroll) {
+                const ratio = (s - m1.scroll) / (m2.scroll - m1.scroll);
+                return m1.progress + ratio * (m2.progress - m1.progress);
+            }
+        }
+        return 1.0;
     }
 
-    function repositionLabels() {
-        nodePositions.forEach(n => {
-            if (!n.labelEl) return;
-            n.labelEl.style.top   = (n.y - 10) + 'px';
-            n.labelEl.style.right = (canvasW - n.x + 12) + 'px';
-        });
-    }
-
-    // ── 8. SCROLL TRIGGER ─────────────────────────────────────────────────
     function initScroll() {
         ScrollTrigger.create({
             trigger: document.documentElement,
-            start:   'top top',
-            end:     'bottom bottom',
-            scrub:   CFG.SCROLL.scrub,
-            onUpdate(self) {
-                scrollProgress = self.progress;
-                detectActive(scrollProgress);
+            start: 'top top', end: 'bottom bottom',
+            onUpdate() { 
+                targetProgress = getInterpolatedProgress(window.scrollY);
             }
         });
     }
 
-    // ── 9. TICK — rider interpolation + redraw ────────────────────────────
+    // ── 7. TICKER ──────────────────────────────────────────────────────────
     function initTicker() {
         gsap.ticker.add(() => {
-            riderT += (scrollProgress - riderT) * 0.07;
-            draw();
-
-            // 3D tilt interpolation
-            tiltCurrX += (tiltTargX - tiltCurrX) * CFG.TILT.lerp;
-            tiltCurrY += (tiltTargY - tiltCurrY) * CFG.TILT.lerp;
-            gsap.set(tiltEl, {
-                rotationX: tiltCurrX,
-                rotationY: tiltCurrY,
-                transformPerspective: 1000,
-            });
+            easedProgress += (targetProgress - easedProgress) * 0.08;
+            update(easedProgress);
         });
     }
 
-    // ── 10. ACTIVE SECTION ────────────────────────────────────────────────
-    function detectActive(p) {
-        let activeIdx = 0;
-        CFG.SECTIONS.forEach((s, i) => { if (p >= s.progress) activeIdx = i; });
-        nodePositions.forEach((n, i) => { n.active = (i === activeIdx); });
-    }
+    // ── 8. UPDATE ──────────────────────────────────────────────────────────
+    function update(prog) {
+        if (!animPath || pathLength === 0) return;
 
-    // ── 11. TILT (mouse) ─────────────────────────────────────────────────
-    function initTilt() {
-        if (isMobile) return;
-        window.addEventListener('mousemove', e => {
-            const nx = (e.clientX / window.innerWidth  - 0.5);
-            const ny = (e.clientY / window.innerHeight - 0.5);
-            tiltTargX = -ny * CFG.TILT.maxDeg * 2;
-            tiltTargY =  nx * CFG.TILT.maxDeg * 2;
-        }, { passive: true });
-    }
+        // Progress stroke fill
+        trackProgressPath.style.strokeDashoffset = pathLength * (1 - prog);
 
-    // ── 12. HOVER + CLICK ─────────────────────────────────────────────────
-    function initInteraction() {
-        canvas.addEventListener('mousemove', e => {
-            if (isMobile) return;
-            const rect = canvas.getBoundingClientRect();
-            const mx   = e.clientX - rect.left;
-            const my   = e.clientY - rect.top;
+        // Rider position
+        const pt = animPath.getPointAtLength(prog * pathLength);
+        ['rider-bg', 'rider-ring-1','rider-ring-2','rider-glow-blob','rider-core'].forEach(id => {
+            const el = svgEl.getElementById(id);
+            if (el) { el.setAttribute('cx', pt.x); el.setAttribute('cy', pt.y); }
+        });
+        if (riderCircle) { riderCircle.setAttribute('cx', pt.x); riderCircle.setAttribute('cy', pt.y); }
 
-            // Track hover — nearest iso point
-            let minD = Infinity;
-            isoPoints.forEach(p => {
-                const d = Math.hypot(p.x - mx, p.y - my);
-                if (d < minD) minD = d;
-            });
-            isTrackHover = minD < CFG.HOVER_RADIUS;
-
-            // Node hover
-            let newHov = -1;
-            nodePositions.forEach((n, i) => {
-                if (!n.cfg.label) return;
-                const d = Math.hypot(n.x - mx, n.y - my);
-                if (d < CFG.NODE.radiusHover + 12) newHov = i;
-            });
-
-            if (newHov !== hoveredNodeIdx) {
-                if (hoveredNodeIdx >= 0) {
-                    nodePositions[hoveredNodeIdx].hover = false;
-                    if (nodePositions[hoveredNodeIdx].labelEl)
-                        nodePositions[hoveredNodeIdx].labelEl.classList.remove('visible');
-                }
-                hoveredNodeIdx = newHov;
-                if (hoveredNodeIdx >= 0) {
-                    nodePositions[hoveredNodeIdx].hover = true;
-                    if (nodePositions[hoveredNodeIdx].labelEl)
-                        nodePositions[hoveredNodeIdx].labelEl.classList.add('visible');
+        // Active zone detection + Dynamic Hover Clipping
+        let newActive = ZONES[0].id;
+        ZONES.forEach(z => { 
+            if (prog >= z.start) newActive = z.id; 
+            
+            // Dynamically shrink the glowing white hover segment (future paths)
+            const segEl = svgEl.getElementById(`seg-${z.id}`);
+            if (segEl) {
+                let drawStartWhite = Math.max(z.start, prog);
+                if (drawStartWhite >= z.end) {
+                    segEl.style.display = 'none'; // Fully progressed
+                } else {
+                    segEl.style.display = 'inline';
+                    let drawLenWhite = (z.end - drawStartWhite) * pathLength;
+                    let drawOffWhite = -(drawStartWhite * pathLength);
+                    segEl.setAttribute('stroke-dasharray', `${drawLenWhite} ${pathLength + 10}`);
+                    segEl.setAttribute('stroke-dashoffset', drawOffWhite);
                 }
             }
-        }, { passive: true });
 
-        canvas.addEventListener('mouseleave', () => {
-            isTrackHover = false;
-            if (hoveredNodeIdx >= 0) {
-                nodePositions[hoveredNodeIdx].hover = false;
-                if (nodePositions[hoveredNodeIdx].labelEl)
-                    nodePositions[hoveredNodeIdx].labelEl.classList.remove('visible');
-                hoveredNodeIdx = -1;
+            // Dynamically shrink the glowing orange hover segment (past paths)
+            const segOrangeEl = svgEl.getElementById(`seg-${z.id}-orange`);
+            if (segOrangeEl) {
+                let drawEndOrange = Math.min(z.end, prog);
+                if (drawEndOrange <= z.start) {
+                    segOrangeEl.style.display = 'none'; // Not reached yet
+                } else {
+                    segOrangeEl.style.display = 'inline';
+                    let drawLenOrange = (drawEndOrange - z.start) * pathLength;
+                    let drawOffOrange = -(z.start * pathLength);
+                    segOrangeEl.setAttribute('stroke-dasharray', `${drawLenOrange} ${pathLength + 10}`);
+                    segOrangeEl.setAttribute('stroke-dashoffset', drawOffOrange);
+                }
             }
         });
-
-        canvas.addEventListener('click', e => {
-            const rect = canvas.getBoundingClientRect();
-            const mx   = e.clientX - rect.left;
-            const my   = e.clientY - rect.top;
-
-            nodePositions.forEach(n => {
-                if (!n.cfg.label) return;
-                const d = Math.hypot(n.x - mx, n.y - my);
-                if (d < CFG.NODE.radiusActive + 14) scrollToSection(n.cfg);
-            });
-        });
+        activeZone = newActive;
     }
 
-    function scrollToSection(sec) {
-        const target = document.getElementById(sec.scrollTo);
-        if (!target) return;
-        const lenis = window.__lenisInstance;
-        if (lenis) {
-            lenis.scrollTo(target, {
-                duration: 1.4,
-                easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-            });
-        } else {
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    // ── 13. INIT ──────────────────────────────────────────────────────────
+    // ── 9. INIT ────────────────────────────────────────────────────────────
     function init() {
-        buildDOM();
-        resize();
-        initScroll();
-        initTicker();
-        initTilt();
-        initInteraction();
-        window.addEventListener('resize', resize, { passive: true });
+        buildShell();
+        loadSVG();
     }
 
-    // Defer until GSAP + ScrollTrigger are registered by script.js
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

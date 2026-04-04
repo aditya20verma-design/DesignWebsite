@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    <!-- Circuit Nav Component -->
+    <link rel="stylesheet" href="sections/circuit/circuit.css">
 
     <!-- Dependencies -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -158,6 +160,50 @@
             </div>
         </section>
 
+        <!-- About / Experience Section -->
+        <section class="about-section hover-trigger" id="about">
+            <div class="about-grid">
+                
+                <!-- Left: About -->
+                <div class="about-col-left fade-up-minimal">
+                    <p class="about-label">About Me</p>
+                    <p class="about-desc">
+                        Product Designer with 3+ years across healthcare, fintech & architecture. Skilled at transforming complex systems into intuitive, accessible experiences. Specialized in scaling design systems, optimizing patient flows, and driving measurable growth. Background in architecture with an M.Des, applying systems thinking and research-driven design to complex challenges.
+                    </p>
+                </div>
+
+                <!-- Right: Experience -->
+                <div class="about-col-right fade-up-minimal">
+                    <p class="about-label">Experience</p>
+                    
+                    <div class="exp-item">
+                        <div class="exp-role">Associate Product Designer</div>
+                        <div class="exp-company">Narayana Health</div>
+                        <div class="exp-date">Nov 2024 — Present</div>
+                    </div>
+
+                    <div class="exp-item">
+                        <div class="exp-role">User Experience Designer</div>
+                        <div class="exp-company">BranchX</div>
+                        <div class="exp-date">Sep 2023 — Nov 2024</div>
+                    </div>
+
+                    <div class="exp-item">
+                        <div class="exp-role">Product Designer (Internship)</div>
+                        <div class="exp-company">Avanatri Technologies</div>
+                        <div class="exp-date">Jun 2022 — Aug 2022</div>
+                    </div>
+
+                    <div class="exp-item">
+                        <div class="exp-role">Architecture (Prior Experience)</div>
+                        <div class="exp-company">—</div>
+                        <div class="exp-date">~1.5 years</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
         <!-- Contact / Footer -->
         <footer class="footer-section" id="contact">
             <div class="footer-grid">
@@ -209,5 +255,8 @@
     <script type="text/javascript">!function(){var u=window.UnicornStudio;if(u&&u.init){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){u.init()})}else{u.init()}}else{window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js",i.onload=function(){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){UnicornStudio.init()})}else{UnicornStudio.init()}},(document.head||document.body).appendChild(i)}}();</script>
     
     <script src="script.js"></script>
+    <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
+    <script src="sections/circuit/circuit.config.js"></script>
+    <script src="sections/circuit/circuit.js"></script>
 </body>
 </html>

@@ -400,6 +400,10 @@ const lenis = !isTouchDevice ? new Lenis({
     mouseMultiplier: 1,
 }) : null;
 
+// Expose Lenis globally so the circuit component can call scrollTo
+// without being part of this file (circuit.js is self-contained).
+window.__lenisInstance = lenis;
+
 // Initial AV Logo Reveal (Single Wipe Masking)
 gsap.set('.av-shape', { clipPath: "inset(100% 0% 0% 0%)" });
 
@@ -787,6 +791,22 @@ document.querySelectorAll('.project').forEach((section) => {
         );
     }
 });
+
+// 5.5. Minimal Scroll Fade (For About Section typography)
+const minimalFades = document.querySelectorAll('.fade-up-minimal');
+if (minimalFades.length > 0) {
+    gsap.to(minimalFades, { 
+        y: 0, 
+        opacity: 1, 
+        duration: 0.7, 
+        stagger: 0.1, 
+        ease: "power2.out", 
+        scrollTrigger: {
+            trigger: ".about-section",
+            start: "top 75%", 
+        }
+    });
+}
 
 // 6. Advanced Text Reveal (Character Staggering mapped to M3 Short tokens)
 document.querySelectorAll('.split-type').forEach((text) => {

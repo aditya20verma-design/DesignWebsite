@@ -751,6 +751,92 @@ nav.nav--hero .nav-link {
     transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* ── About Section ────────────────────────────────────────── */
+.about-section {
+    padding: 15vh 10vw;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    z-index: 10;
+}
+
+.about-grid {
+    width: 100%;
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 6rem;
+}
+
+@media (max-width: 900px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 4rem;
+    }
+}
+
+.about-label {
+    font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    font-weight: 500;
+}
+
+.about-desc {
+    font-family: 'Geist', 'Inter', sans-serif;
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+    color: var(--text-secondary);
+    font-weight: 400;
+    max-width: 65ch;
+    margin: 0;
+}
+
+.exp-item {
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.exp-item:hover {
+    opacity: 1;
+}
+
+.exp-item:last-child {
+    margin-bottom: 0;
+}
+
+.exp-role {
+    font-family: 'Geist', 'Inter', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--main-light);
+    margin-bottom: 0.2rem;
+}
+
+.exp-company {
+    font-size: 1rem;
+    color: #FF5509; /* Subtle accent emphasis */
+    margin-bottom: 0.5rem;
+}
+
+.exp-date {
+    font-family: 'Geist Mono', 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted, #777);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Minimal Fade Interaction */
+.fade-up-minimal {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
 /* ── Utilities ──────────────────────────────────────────── */
 .reveal-text,
 .reveal-text-scroll {
