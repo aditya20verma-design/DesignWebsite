@@ -1,0 +1,27 @@
+{
+  "name": "Aditya Verma — Product Designer",
+  "short_name": "AV Portfolio",
+  "description": "Portfolio of Aditya Verma, Product Designer with 3+ years across healthcare, fintech & architecture.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1D1D1D",
+  "icons": [
+    {
+      "src": "../../assets/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "../../assets/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "../../assets/icons/icon-512-maskable.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}
