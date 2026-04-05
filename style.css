@@ -995,7 +995,7 @@ nav.nav--hero .nav-link {
 /* Inline email pill */
 .footer-heading .footer-pill {
     margin-top: 0;
-    margin-left: 0.5rem;
+    margin-left: 1.5rem;
     height: 3rem; /* Fixed height for perfect vertical centering */
     width: 340px;
     display: inline-flex !important;
@@ -1006,7 +1006,7 @@ nav.nav--hero .nav-link {
     border-radius: 50px;
     font-size: clamp(0.7rem, 2vw, 1.1rem);
     vertical-align: middle;
-    transform: translateY(-0.35em);
+    transform: translateY(-0.55em);
     letter-spacing: 0;
 }
 
