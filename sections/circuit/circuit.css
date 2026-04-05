@@ -27,7 +27,8 @@
 
     pointer-events: auto;
     cursor: default;
-    overflow: visible; /* Allowing huge labels to break out of the container bounds */
+    overflow: visible;
+    /* Allowing huge labels to break out of the container bounds */
 }
 
 /* Pill widens on hover */
@@ -55,7 +56,8 @@
     /* Default: compact, solid */
     transform: scale(0.48) translateX(-10%);
     transform-origin: center center;
-    opacity: 1;   /* NO transparency on track */
+    opacity: 1;
+    /* NO transparency on track */
 
     transition:
         transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
@@ -90,12 +92,7 @@
     stroke-width: 20;
     fill: none;
     /* 6-Layer Apple-Fidelity Shadow Stack — incredibly smooth, realistic depth gradient */
-    filter: drop-shadow(0.5px 1px 2px rgba(0, 0, 0, 0.10))
-            drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.07))
-            drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.05))
-            drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.04))
-            drop-shadow(8px 16px 35px rgba(0, 0, 0, 0.03))
-            drop-shadow(16px 32px 80px rgba(0, 0, 0, 0.02));
+    filter: drop-shadow(0.5px 1px 2px rgba(0, 0, 0, 0.10)) drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.07)) drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.05)) drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.04)) drop-shadow(8px 16px 35px rgba(0, 0, 0, 0.03)) drop-shadow(16px 32px 80px rgba(0, 0, 0, 0.02));
 }
 
 #track-base {
@@ -152,19 +149,21 @@
 /* ── HOVER: White Glow ─────────────────────────────────────────── */
 .section-seg.hovered {
     stroke: rgba(255, 255, 255, 0.95);
-    stroke-width: 26;  /* slightly thicker than base 20 — sits above it clearly */
+    stroke-width: 26;
+    /* slightly thicker than base 20 — sits above it clearly */
     animation: section-breathe 1.6s ease-in-out infinite;
 }
 
 /* Breathing glow — bright white pulsing bloom */
 @keyframes section-breathe {
-    0%, 100% {
-        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5))
-                drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
     }
+
     50% {
-        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))
-                drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
     }
 }
 
@@ -179,13 +178,14 @@
 }
 
 @keyframes section-breathe-dark {
-    0%, 100% {
-        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25))
-                drop-shadow(0 0 8px rgba(0, 0, 0, 0.10));
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.25)) drop-shadow(0 0 8px rgba(0, 0, 0, 0.10));
     }
+
     50% {
-        filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.50))
-                drop-shadow(0 0 16px rgba(0, 0, 0, 0.25));
+        filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.50)) drop-shadow(0 0 16px rgba(0, 0, 0, 0.25));
     }
 }
 
@@ -209,13 +209,14 @@
 
 /* Breathing glow — vibrant neon orange */
 @keyframes section-breathe-orange {
-    0%, 100% {
-        filter: drop-shadow(0 0 4px rgba(255, 85, 9, 0.5))
-                drop-shadow(0 0 8px rgba(255, 85, 9, 0.2));
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 4px rgba(255, 85, 9, 0.5)) drop-shadow(0 0 8px rgba(255, 85, 9, 0.2));
     }
+
     50% {
-        filter: drop-shadow(0 0 10px rgba(255, 85, 9, 0.9))
-                drop-shadow(0 0 24px rgba(255, 85, 9, 0.6));
+        filter: drop-shadow(0 0 10px rgba(255, 85, 9, 0.9)) drop-shadow(0 0 24px rgba(255, 85, 9, 0.6));
     }
 }
 
@@ -228,8 +229,9 @@
 
 /* ── Pixelwrld-style section label ─────────────────────────────────── */
 .section-label {
-    font-family: 'Geist', 'Helvetica Neue', sans-serif;
-    font-size: 60px; /* Maps out to exactly ~15px visually after 2x downscaling layer */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    font-size: 60px;
+    /* Maps out to exactly ~15px visually after 2x downscaling layer */
     font-weight: 400;
     letter-spacing: 0;
     text-transform: uppercase;
@@ -252,9 +254,9 @@
     filter: blur(4px);
     /* pixelwrld-style: scale up + sharpen from blur */
     transition:
-        opacity   0.22s ease,
-        transform 0.3s  cubic-bezier(0.22, 1, 0.36, 1),
-        filter    0.22s ease;
+        opacity 0.22s ease,
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.22s ease;
     pointer-events: none;
     cursor: default;
 }
@@ -279,7 +281,9 @@
 
 /* ── Mobile: hide ─────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
-    #circuit-pill { display: none; }
+    #circuit-pill {
+        display: none;
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -307,7 +311,7 @@
 
     /* Transition top/right for hover effects only */
     transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-                width  0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Stable internal scale — matches compact visual balance */
@@ -323,6 +327,7 @@
     width: 260px;
     height: 440px;
 }
+
 /* Internal scale on hover matches the bigger size */
 .nav-mode--track #circuit-pill:hover #circuit-root {
     transform: scale(0.88) translateX(4%) translateY(-6%);
@@ -352,4 +357,3 @@
     /* Tune: increase blur 3→4px or opacity 0.30→0.45 for more pop on white */
     filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.40));
 }
-

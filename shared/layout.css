@@ -1,0 +1,242 @@
+/* ============================================================
+   LAYOUT SYSTEM — Aditya Verma Portfolio
+   ============================================================
+   Apple-level spatial design: 8px base unit, 12-column grid,
+   fluid section breathing, generous safe-area respect.
+
+   Files: load this BEFORE style.css in index.html.
+   Usage: use tokens everywhere, never hardcode px spacing.
+
+   Philosophy:
+   - Everything is a multiple of 8px (or 4px for micro-gaps)
+   - Sections breathe generously — never cramped
+   - Content max-widths prevent over-stretching on wide screens
+   - Page margins scale with viewport using fluid clamp()
+   ============================================================ */
+
+
+/* ──────────────────────────────────────────────────────────
+   1. SPACING SCALE
+   8px base unit. All values are multiples of 4.
+──────────────────────────────────────────────────────────── */
+:root {
+    /* Micro spacing — UI components */
+    --space-1:  4px;   /* chip gap, icon nudge */
+    --space-2:  8px;   /* inner label padding */
+    --space-3:  12px;  /* button padding vertical */
+    --space-4:  16px;  /* card padding, base unit */
+    --space-5:  20px;  /* component gap */
+    --space-6:  24px;  /* nav item gap, card gap */
+    --space-8:  32px;  /* section element gap */
+    --space-10: 40px;  /* subheading margin */
+    --space-12: 48px;  /* heading to body gap */
+
+    /* Macro spacing — layout & sections */
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+    --space-32: 128px;
+    --space-40: 160px;
+    --space-48: 192px;
+
+    /* ── Fluid Spacing (scales with viewport) ───────────── */
+    /* Use these for responsive section breathing room       */
+    --fluid-xs:  clamp(16px, 2vw,  32px);   /* tight component gap */
+    --fluid-sm:  clamp(24px, 3vw,  48px);   /* card padding */
+    --fluid-md:  clamp(40px, 5vw,  80px);   /* intra-section margin */
+    --fluid-lg:  clamp(64px, 8vw,  128px);  /* section padding-y */
+    --fluid-xl:  clamp(96px, 12vw, 192px);  /* hero / footer padding-y */
+
+    /* ── Page Edge Margins ─────────────────────────────────
+       Consistent horizontal breathing room on every section.
+       Never let content touch the viewport edge.
+    ─────────────────────────────────────────────────────── */
+    --page-margin-x: clamp(24px, 5vw, 96px);
+    --page-margin-x-wide: clamp(48px, 7vw, 128px);
+
+    /* ── Section Padding Shorthands ──────────────────────── */
+    --section-pad:       var(--fluid-lg)  var(--page-margin-x);
+    --section-pad-hero:  var(--fluid-xl)  var(--page-margin-x);
+
+
+    /* ──────────────────────────────────────────────────────
+       2. LAYOUT GRID
+       12-column, fluid gutter, 3 max-width variants
+    ────────────────────────────────────────────────────── */
+
+    /* Column grid gutter — scales between 16px and 32px */
+    --grid-gap:    clamp(16px, 2.5vw, 32px);
+
+    /* Container max-widths */
+    --container-sm:   720px;   /* Long-form copy, narrow editorial */
+    --container-md:   1024px;  /* Standard content */
+    --container-lg:   1280px;  /* Main site width */
+    --container-xl:   1440px;  /* Wide/full-bleed content */
+
+    /* Named grid column ratios (for specific sections) */
+    --grid-ratio-content:  "1fr 1.6fr";   /* Project: info + image */
+    --grid-ratio-balanced: "1fr 1fr";     /* Two-up layouts */
+    --grid-ratio-sidebar:  "2fr 1fr";     /* Footer, about */
+
+    /* ──────────────────────────────────────────────────────
+       3. BREAKPOINTS (reference — use in @media queries)
+    ────────────────────────────────────────────────────── */
+    --bp-xs:  480px;   /* Small mobile */
+    --bp-sm:  600px;   /* Mobile landscape / large phones */
+    --bp-md:  900px;   /* Tablet */
+    --bp-lg:  1200px;  /* Small desktop */
+    --bp-xl:  1440px;  /* Large desktop / cinema */
+
+    /* ──────────────────────────────────────────────────────
+       4. RADIUS SCALE
+       Consistent border-radius from micro to large.
+    ────────────────────────────────────────────────────── */
+    --radius-xs:  4px;
+    --radius-sm:  8px;
+    --radius-md:  12px;
+    --radius-lg:  20px;
+    --radius-xl:  32px;
+    --radius-pill: 999px;
+
+    /* ──────────────────────────────────────────────────────
+       5. Z-INDEX SCALE
+       Predictable stacking order.
+    ────────────────────────────────────────────────────── */
+    --z-base:    0;
+    --z-raised:  10;
+    --z-sticky:  100;
+    --z-nav:     1000;
+    --z-overlay: 9000;
+    --z-loader:  99999;
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   CONTAINER UTILITY CLASSES
+   .container        → standard 1280px
+   .container--sm    → 720px editorial
+   .container--lg    → 1440px wide
+   .container--fluid → full width with page margin
+────────────────────────────────────────────────────────── */
+.container {
+    width: 100%;
+    max-width: var(--container-lg);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--page-margin-x);
+    padding-right: var(--page-margin-x);
+}
+
+.container--sm {
+    width: 100%;
+    max-width: var(--container-sm);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--page-margin-x);
+    padding-right: var(--page-margin-x);
+}
+
+.container--lg {
+    width: 100%;
+    max-width: var(--container-xl);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--page-margin-x);
+    padding-right: var(--page-margin-x);
+}
+
+.container--fluid {
+    width: 100%;
+    padding-left: var(--page-margin-x);
+    padding-right: var(--page-margin-x);
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   12-COLUMN GRID
+────────────────────────────────────────────────────────── */
+.grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--grid-gap);
+}
+
+/* Column span utilities */
+.col-1  { grid-column: span 1;  }
+.col-2  { grid-column: span 2;  }
+.col-3  { grid-column: span 3;  }
+.col-4  { grid-column: span 4;  }
+.col-5  { grid-column: span 5;  }
+.col-6  { grid-column: span 6;  }
+.col-7  { grid-column: span 7;  }
+.col-8  { grid-column: span 8;  }
+.col-9  { grid-column: span 9;  }
+.col-10 { grid-column: span 10; }
+.col-11 { grid-column: span 11; }
+.col-12 { grid-column: span 12; }
+
+/* Responsive: collapse selected spans to full width on tablet */
+@media (max-width: 900px) {
+    .grid-12 { grid-template-columns: repeat(6, 1fr); }
+    .col-md-full { grid-column: 1 / -1; }
+    .col-md-6    { grid-column: span 6; }
+    .col-md-4    { grid-column: span 4; }
+    .col-md-3    { grid-column: span 3; }
+}
+
+@media (max-width: 600px) {
+    .grid-12 { grid-template-columns: 1fr; gap: var(--fluid-sm); }
+    [class*="col-"] { grid-column: span 1; }
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   SECTION WRAPPER BASE
+   Apply to every top-level <section> for consistent padding.
+────────────────────────────────────────────────────────── */
+.section {
+    padding: var(--fluid-lg) var(--page-margin-x);
+}
+
+.section--hero {
+    padding: var(--fluid-xl) var(--page-margin-x);
+}
+
+.section--tight {
+    padding: var(--fluid-md) var(--page-margin-x);
+}
+
+
+/* ──────────────────────────────────────────────────────────
+   SPACING UTILITY CLASSES
+   .mt-*, .mb-*, .pt-*, .pb-*, .gap-*
+────────────────────────────────────────────────────────── */
+
+/* Margin top */
+.mt-1  { margin-top: var(--space-1);  }
+.mt-2  { margin-top: var(--space-2);  }
+.mt-4  { margin-top: var(--space-4);  }
+.mt-6  { margin-top: var(--space-6);  }
+.mt-8  { margin-top: var(--space-8);  }
+.mt-12 { margin-top: var(--space-12); }
+.mt-16 { margin-top: var(--space-16); }
+.mt-24 { margin-top: var(--space-24); }
+
+/* Margin bottom */
+.mb-1  { margin-bottom: var(--space-1);  }
+.mb-2  { margin-bottom: var(--space-2);  }
+.mb-4  { margin-bottom: var(--space-4);  }
+.mb-6  { margin-bottom: var(--space-6);  }
+.mb-8  { margin-bottom: var(--space-8);  }
+.mb-12 { margin-bottom: var(--space-12); }
+.mb-16 { margin-bottom: var(--space-16); }
+.mb-24 { margin-bottom: var(--space-24); }
+
+/* Gap (for flex/grid containers) */
+.gap-1  { gap: var(--space-1);  }
+.gap-2  { gap: var(--space-2);  }
+.gap-4  { gap: var(--space-4);  }
+.gap-6  { gap: var(--space-6);  }
+.gap-8  { gap: var(--space-8);  }
+.gap-12 { gap: var(--space-12); }
+.gap-16 { gap: var(--space-16); }

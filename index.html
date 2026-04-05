@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Portfolio of Aditya Verma, an interactive experience.">
     <title>Aditya Verma | Product Designer</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
-    <!-- CSS -->
+    <!-- Design System: Colors → Layout → Typography → Styles -->
+    <link rel="stylesheet" href="shared/colors.css">
+    <link rel="stylesheet" href="shared/layout.css">
+    <link rel="stylesheet" href="shared/typography.css">
     <link rel="stylesheet" href="style.css?v=15">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=17">
 
@@ -18,7 +18,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <!-- Unicorn Studio WebGL -->
-    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
     <!-- Lottie Web (for AV signature draw-on animation) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
@@ -38,9 +39,7 @@
         <div class="loader-logo-wrap" id="loader-logo-wrap">
             <!-- .loader-logo-mask is overflow:hidden — logo slides up from beneath -->
             <div class="loader-logo-mask">
-                <img id="loader-logo-img"
-                     src="sections/loader/assets/AV wordmark.svg"
-                     class="loader-logo-img" alt="AV">
+                <img id="loader-logo-img" src="sections/loader/assets/AV wordmark.svg" class="loader-logo-img" alt="AV">
             </div>
         </div>
 
@@ -48,19 +47,18 @@
         <!-- This SVG draws the "2" as a black fill; we use it as an
              SVG <mask> so the orange curtain has a "2"-shaped hole that
              grows until it covers the whole screen. -->
-        <svg class="loader-mask-svg" id="loader-mask-svg"
-             xmlns="http://www.w3.org/2000/svg">
+        <svg class="loader-mask-svg" id="loader-mask-svg" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <mask id="two-reveal-mask" maskUnits="userSpaceOnUse">
-                    <rect x="-100000" y="-100000"
-                          width="200000" height="200000" fill="white"/>
+                    <rect x="-100000" y="-100000" width="200000" height="200000" fill="white" />
                     <!-- Black  = transparent hole (site shows through) -->
-                    <path id="two-mask-path" d="M107.422 136.719H0L9.57031 91.8945C15.625 63.1836 38.1836 48.8281 77.2461 48.8281H87.0117C93.5221 48.8281 97.0703 47.4935 97.6562 44.8242C98.5026 40.9831 95.6706 39.0625 89.1602 39.0625H30.5664L38.8672 0H87.6953C126.758 0 143.099 14.9414 136.719 44.8242C130.599 73.5352 108.008 87.8906 68.9453 87.8906C55.9245 87.8906 49.1536 89.2253 48.6328 91.8945L47.3633 97.6562H115.723L107.422 136.719Z" fill="black"/>
+                    <path id="two-mask-path"
+                        d="M107.422 136.719H0L9.57031 91.8945C15.625 63.1836 38.1836 48.8281 77.2461 48.8281H87.0117C93.5221 48.8281 97.0703 47.4935 97.6562 44.8242C98.5026 40.9831 95.6706 39.0625 89.1602 39.0625H30.5664L38.8672 0H87.6953C126.758 0 143.099 14.9414 136.719 44.8242C130.599 73.5352 108.008 87.8906 68.9453 87.8906C55.9245 87.8906 49.1536 89.2253 48.6328 91.8945L47.3633 97.6562H115.723L107.422 136.719Z"
+                        fill="black" />
                 </mask>
             </defs>
             <!-- Orange curtain rendered by SVG with the "2" hole cut out -->
-            <rect id="two-curtain" width="100%" height="100%"
-                  fill="#FF5509" mask="url(#two-reveal-mask)"/>
+            <rect id="two-curtain" width="100%" height="100%" fill="#FF5509" mask="url(#two-reveal-mask)" />
         </svg>
 
     </div>
@@ -68,15 +66,134 @@
 
     <!-- Mobile Nav Overlay -->
     <div class="mobile-nav-overlay" id="mobile-nav">
-        <a href="#work"    class="nav-link" id="m-work"><span class="hover-stagger">WORK</span></a>
-        <a href="#about"   class="nav-link" id="m-about"><span class="hover-stagger">ABOUT</span></a>
+        <a href="#work" class="nav-link" id="m-work"><span class="hover-stagger">WORK</span></a>
+        <a href="#about" class="nav-link" id="m-about"><span class="hover-stagger">ABOUT</span></a>
         <a href="#contact" class="nav-link" id="m-contact"><span class="hover-stagger">CONTACT</span></a>
     </div>
 
     <!-- Navigation -->
     <nav>
         <div class="nav-left">
-            <a href="#" class="logo text-logo hover-trigger">ADITYA<br>VERMA</a>
+            <a href="#" class="logo svg-logo hover-trigger" id="logo-link" aria-label="Aditya Verma – Home">
+
+                <!-- LINE 1: ADITYA ↔ RESTART -->
+                <div class="logo-line">
+                    <!-- Default: ADITYA (paths RTL in file → --i assigned LTR) -->
+                    <svg class="logo-face face-default" viewBox="0 0 163 34" fill="none"
+                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <g class="letter" style="--i:4">
+                            <path
+                                d="M143.034 0H149.466L159.258 26.736C160.506 30.192 160.506 30.192 162.33 32.256L161.658 33.6H153.786L153.114 32.256C154.554 30.24 154.554 30.24 152.154 22.992C151.29 20.4 150.426 19.104 148.698 19.104H143.61L140.73 21.792C138.81 23.616 138.138 25.344 137.562 27.168C136.794 29.664 136.794 29.664 139.722 32.256L139.05 33.6H132.906L132.234 32.256C135.882 29.568 135.882 29.568 137.178 26.112L144.378 7.008C145.002 5.424 145.434 4.32 142.362 1.344L143.034 0ZM141.114 20.688L143.37 18.528H148.554C150.282 18.528 150.042 17.04 149.754 16.224L146.49 6.96C145.674 4.608 145.29 5.904 144.906 7.008L140.394 19.296C139.53 21.6 139.29 22.416 141.114 20.688Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:3">
+                            <path
+                                d="M131.798 0L132.47 1.344C129.446 3.504 128.534 4.752 127.766 6.24L123.062 15.36C121.91 17.568 121.814 17.568 121.814 22.416V28.176C121.814 30.144 121.814 30.144 123.782 32.304L123.158 33.6H115.19L114.566 32.304C116.534 30.144 116.534 30.144 116.534 28.176V22.416C116.534 18.816 116.486 18.768 114.902 15.84L109.382 5.52L109.238 5.232C106.79 0.72 104.006 0.576001 99.8302 0.576001C96.9502 0.576001 96.9502 3.456 96.9502 5.424V28.176C96.9502 30 96.9502 30 98.9182 32.304L98.2462 33.6H90.3742L89.7022 32.304C91.6702 29.952 91.6702 29.952 91.6702 28.176V5.424C91.6702 3.456 91.6702 0.576001 88.7902 0.576001C86.6782 0.576001 84.9502 1.104 82.9342 7.104H81.0142L79.9102 0.864L80.5342 0H114.422L115.094 1.344C113.702 3.024 113.99 2.832 115.094 4.896L120.662 15.408C121.478 16.944 121.622 16.944 122.63 14.976L127.238 6C127.862 4.8 128.15 3.456 125.174 1.344L125.846 0H131.798Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:2">
+                            <path
+                                d="M74.5822 28.176C74.5822 30.144 74.5822 30.144 76.5502 32.256L75.8782 33.6H68.2462L67.5742 32.256C69.5422 30.144 69.5422 30.144 69.5422 28.176V5.424C69.5422 3.456 69.5422 3.456 67.5742 1.344L68.2462 0H75.8782L76.5502 1.344C74.5822 3.456 74.5822 3.456 74.5822 5.424V28.176Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:1">
+                            <path
+                                d="M43.121 0C58.145 0 63.713 7.824 63.713 16.56C63.713 27.264 56.609 33.6 44.657 33.6H32.417L31.793 32.256C33.713 30.192 33.713 30.192 33.713 28.368V5.232C33.713 3.408 33.713 3.408 31.793 1.296L32.417 0H43.121ZM57.713 16.608C57.713 8.832 53.057 0.576001 43.121 0.576001C38.993 0.576001 38.993 3.408 38.993 5.232V28.368C38.993 30.192 39.041 33.024 42.113 33.024C50.897 33.024 57.713 29.952 57.713 16.608Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:0">
+                            <path
+                                d="M10.8 0H17.232L27.024 26.736C28.272 30.192 28.272 30.192 30.096 32.256L29.424 33.6H21.552L20.88 32.256C22.32 30.24 22.32 30.24 19.92 22.992C19.056 20.4 18.192 19.104 16.464 19.104H11.376L8.496 21.792C6.576 23.616 5.904 25.344 5.328 27.168C4.56 29.664 4.56 29.664 7.488 32.256L6.816 33.6H0.672L0 32.256C3.648 29.568 3.648 29.568 4.944 26.112L12.144 7.008C12.768 5.424 13.2 4.32 10.128 1.344L10.8 0ZM8.88 20.688L11.136 18.528H16.32C18.048 18.528 17.808 17.04 17.52 16.224L14.256 6.96C13.44 4.608 13.056 5.904 12.672 7.008L8.16 19.296C7.296 21.6 7.056 22.416 8.88 20.688Z"
+                                fill="currentColor" />
+                        </g>
+                    </svg>
+                    <!-- Hover: RESTART -->
+                    <svg class="logo-face face-hover" viewBox="0 0 191 36" fill="none"
+                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <g class="letter" style="--i:5">
+                            <path
+                                d="M190.332 0.720703L190.956 1.5847L189.852 7.8247H187.932C185.916 1.8247 184.236 1.2967 182.076 1.2967C179.196 1.2967 179.196 4.1767 179.196 6.1447V28.8967C179.196 30.7207 179.196 30.7207 181.164 33.0247L180.492 34.3207H172.62L171.948 33.0247C173.916 30.6727 173.916 30.6727 173.916 28.8967V6.1447C173.916 4.1767 173.916 1.2967 171.036 1.2967C168.924 1.2967 167.196 1.8247 165.18 7.8247H163.26L162.156 1.5847L162.78 0.720703H190.332Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:4">
+                            <path
+                                d="M153.875 16.5127C159.875 29.7127 161.027 31.2967 162.899 32.9767L162.083 34.3207H154.595L153.923 32.9767C155.459 31.2967 155.459 31.1047 148.307 16.4167H147.395C143.843 20.1607 143.843 20.5447 143.843 25.6807V28.8967C143.843 31.0567 143.843 31.0567 145.811 33.0247L145.139 34.3207H137.267L136.595 33.0247C138.563 31.0567 138.563 31.0567 138.563 28.8967V6.2887C138.563 4.4647 138.563 4.4647 136.547 2.11271L137.267 0.720703H148.403C155.363 0.720703 159.923 3.88871 159.923 8.8327C159.923 14.8327 153.875 16.5127 153.875 16.5127ZM149.123 15.8407C153.155 15.8407 154.355 12.7207 154.163 8.78471C153.971 4.6567 151.043 1.2967 147.683 1.2967C143.843 1.2967 143.843 4.4647 143.843 6.2887V17.5687C143.843 19.1047 143.843 19.4407 146.291 16.7047L147.059 15.8407H149.123Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:3">
+                            <path
+                                d="M115.546 0.720703H121.978L131.77 27.4567C133.018 30.9127 133.018 30.9127 134.842 32.9767L134.17 34.3207H126.298L125.626 32.9767C127.066 30.9607 127.066 30.9607 124.666 23.7127C123.802 21.1207 122.938 19.8247 121.21 19.8247H116.122L113.242 22.5127C111.322 24.3367 110.65 26.0647 110.074 27.8887C109.306 30.3847 109.306 30.3847 112.234 32.9767L111.562 34.3207H105.418L104.746 32.9767C108.394 30.2887 108.394 30.2887 109.69 26.8327L116.89 7.7287C117.514 6.1447 117.946 5.0407 114.874 2.0647L115.546 0.720703ZM113.626 21.4087L115.882 19.2487H121.066C122.794 19.2487 122.554 17.7607 122.266 16.9447L119.002 7.68071C118.186 5.3287 117.802 6.6247 117.418 7.7287L112.906 20.0167C112.042 22.3207 111.802 23.1367 113.626 21.4087Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:2">
+                            <path
+                                d="M107.504 0.720703L108.128 1.5847L107.024 7.8247H105.104C103.088 1.8247 101.408 1.2967 99.2481 1.2967C96.3681 1.2967 96.3681 4.1767 96.3681 6.1447V28.8967C96.3681 30.7207 96.3681 30.7207 98.3361 33.0247L97.6641 34.3207H89.7921L89.1201 33.0247C91.0881 30.6727 91.0881 30.6727 91.0881 28.8967V6.1447C91.0881 4.1767 91.0881 1.2967 88.2081 1.2967C86.0961 1.2967 84.3681 1.8247 82.3521 7.8247H80.4321L79.3281 1.5847L79.9521 0.720703H107.504Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:1">
+                            <path
+                                d="M77.4232 21.456C79.0073 26.832 76.1273 35.04 67.1513 35.04C59.5193 35.04 56.3033 30.768 56.3033 30.768L54.0473 18.384C50.7833 0.576002 43.0073 1.296 37.8233 1.296C35.2793 1.296 35.2792 3.696 35.2792 5.664V16.608C35.2792 19.056 35.1353 20.016 37.0553 17.856L38.7833 15.888H40.9913C42.8153 15.888 42.8152 15.888 45.1672 10.32L46.5593 10.944V21.168L45.1672 21.792C42.8152 16.464 42.8153 16.464 40.9913 16.464H39.0233C35.2793 20.832 35.2792 21.072 35.2792 26.208V28.896C35.2792 30.864 35.2793 33.744 38.3033 33.744C41.7593 33.744 47.3753 33.264 50.0153 26.688L52.1273 27.408L51.0713 34.32H28.6553L28.0312 33.024C29.9993 30.864 29.9993 30.864 29.9993 28.896V6.144C29.9993 4.176 29.9993 4.176 28.0312 2.064L28.6073 0.719999H50.8793L51.4553 1.584L54.4792 17.376C56.4473 27.552 64.3193 35.808 69.9352 33.936C73.5352 32.736 74.1113 28.128 72.6233 24.576C70.5113 19.488 62.6393 18.768 58.4633 14.784C53.6633 10.224 55.7273 0 65.7113 0C72.8632 0 76.3193 3.984 76.3193 3.984L75.3113 9.408H72.9113C70.4633 2.256 65.2793 0.192 62.2073 1.2C58.9913 2.256 58.3193 6.72 61.9193 9.984C65.7592 13.44 75.5033 14.88 77.4232 21.456Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:0">
+                            <path
+                                d="M17.328 16.5127C23.328 29.7127 24.48 31.2967 26.352 32.9767L25.536 34.3207H18.048L17.376 32.9767C18.912 31.2967 18.912 31.1047 11.76 16.4167H10.848C7.296 20.1607 7.296 20.5447 7.296 25.6807V28.8967C7.296 31.0567 7.296 31.0567 9.264 33.0247L8.592 34.3207H0.72L0.0480001 33.0247C2.016 31.0567 2.016 31.0567 2.016 28.8967V6.2887C2.016 4.4647 2.016 4.4647 0 2.11271L0.72 0.720703H11.856C18.816 0.720703 23.376 3.88871 23.376 8.8327C23.376 14.8327 17.328 16.5127 17.328 16.5127ZM12.576 15.8407C16.608 15.8407 17.808 12.7207 17.616 8.78471C17.424 4.6567 14.496 1.2967 11.136 1.2967C7.296 1.2967 7.296 4.4647 7.296 6.2887V17.5687C7.296 19.1047 7.296 19.4407 9.744 16.7047L10.512 15.8407H12.576Z"
+                                fill="currentColor" />
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- LINE 2: VERMA ↔ LAP -->
+                <div class="logo-line">
+                    <!-- Default: VERMA -->
+                    <svg class="logo-face face-default" viewBox="0 0 164 31" fill="none"
+                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <g class="letter" style="--i:4">
+                            <path
+                                d="M131.535 30.618L141.867 0H152.955L163.329 30.618H155.013L148.713 9.828L147.579 5.922H147.285L146.151 9.828L139.851 30.618H131.535ZM141.027 24.864L142.833 18.858H151.989L153.795 24.864H141.027Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:3">
+                            <path
+                                d="M94.0977 30.618V0H106.362L109.764 12.768L111.234 19.908H111.57L112.998 12.768L116.316 0H128.58V30.618H120.978V17.598L121.188 7.35H120.81L118.584 16.38L114.72 30.618H108.084L104.178 16.254L101.952 7.35H101.574L101.784 17.64V30.618H94.0977Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:2">
+                            <path
+                                d="M62.7617 30.618V0H79.6457C80.9617 0 82.1517 0.125999 83.2157 0.377999C84.3077 0.602 85.2737 0.937999 86.1137 1.386C86.9817 1.834 87.7097 2.408 88.2977 3.108C88.8857 3.78 89.3197 4.578 89.5997 5.502C89.9077 6.398 90.0617 7.42 90.0617 8.568C90.0617 10.472 89.5437 12.082 88.5077 13.398C87.4997 14.686 86.1417 15.554 84.4337 16.002V16.296C85.5817 16.492 86.5197 16.842 87.2477 17.346C88.0037 17.85 88.5497 18.494 88.8857 19.278C89.2497 20.062 89.4317 21.028 89.4317 22.176V27.132C89.4317 27.692 89.4457 28.266 89.4737 28.854C89.5297 29.442 89.6837 30.03 89.9357 30.618H81.9137C81.7737 30.254 81.6617 29.764 81.5777 29.148C81.5217 28.532 81.4937 27.86 81.4937 27.132V23.478C81.4937 22.694 81.3677 22.05 81.1157 21.546C80.8637 21.014 80.4297 20.608 79.8137 20.328C79.2257 20.02 78.3857 19.866 77.2937 19.866H70.0697V13.776H77.5877C79.1837 13.776 80.3037 13.412 80.9477 12.684C81.6197 11.956 81.9557 11.046 81.9557 9.954C81.9557 9.282 81.8437 8.722 81.6197 8.274C81.4237 7.826 81.1297 7.462 80.7377 7.182C80.3457 6.902 79.8837 6.706 79.3517 6.594C78.8197 6.454 78.2317 6.384 77.5877 6.384H70.6997V30.618H62.7617Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:1">
+                            <path
+                                d="M35.2383 30.618V0H58.7583V6.636H41.5383L43.1763 4.956V25.62L41.5383 23.982H58.8843V30.618H35.2383ZM41.5383 18.228V12.054H56.6583V18.228H41.5383Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:0">
+                            <path
+                                d="M10.878 30.618L0 0H8.82L14.532 19.32L16.002 24.36H16.296L17.766 19.362L23.478 0H32.298L21.462 30.618H10.878Z"
+                                fill="currentColor" />
+                        </g>
+                    </svg>
+                    <!-- Hover: LAP -->
+                    <svg class="logo-face face-hover" viewBox="0 0 84 31" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <g class="letter" style="--i:2">
+                            <path
+                                d="M58.0391 30.618V0H71.5631C74.2791 0 76.5191 0.434 78.2831 1.302C80.0471 2.142 81.3491 3.332 82.1891 4.872C83.0571 6.384 83.4911 8.176 83.4911 10.248C83.4911 12.46 82.9871 14.336 81.9791 15.876C80.9991 17.416 79.6131 18.578 77.8211 19.362C76.0291 20.146 73.9291 20.538 71.5211 20.538H65.3471V14.574H70.8491C72.4731 14.574 73.6491 14.196 74.3771 13.44C75.1051 12.656 75.4691 11.676 75.4691 10.5C75.4691 9.044 75.0351 8.022 74.1671 7.434C73.2991 6.846 72.1931 6.552 70.8491 6.552H64.9271L65.9771 5.502V30.618H58.0391Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:1">
+                            <path
+                                d="M23.2891 30.618L33.6211 0H44.7091L55.0831 30.618H46.7671L40.4671 9.828L39.3331 5.922H39.0391L37.9051 9.828L31.6051 30.618H23.2891ZM32.7811 24.864L34.5871 18.858H43.7431L45.5491 24.864H32.7811Z"
+                                fill="currentColor" />
+                        </g>
+                        <g class="letter" style="--i:0">
+                            <path d="M0 30.618V0H7.938V24.99L6.762 23.73H21.294V30.618H0Z" fill="currentColor" />
+                        </g>
+                    </svg>
+                </div>
+
+            </a>
         </div>
         <!-- nav-center AV logo removed -->
         <!-- 
@@ -85,8 +202,8 @@
             To restore nav links: remove 'nav-mode--track' from <html>.
         -->
         <div class="nav-right" id="nav-right-links">
-            <a href="#work"    class="nav-link"><span class="hover-stagger">WORK</span></a>
-            <a href="#about"   class="nav-link"><span class="hover-stagger">ABOUT</span></a>
+            <a href="#work" class="nav-link"><span class="hover-stagger">WORK</span></a>
+            <a href="#about" class="nav-link"><span class="hover-stagger">ABOUT</span></a>
             <a href="#contact" class="nav-link"><span class="hover-stagger">CONTACT</span></a>
         </div>
         <!-- Hamburger (mobile only) -->
@@ -100,201 +217,258 @@
 
         <!-- Lando Norris Sticky Hero Track -->
         <div class="hero-track">
-            
+
             <div class="hero-sticky-container">
-            
+
                 <section class="hero hover-trigger" id="hero">
 
-                <!-- hero-inner: ALL visual content clipped to card bounds -->
-                <div class="hero-inner">
-                    <div class="hero-white-box" style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;"></div>
-                    <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL"></div>
-                    <div class="hero-grid-overlay">
-                        <canvas id="dotsCanvas"></canvas>
-                    </div>
-                    <div class="scroll-down">
-                        <div class="line-container"><div class="line"></div></div>
-                        <span>Scroll</span>
-                    </div>
-                </div> <!-- End hero-inner -->
+                    <!-- hero-inner: ALL visual content clipped to card bounds -->
+                    <div class="hero-inner">
+                        <div class="hero-white-box"
+                            style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;">
+                        </div>
+                        <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL"></div>
+                        <div class="hero-grid-overlay">
+                            <canvas id="dotsCanvas"></canvas>
+                        </div>
+                        <div class="scroll-down">
+                            <div class="line-container">
+                                <div class="line"></div>
+                            </div>
+                            <span>Scroll</span>
+                        </div>
+                    </div> <!-- End hero-inner -->
 
-            </section>
+                </section>
 
-            <!-- Signature: OUTSIDE hero — does NOT scale with hero card.
+                <!-- Signature: OUTSIDE hero — does NOT scale with hero card.
                  Hero shrinks to 35%, signature stays full viewport size.
                  Signature towers over the collapsed card (like Lando Norris). -->
-            <div class="signature-container">
-                <div id="sig-lottie" class="av-signature" aria-label="AV signature animation"></div>
-            </div>
+                <div class="signature-container">
+                    <div id="sig-lottie" class="av-signature" aria-label="AV signature animation"></div>
+                </div>
 
             </div> <!-- End Sticky Container -->
-            </div> <!-- End Hero Track -->
+        </div> <!-- End Hero Track -->
 
         <!-- Dynamic Content Wrapper (Slides over Hero) -->
         <div class="content-wrapper" id="work">
 
-        <!-- Project 1: UniShare -->
-        <section class="project hover-trigger" id="project-1">
-            <div class="project-bg-text marquee-left">UNISHARE APP</div>
-            <div class="project-content">
-                <div class="project-info">
-                    <p class="project-meta reveal-text-scroll">2023 · App Design</p>
-                    <h2 class="project-title reveal-text-scroll">UniShare</h2>
-                    <p class="project-desc reveal-text-scroll">A comprehensive platform for university students to share resources and connect.</p>
-                    <a href="https://www.behance.net/gallery/173110489/UniShare" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
-                </div>
-                <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('sections/work/assets/unishare/cover.jpg');"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Project 2: Delhi Metro -->
-        <section class="project reverse hover-trigger" id="project-2">
-            <div class="project-bg-text marquee-right">DELHI METRO</div>
-            <div class="project-content">
-                <div class="project-info">
-                    <p class="project-meta reveal-text-scroll">2024 · UI/UX Redesign</p>
-                    <h2 class="project-title reveal-text-scroll">Metro Route Finder</h2>
-                    <p class="project-desc reveal-text-scroll">Redesigning the transit companion app for better route clarity and ticketing.</p>
-                    <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
-                </div>
-                <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('sections/work/assets/dmrc/cover.png');"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Project 3: NutriBuddy -->
-        <section class="project hover-trigger" id="project-3">
-            <div class="project-bg-text marquee-left">NUTRIBUDDY</div>
-            <div class="project-content">
-                <div class="project-info">
-                    <p class="project-meta reveal-text-scroll">2023 · Health & Wellness</p>
-                    <h2 class="project-title reveal-text-scroll">Healthier food choices</h2>
-                    <p class="project-desc reveal-text-scroll">Personalized diet tracking and macro management tailored for Indian demographics.</p>
-                    <a href="https://www.behance.net/gallery/159157943/NutriBuddy-Healthier-food-choices" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
-                </div>
-                <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('sections/work/assets/nutribuddy/cover.png');"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Project 4: mFine -->
-        <section class="project reverse hover-trigger" id="project-4">
-            <div class="project-bg-text marquee-right">MFINE REDESIGN</div>
-            <div class="project-content">
-                <div class="project-info">
-                    <p class="project-meta reveal-text-scroll">2025 · Competitive Analysis</p>
-                    <h2 class="project-title reveal-text-scroll">mFine App Redesign</h2>
-                    <p class="project-desc reveal-text-scroll">A complete competitive teardown and UX optimization of a prominent health platform.</p>
-                    <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign" target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span class="cta-arrow">&rarr;</span></a>
-                </div>
-                <div class="project-image-wrapper">
-                    <div class="parallax-image" style="background-image: url('sections/work/assets/mfine/cover.jpg');"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- About / Experience Section -->
-        <section class="about-section hover-trigger" id="about">
-            <div class="about-grid">
-                
-                <!-- Left: About -->
-                <div class="about-col-left fade-up-minimal">
-                    <p class="about-label">About Me</p>
-                    <p class="about-desc">
-                        Product Designer with 3+ years across healthcare, fintech & architecture. Skilled at transforming complex systems into intuitive, accessible experiences. Specialized in scaling design systems, optimizing patient flows, and driving measurable growth. Background in architecture with an M.Des, applying systems thinking and research-driven design to complex challenges.
-                    </p>
-                </div>
-
-                <!-- Right: Experience -->
-                <div class="about-col-right fade-up-minimal">
-                    <p class="about-label">Experience</p>
-                    
-                    <div class="exp-item">
-                        <div class="exp-role">Associate Product Designer</div>
-                        <div class="exp-company">Narayana Health</div>
-                        <div class="exp-date">Nov 2024 — Present</div>
+            <!-- Project 1: UniShare -->
+            <section class="project hover-trigger" id="project-1">
+                <div class="project-bg-text marquee-left">UNISHARE APP</div>
+                <div class="project-content">
+                    <div class="project-info">
+                        <p class="project-meta font-accent reveal-text-scroll">2023 · App Design</p>
+                        <h2 class="project-title reveal-text-scroll">UniShare <span class="font-accent">App</span></h2>
+                        <p class="project-desc reveal-text-scroll">A comprehensive platform for university students to
+                            share resources and connect.</p>
+                        <a href="https://www.behance.net/gallery/173110489/UniShare" target="_blank"
+                            class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
+                                class="cta-arrow">&rarr;</span></a>
                     </div>
-
-                    <div class="exp-item">
-                        <div class="exp-role">User Experience Designer</div>
-                        <div class="exp-company">BranchX</div>
-                        <div class="exp-date">Sep 2023 — Nov 2024</div>
-                    </div>
-
-                    <div class="exp-item">
-                        <div class="exp-role">Product Designer (Internship)</div>
-                        <div class="exp-company">Avanatri Technologies</div>
-                        <div class="exp-date">Jun 2022 — Aug 2022</div>
-                    </div>
-
-                    <div class="exp-item">
-                        <div class="exp-role">Architecture (Prior Experience)</div>
-                        <div class="exp-company">—</div>
-                        <div class="exp-date">~1.5 years</div>
+                    <div class="project-image-wrapper">
+                        <div class="parallax-image"
+                            style="background-image: url('sections/work/assets/unishare/cover.jpg');"></div>
                     </div>
                 </div>
+            </section>
 
-            </div>
-        </section>
+            <!-- Project 2: Delhi Metro -->
+            <section class="project reverse hover-trigger" id="project-2">
+                <div class="project-bg-text marquee-right">DELHI METRO</div>
+                <div class="project-content">
+                    <div class="project-info">
+                        <p class="project-meta font-accent reveal-text-scroll">2024 · UI/UX Redesign</p>
+                        <h2 class="project-title reveal-text-scroll">Metro Route <span class="font-accent">Finder</span></h2>
+                        <p class="project-desc reveal-text-scroll">Redesigning the transit companion app for better
+                            route clarity and ticketing.</p>
+                        <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App"
+                            target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
+                                class="cta-arrow">&rarr;</span></a>
+                    </div>
+                    <div class="project-image-wrapper">
+                        <div class="parallax-image"
+                            style="background-image: url('sections/work/assets/dmrc/cover.png');"></div>
+                    </div>
+                </div>
+            </section>
 
-        <!-- Contact / Footer -->
-        <footer class="footer-section" id="contact">
-            <div class="footer-grid">
-                <div class="footer-left">
-                    <h2 class="footer-heading reveal-text-scroll">
-                        GOT AN IDEA<br>
-                        OR 
-                        <a href="#" id="email-copy-btn" class="view-btn footer-pill" title="Copy Email" style="display: inline-flex; align-items: center; justify-content: center;">
-                            <span class="text-stack" style="display: inline-grid; place-items: center;">
-                                <span class="email-text" style="grid-area: 1/1; transition: opacity 0.3s ease;">
-                                    <span class="hover-stagger" style="line-height:1; font-weight:400; text-transform:none;">aditya20verma@gmail.com</span>
+            <!-- Project 3: NutriBuddy -->
+            <section class="project hover-trigger" id="project-3">
+                <div class="project-bg-text marquee-left">NUTRIBUDDY</div>
+                <div class="project-content">
+                    <div class="project-info">
+                        <p class="project-meta reveal-text-scroll">2023 · Health & Wellness</p>
+                        <h2 class="project-title reveal-text-scroll">Healthier food <span class="font-accent">choices</span></h2>
+                        <p class="project-desc reveal-text-scroll">Personalized diet tracking and macro management
+                            tailored for Indian demographics.</p>
+                        <a href="https://www.behance.net/gallery/159157943/NutriBuddy-Healthier-food-choices"
+                            target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
+                                class="cta-arrow">&rarr;</span></a>
+                    </div>
+                    <div class="project-image-wrapper">
+                        <div class="parallax-image"
+                            style="background-image: url('sections/work/assets/nutribuddy/cover.png');"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Project 4: mFine -->
+            <section class="project reverse hover-trigger" id="project-4">
+                <div class="project-bg-text marquee-right">MFINE REDESIGN</div>
+                <div class="project-content">
+                    <div class="project-info">
+                        <p class="project-meta reveal-text-scroll">2025 · Competitive Analysis</p>
+                        <h2 class="project-title reveal-text-scroll">mFine App <span class="font-accent">Redesign</span></h2>
+                        <p class="project-desc reveal-text-scroll">A complete competitive teardown and UX optimization
+                            of a prominent health platform.</p>
+                        <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign"
+                            target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
+                                class="cta-arrow">&rarr;</span></a>
+                    </div>
+                    <div class="project-image-wrapper">
+                        <div class="parallax-image"
+                            style="background-image: url('sections/work/assets/mfine/cover.jpg');"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About / Experience Section -->
+            <section class="about-section hover-trigger" id="about">
+                <div class="about-grid">
+
+                    <!-- Left: About -->
+                    <div class="about-col-left fade-up-minimal">
+                        <p class="about-label font-accent">About Me</p>
+                        <p class="about-desc">
+                            Product Designer with 3+ years across healthcare, fintech & architecture. Skilled at
+                            transforming complex systems into intuitive, accessible experiences. Specialized in scaling
+                            design systems, optimizing patient flows, and driving measurable growth. Background in
+                            architecture with an M.Des, applying systems thinking and research-driven design to complex
+                            challenges.
+                        </p>
+                    </div>
+
+                    <!-- Right: Experience -->
+                    <div class="about-col-right fade-up-minimal">
+                        <p class="about-label font-accent">Experience</p>
+
+                        <div class="exp-item">
+                            <div class="exp-role">Associate Product Designer</div>
+                            <div class="exp-company">Narayana Health</div>
+                            <div class="exp-date">Nov 2024 — Present</div>
+                        </div>
+
+                        <div class="exp-item">
+                            <div class="exp-role">User Experience Designer</div>
+                            <div class="exp-company">BranchX</div>
+                            <div class="exp-date">Sep 2023 — Nov 2024</div>
+                        </div>
+
+                        <div class="exp-item">
+                            <div class="exp-role">Product Designer (Internship)</div>
+                            <div class="exp-company">Avanatri Technologies</div>
+                            <div class="exp-date">Jun 2022 — Aug 2022</div>
+                        </div>
+
+                        <div class="exp-item">
+                            <div class="exp-role">Architecture (Prior Experience)</div>
+                            <div class="exp-company">—</div>
+                            <div class="exp-date">~1.5 years</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Contact / Footer -->
+            <footer class="footer-section" id="contact">
+                <div class="footer-grid">
+                    <div class="footer-left">
+                        <h2 class="footer-heading reveal-text-scroll">
+                            GOT AN <span class="font-accent">IDEA</span><br>
+                            OR
+                            <a href="#" id="email-copy-btn" class="view-btn footer-pill" title="Copy Email"
+                                style="display: inline-flex; align-items: center; justify-content: center;">
+                                <span class="text-stack" style="display: inline-grid; place-items: center;">
+                                    <span class="email-text" style="grid-area: 1/1; transition: opacity 0.3s ease;">
+                                        <span class="hover-stagger"
+                                            style="line-height:1; font-weight:400; text-transform:none;">aditya20verma@gmail.com</span>
+                                    </span>
+                                    <span class="copied-text"
+                                        style="grid-area: 1/1; transition: opacity 0.3s ease; opacity: 0; line-height:1; font-weight:400; text-transform:none; pointer-events: none;">Copied</span>
                                 </span>
-                                <span class="copied-text" style="grid-area: 1/1; transition: opacity 0.3s ease; opacity: 0; line-height:1; font-weight:400; text-transform:none; pointer-events: none;">Copied</span>
-                            </span>
-                            <span class="icon-stack" style="margin-left:0.5rem; display:inline-flex; align-items:center; position:relative; width:16px; height:16px; overflow:hidden;">
-                                <!-- Dual-span wipe: icon1 exits up, icon2 enters from below on hover -->
-                                <span class="copy-icon copy-icon-1" style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span class="icon-stack"
+                                    style="margin-left:0.5rem; display:inline-flex; align-items:center; position:relative; width:16px; height:16px; overflow:hidden;">
+                                    <!-- Dual-span wipe: icon1 exits up, icon2 enters from below on hover -->
+                                    <span class="copy-icon copy-icon-1"
+                                        style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="copy-icon copy-icon-2"
+                                        style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%; transform:translateY(100%);">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </span>
+                                    <!-- Check icons for copied state -->
+                                    <span class="check-icon check-icon-1"
+                                        style="position:absolute; display:none; align-items:center; justify-content:center; width:100%; height:100%;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </span>
                                 </span>
-                                <span class="copy-icon copy-icon-2" style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%; transform:translateY(100%);">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                </span>
-                                <!-- Check icons for copied state -->
-                                <span class="check-icon check-icon-1" style="position:absolute; display:none; align-items:center; justify-content:center; width:100%; height:100%;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                </span>
-                            </span>
-                        </a><br>
-                        OPPORTUNITY?
-                    </h2>
-                </div>
-                <div class="footer-right">
-                    <div class="footer-links-col">
-                        <a href="https://www.linkedin.com/in/aditya20verma/" target="_blank" rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span class="hover-stagger" style="display:inline-block; line-height: 1;">LINKEDIN</span> <span class="nav-arrow">&nearr;</span></a>
-                        <a href="https://www.behance.net/aditya20vrm" target="_blank" rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span class="hover-stagger" style="display:inline-block; line-height: 1;">BEHANCE</span> <span class="nav-arrow">&nearr;</span></a>
+                            </a><br>
+                            OPPORTUNITY?
+                        </h2>
                     </div>
-                    <div class="footer-links-col">
-                        <a href="https://drive.google.com/file/d/1m9uWCMo32K5j0sqaknWDgNk4mHHYnSEF/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span class="hover-stagger" style="display:inline-block; line-height: 1;">DOWNLOAD RESUME</span> <span class="nav-arrow">&darr;</span></a>
+                    <div class="footer-right">
+                        <div class="footer-links-col">
+                            <a href="https://www.linkedin.com/in/aditya20verma/" target="_blank"
+                                rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span
+                                    class="hover-stagger" style="display:inline-block; line-height: 1;">LINKEDIN</span>
+                                <span class="nav-arrow">&nearr;</span></a>
+                            <a href="https://www.behance.net/aditya20vrm" target="_blank" rel="noopener noreferrer"
+                                class="nav-link" style="justify-content: space-between;"><span class="hover-stagger"
+                                    style="display:inline-block; line-height: 1;">BEHANCE</span> <span
+                                    class="nav-arrow">&nearr;</span></a>
+                        </div>
+                        <div class="footer-links-col">
+                            <a href="https://drive.google.com/file/d/1m9uWCMo32K5j0sqaknWDgNk4mHHYnSEF/view?usp=drive_link"
+                                target="_blank" rel="noopener noreferrer" class="nav-link"
+                                style="justify-content: space-between;"><span class="hover-stagger"
+                                    style="display:inline-block; line-height: 1;">DOWNLOAD RESUME</span> <span
+                                    class="nav-arrow">&darr;</span></a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </footer>
+            </footer>
 
         </div> <!-- End of content-wrapper -->
 
     </div>
-    
+
     <!-- Robust UnicornStudio Initialization provided by user -->
-    <script type="text/javascript">!function(){var u=window.UnicornStudio;if(u&&u.init){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){u.init()})}else{u.init()}}else{window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js",i.onload=function(){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){UnicornStudio.init()})}else{UnicornStudio.init()}},(document.head||document.body).appendChild(i)}}();</script>
-    
+    <script
+        type="text/javascript">!function () { var u = window.UnicornStudio; if (u && u.init) { if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", function () { u.init() }) } else { u.init() } } else { window.UnicornStudio = { isInitialized: !1 }; var i = document.createElement("script"); i.src = "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js", i.onload = function () { if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", function () { UnicornStudio.init() }) } else { UnicornStudio.init() } }, (document.head || document.body).appendChild(i) } }();</script>
+
     <script src="script.js?v=36"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=36"></script>
     <script src="sections/circuit/circuit.js?v=36"></script>
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=36">
 </body>
+
 </html>

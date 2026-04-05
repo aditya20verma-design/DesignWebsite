@@ -1,0 +1,228 @@
+/* ============================================================
+   TYPOGRAPHY SYSTEM — Aditya Verma Portfolio
+   ============================================================
+   Two fonts. SF Pro leads. Brier decorates.
+
+   SF Pro  → ALL headings, body, UI, labels, navigation
+   Brier   → Decoration only — apply via .font-accent on
+               selected <span>s inside headings
+
+   Rules:
+   - Weights: 400, 500, 600 only
+   - Line-height: ~1.6 body / ~1.15–1.25 headings
+   - Tracking: tighten large headings only, never body
+   - Alignment: left only
+   ============================================================ */
+
+
+/* ── @font-face: Brier ─────────────────────────────────────── */
+@font-face {
+    font-family: 'Brier';
+    src: url('../assets/fonts/Brier-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Brier';
+    src: url('../assets/fonts/Brier-Bold.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* ── Font Stacks ───────────────────────────────────────────── */
+:root {
+    /* Raw stacks — prefer semantic aliases below */
+    --font-sf:       -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                     "Helvetica Neue", Arial, sans-serif;
+    --font-sf-text:  -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                     "Helvetica Neue", Arial, sans-serif;
+    --font-sf-mono:  ui-monospace, "SF Mono", "Menlo", "Courier New", monospace;
+    --font-brier:    'Brier', Georgia, serif;
+
+    /* ── Semantic Aliases (always use these) ───────────── */
+    --font-heading:  var(--font-sf);      /* ALL headings h1–h6 — SF Pro */
+    --font-body:     var(--font-sf-text); /* Paragraphs, descriptions */
+    --font-ui:       var(--font-sf);      /* Nav, labels, buttons, meta */
+    --font-mono:     var(--font-sf-mono); /* Dates, timestamps, code */
+    --font-accent:   var(--font-brier);   /* Brier decoration: .font-accent spans only */
+    --font:          var(--font-body);    /* <body> default */
+
+
+    /* ── Type Scale ────────────────────────────────────────
+       Named after Apple's typographic vocabulary.
+       Format: font-size / line-height / weight
+    ─────────────────────────────────────────────────── */
+
+    /* Headings (SF Pro) */
+    /* Display — Footer CTA, maximum impact statement */
+    --text-display-size:   clamp(52px, 9vw, 96px);
+    --text-display-lh:     1.02;
+    --text-display-weight: 500;
+
+    --text-hero-size:   clamp(40px, 7vw,  64px);
+    --text-hero-lh:     1.15;
+    --text-hero-weight: 600;
+
+    --text-h1-size:     clamp(32px, 5.5vw, 52px);
+    --text-h1-lh:       1.18;
+    --text-h1-weight:   600;
+
+    --text-h2-size:     clamp(24px, 4vw,   40px);
+    --text-h2-lh:       1.22;
+    --text-h2-weight:   600;
+
+    --text-h3-size:     clamp(20px, 3vw,   32px);
+    --text-h3-lh:       1.3;
+    --text-h3-weight:   500;
+
+    /* Body (SF Pro) */
+    --text-body-lg-size: clamp(18px, 2vw, 20px);
+    --text-body-lg-lh:   1.65;
+    --text-body-lg-weight: 400;
+
+    --text-body-size:   clamp(15px, 1.5vw, 17px);
+    --text-body-lh:     1.65;
+    --text-body-weight: 400;
+
+    --text-body-sm-size: clamp(13px, 1.2vw, 14px);
+    --text-body-sm-lh:   1.6;
+    --text-body-sm-weight: 400;
+
+    /* UI / Labels (SF Pro) */
+    --text-label-size:   clamp(13px, 1.2vw, 15px);
+    --text-label-lh:     1.47;
+    --text-label-weight: 500;
+
+    --text-caption-size: clamp(11px, 1vw, 13px);
+    --text-caption-lh:   1.38;
+    --text-caption-weight: 400;
+}
+
+
+/* ── Utility Classes ────────────────────────────────────────── */
+
+/* Display — Footer CTA, maximum statement */
+.type-display {
+    font-family: var(--font-heading);
+    font-size:   var(--text-display-size);
+    line-height: var(--text-display-lh);
+    font-weight: var(--text-display-weight);
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+}
+
+/* Display / Hero */
+.type-hero {
+    font-family: var(--font-heading);
+    font-size:   var(--text-hero-size);
+    line-height: var(--text-hero-lh);
+    font-weight: var(--text-hero-weight);
+    letter-spacing: -0.025em;
+}
+
+/* h1 */
+.type-h1 {
+    font-family: var(--font-heading);
+    font-size:   var(--text-h1-size);
+    line-height: var(--text-h1-lh);
+    font-weight: var(--text-h1-weight);
+    letter-spacing: -0.02em;
+}
+
+/* h2 */
+.type-h2 {
+    font-family: var(--font-heading);
+    font-size:   var(--text-h2-size);
+    line-height: var(--text-h2-lh);
+    font-weight: var(--text-h2-weight);
+    letter-spacing: -0.015em;
+}
+
+/* h3 */
+.type-h3 {
+    font-family: var(--font-heading);
+    font-size:   var(--text-h3-size);
+    line-height: var(--text-h3-lh);
+    font-weight: var(--text-h3-weight);
+    letter-spacing: -0.01em;
+}
+
+/* Body large */
+.type-body-lg {
+    font-family: var(--font-body);
+    font-size:   var(--text-body-lg-size);
+    line-height: var(--text-body-lg-lh);
+    font-weight: var(--text-body-lg-weight);
+}
+
+/* Body default */
+.type-body {
+    font-family: var(--font-body);
+    font-size:   var(--text-body-size);
+    line-height: var(--text-body-lh);
+    font-weight: var(--text-body-weight);
+}
+
+/* Body small */
+.type-body-sm {
+    font-family: var(--font-body);
+    font-size:   var(--text-body-sm-size);
+    line-height: var(--text-body-sm-lh);
+    font-weight: var(--text-body-sm-weight);
+}
+
+/* UI Label */
+.type-label {
+    font-family: var(--font-ui);
+    font-size:   var(--text-label-size);
+    line-height: var(--text-label-lh);
+    font-weight: var(--text-label-weight);
+}
+
+/* Caption */
+.type-caption {
+    font-family: var(--font-ui);
+    font-size:   var(--text-caption-size);
+    line-height: var(--text-caption-lh);
+    font-weight: var(--text-caption-weight);
+}
+
+/* Monospace: dates, timestamps */
+.type-mono {
+    font-family: var(--font-mono);
+    font-size:   var(--text-caption-size);
+    line-height: var(--text-caption-lh);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+
+/* ── Base Element Defaults ────────────────────────────────── */
+
+/* All headings: SF Pro — tight, strong, modern */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+}
+
+h1 { font-size: var(--text-h1-size); line-height: var(--text-h1-lh); }
+h2 { font-size: var(--text-h2-size); line-height: var(--text-h2-lh); }
+h3 { font-size: var(--text-h3-size); line-height: var(--text-h3-lh); letter-spacing: -0.015em; }
+
+
+/* ── Brier Italic Accent ────────────────────────────────── */
+/* Use as: <span class="font-accent">Word</span> inside headings  */
+/* Creates editorial contrast: heavy SF Pro ≠ elegant Brier italic   */
+.font-accent {
+    font-family: var(--font-accent); /* Brier */
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    text-transform: none; /* preserve natural Brier letterforms */
+}

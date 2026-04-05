@@ -1,0 +1,184 @@
+/* ============================================================
+   COLOR SYSTEM — Aditya Verma Portfolio
+   ============================================================
+
+   Structure (mirrors how Figma organises tokens):
+
+   LAYER 1 — Primitives
+     Raw hex values. Never use directly in components.
+     Think of these as your Figma "Color Styles" swatches.
+
+   LAYER 2 — Semantic Tokens
+     Intent-based aliases: background, text, border, accent.
+     These are what you USE in every component.
+
+   LAYER 3 — Component Tokens
+     Scoped overrides for specific UI patterns.
+     (nav, buttons, circuit, cards…)
+
+   Rule: Components ONLY reference Layer 2 or 3 tokens.
+   Primitives (Layer 1) are NEVER used directly in components.
+   ============================================================ */
+
+
+:root {
+
+/* ──────────────────────────────────────────────────────────
+   LAYER 1 — PRIMITIVES
+   The full palette. Non-contextual raw values.
+   Mirrors "Local Variables / Primitives" in Figma.
+──────────────────────────────────────────────────────────── */
+
+    /* ── Neutral ── */
+    --color-black:        #000000;
+    --color-true-white:   #ffffff;
+
+    /* Dark neutrals (surface stack) */
+    --color-neutral-950:  #141414;   /* deepest bg */
+    --color-neutral-900:  #1d1d1d;   /* main dark bg */
+    --color-neutral-850:  #222222;
+    --color-neutral-800:  #252525;   /* elevated surfaces */
+    --color-neutral-700:  #333333;
+    --color-neutral-600:  #4a4a4a;
+    --color-neutral-500:  #6f6f6f;   /* muted text, placeholders */
+    --color-neutral-400:  #777777;
+
+    /* Light neutrals (text + surface stack in light mode) */
+    --color-neutral-200:  #bfbebe;   /* secondary text on dark */
+    --color-neutral-100:  #e5e4e0;   /* primary text on dark / base light bg */
+    --color-neutral-50:   #f1f0ec;   /* lightest surface */
+
+    /* ── Brand / Accent ── */
+    --color-orange-600:   #FF5509;   /* Primary brand — used for CTAs, progress, icons */
+    --color-orange-500:   #ff642f;   /* Hover / warmer variant */
+    --color-orange-400:   #ff7a50;   /* Glow / soft tint */
+
+    /* ── Alpha / Overlay ── */
+    /* Whites — for borders and overlays on dark backgrounds */
+    --color-white-a05:    rgba(255, 255, 255, 0.05);
+    --color-white-a08:    rgba(255, 255, 255, 0.08);
+    --color-white-a12:    rgba(255, 255, 255, 0.12);
+    --color-white-a15:    rgba(255, 255, 255, 0.15);
+    --color-white-a20:    rgba(255, 255, 255, 0.20);
+    --color-white-a30:    rgba(255, 255, 255, 0.30);
+    --color-white-a50:    rgba(255, 255, 255, 0.50);
+    --color-white-a85:    rgba(255, 255, 255, 0.85);
+    --color-white-a95:    rgba(255, 255, 255, 0.95);
+
+    /* Blacks — for overlays, shadows, scrim on light backgrounds */
+    --color-black-a10:    rgba(0, 0, 0, 0.10);
+    --color-black-a15:    rgba(0, 0, 0, 0.15);
+    --color-black-a20:    rgba(0, 0, 0, 0.20);
+    --color-black-a25:    rgba(0, 0, 0, 0.25);
+    --color-black-a30:    rgba(0, 0, 0, 0.30);
+    --color-black-a40:    rgba(0, 0, 0, 0.40);
+    --color-black-a50:    rgba(0, 0, 0, 0.50);
+    --color-black-a82:    rgba(0, 0, 0, 0.82);
+
+    /* Greys — for dimmed/ghost UI elements */
+    --color-grey-a20:     rgba(218, 218, 218, 0.20);
+    --color-grey-a60:     rgba(218, 218, 218, 0.60);
+    --color-dark-a20:     rgba(111, 111, 111, 0.20);
+    --color-dark-a60:     rgba(111, 111, 111, 0.60);
+
+    /* Accent tints — for glows and shadow bloom */
+    --color-orange-a20:   rgba(255, 85, 9, 0.20);
+    --color-orange-a50:   rgba(255, 85, 9, 0.50);
+    --color-orange-a65:   rgba(255, 85, 9, 0.65);
+    --color-orange-a90:   rgba(255, 85, 9, 0.90);
+    --color-orange-a95:   rgba(255, 85, 9, 0.95);
+
+
+/* ──────────────────────────────────────────────────────────
+   LAYER 2 — SEMANTIC TOKENS
+   Intent-based. These are what every component uses.
+   Mirrors "Semantic / Tokens" in Figma.
+
+   Format: --[category]-[role]-[modifier]
+──────────────────────────────────────────────────────────── */
+
+    /* ── Background ── */
+    --bg-base:          var(--color-neutral-900);  /* Page background */
+    --bg-elevated:      var(--color-neutral-800);  /* Cards, surfaces above base */
+    --bg-overlay:       var(--color-black-a82);    /* Modals, tooltips, pill overlays */
+    --bg-inverted:      var(--color-neutral-100);  /* Light surfaces in dark mode */
+
+    /* ── Text ── */
+    --text-primary:     var(--color-neutral-100);  /* Main content text */
+    --text-secondary:   var(--color-neutral-200);  /* Supporting / subdued text */
+    --text-muted:       var(--color-neutral-400);  /* Placeholders, timestamps */
+    --text-inverted:    var(--color-neutral-900);  /* Text on light bg */
+    --text-on-accent:   var(--color-true-white);   /* Text on orange bg */
+
+    /* ── Border / Divider ── */
+    --border-subtle:    var(--color-white-a05);    /* Section dividers */
+    --border-default:   var(--color-white-a12);    /* Card edges */
+    --border-strong:    var(--color-white-a20);    /* Focus rings, hover */
+    --border-on-light:  var(--color-dark-a20);     /* Borders when page is light */
+
+    /* ── Accent / Brand ── */
+    --accent:           var(--color-orange-600);   /* Primary accent — buttons, links, progress */
+    --accent-hover:     var(--color-orange-500);   /* Hover state */
+    --accent-glow:      var(--color-orange-a65);   /* Drop-shadow / bloom behind accent elements */
+    --accent-subtle:    var(--color-orange-a20);   /* Tinted backgrounds */
+
+    /* ── Interactive States ── */
+    --interactive-hover-border: var(--color-white-a50);    /* Pill / btn hover border */
+    --interactive-default-border: var(--color-white-a15);  /* Pill / btn default border */
+
+
+/* ──────────────────────────────────────────────────────────
+   LAYER 3 — COMPONENT TOKENS
+   Scoped to specific UI patterns. Inherit from Layer 2.
+   Add new blocks here when introducing new components.
+──────────────────────────────────────────────────────────── */
+
+    /* ── Navigation ── */
+    --nav-text-dark:        var(--color-neutral-100);  /* Text on dark bg */
+    --nav-text-light:       var(--color-neutral-800);  /* Text when scrolled over light section */
+    --nav-blur-bg:          var(--color-black-a15);    /* Progressive blur backdrop */
+
+    /* ── Loader ── */
+    --loader-bg:            var(--accent);             /* Orange panel */
+    --loader-cursor:        var(--color-true-white);   /* Cursor dot */
+
+    /* ── Circuit Navigation ── */
+    --circuit-track-base:   var(--color-white-a85);    /* Base track stroke */
+    --circuit-track-depth:  rgba(80, 80, 80, 0.40);   /* Shadow depth layer */
+    --circuit-track-progress: var(--accent);           /* Scroll-synced progress stroke */
+    --circuit-glow-accent:  var(--accent-glow);        /* Progress drop-shadow */
+    --circuit-hover-light:  var(--color-white-a95);    /* Hover segment on dark bg */
+    --circuit-hover-dark:   rgba(20, 20, 20, 0.85);   /* Hover segment on light bg */
+    --circuit-dim:          rgba(180, 180, 180, 0.20); /* Dimmed sibling segments */
+    --circuit-label-bg:     var(--color-black-a82);    /* Label pill background */
+    --circuit-label-text:   var(--color-true-white);   /* Label text */
+    --circuit-label-border: var(--color-white-a12);    /* Label pill border */
+    --circuit-dot-accent:   var(--accent);             /* Orange dot in label */
+
+    /* ── Project Cards ── */
+    --project-divider:      var(--color-white-a05);    /* Section border-bottom */
+    --project-bg-text:      transparent;               /* Ghost watermark text fill */
+    --project-bg-stroke:    var(--color-white-a05);    /* Ghost watermark stroke */
+
+    /* ── Buttons / Pills ── */
+    --btn-border:           var(--interactive-default-border);
+    --btn-border-hover:     var(--interactive-hover-border);
+    --btn-text:             var(--text-primary);
+
+    /* ── Footer ── */
+    --footer-bg:            var(--bg-base);
+    --footer-divider:       var(--color-white-a05);
+    --footer-heading-color: var(--text-primary);
+    --footer-sub-color:     var(--text-secondary);
+
+    /* ── Signature / Lottie ── */
+    --sig-stroke:           var(--accent);             /* #FF5509 */
+
+    /* ── Copy Feedback ── */
+    --feedback-success:     var(--accent);             /* Tick + "Copied!" color */
+
+    /* ── Cursor ── */
+    --cursor-dot-bg:        var(--color-true-white);
+    --cursor-ring-border:   var(--color-white-a30);
+    --cursor-ring-accent:   var(--accent);
+}

@@ -444,12 +444,9 @@ mm.add("(min-width: 601px)", () => {
     let isNavHero     = true;   // tracks current nav--hero state
     const navEl       = document.querySelector('nav');
 
-    // ── Nav hero state: large on load, shrinks on first scroll ────────────
-    // All sizing is in CSS under nav.nav--hero — only the class is toggled here.
-    // Threshold 0.03 = first ~2% of scroll (feels instant, like Lando Norris).
-    // CSS transitions handle the smooth size animation.
-    navEl.classList.add('nav--hero'); // large on page load
-    // Note: circuit pill starts at hero size via CSS default — no class needed on init
+    // ── Nav hero state: fixed size, no scale-down on scroll ─────────────
+    // Logo stays same size at all times. Class kept for other hero-state rules.
+    navEl.classList.add('nav--hero');
 
     const tl = gsap.timeline({
         scrollTrigger: {
@@ -460,12 +457,7 @@ mm.add("(min-width: 601px)", () => {
             onUpdate: (self) => {
                 const p = self.progress;
 
-                // ── Nav hero size toggle ───────────────────────────────────
-                if (p > 0.03) {
-                    if (isNavHero) { navEl.classList.remove('nav--hero'); isNavHero = false; }
-                } else {
-                    if (!isNavHero) { navEl.classList.add('nav--hero'); isNavHero = true; }
-                }
+                // ── Nav hero size: locked — no toggle on scroll ───────────
 
                 // ── AV shape (kept for future use, element removed from DOM) ─
                 if (p > 0.05 && p < 0.95) {

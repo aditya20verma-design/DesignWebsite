@@ -1,29 +1,21 @@
+/* ── style.css — component styles ──────────────────────────────────────────
+   Color tokens:    shared/colors.css
+   Layout tokens:   shared/layout.css
+   Typography:      shared/typography.css
+   DO NOT declare raw colors here. Use semantic or component tokens only.
+   ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
-    --main-dark: #1d1d1d;
-    --main-dark-alt: #252525;
-    --main-light: #e5e4e0;
-    --main-light-alt: #f1f0ec;
-    --primary-color: #ff642f;
-    --dark-grey: rgba(218, 218, 218, 0.2);
-    --dark-grey60: rgba(218, 218, 218, 0.6);
-    --light-grey: rgba(111, 111, 111, 0.2);
-    --light-grey60: rgba(111, 111, 111, 0.6);
-    --grey-rotate: #bfbebe;
-    --large-radius: 6.25em;
-    --med-radius: 1.375em;
-    --small-radius: 0.625em;
+    /* Layout geometry (not colors — kept here for legacy compat) */
     --perspective: 4000px;
     --grid-inner-scale: 1;
     --grid-item-ratio: 1.5;
-
-    /* Semantic Mappings */
-    --bg-color: var(--main-dark);
-    --surface-color: var(--main-dark-alt);
-    --text-primary: var(--main-light);
-    --text-secondary: var(--grey-rotate);
-    --accent: var(--primary-color);
-    --font: 'Geist', 'Helvetica Neue', 'Inter', sans-serif;
 }
+
+/* ── style.css loads after shared/typography.css ───────────────────────────
+   All font families, sizes, weights and @font-face live in:
+   /shared/typography.css — DO NOT declare fonts here.
+   ─────────────────────────────────────────────────────────────────────────── */
 
 * {
     margin: 0;
@@ -33,9 +25,7 @@
 
 html {
     overflow-x: hidden;
-    /* Edge-to-edge: fill behind Dynamic Island / Android notch */
-    background-color: var(--bg-color);
-    /* Hide system scrollbar — Firefox */
+    background-color: var(--bg-base);
     scrollbar-width: none;
 }
 
@@ -45,15 +35,16 @@ html::-webkit-scrollbar {
 }
 
 body {
-    background-color: var(--bg-color);
+    background-color: var(--bg-base);
     color: var(--text-primary);
     font-family: var(--font);
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-lh);
+    font-weight: var(--text-body-weight);
     cursor: none;
-    overflow-x: hidden; /* fallback: older Safari */
-    overflow-x: clip;   /* modern fix: clips without creating scroll container, preserves position:sticky */
-    letter-spacing: -0.02em;
+    overflow-x: hidden;
+    overflow-x: clip;
     width: 100%;
-    /* Push content clear of the bottom home indicator */
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -68,7 +59,7 @@ body {
 .cursor-dot {
     position: fixed;
     top: 0; left: 0; width: 8px; height: 8px;
-    background-color: #fff;
+    background-color: var(--cursor-dot-bg);
     border-radius: 50%; pointer-events: none; z-index: 9999;
     transform: translate(-50%, -50%);
     mix-blend-mode: difference;
@@ -77,7 +68,7 @@ body {
 .cursor-outline {
     position: fixed;
     top: 0; left: 0; width: 40px; height: 40px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--cursor-ring-border);
     border-radius: 50%; pointer-events: none; z-index: 9998;
     transform: translate(-50%, -50%);
     transition: width 200ms cubic-bezier(0.2, 0, 0, 1),
@@ -87,7 +78,7 @@ body {
 
 .cursor-outline.hover-state {
     transform: translate(-50%, -50%) scale(2);
-    border-color: #ff642f;
+    border-color: var(--cursor-ring-accent);
     background-color: transparent;
 }
 
@@ -107,7 +98,7 @@ body {
 .loader-panel {
     position: absolute;
     inset: 0;
-    background: #FF5509;
+    background: var(--loader-bg);
     /* Hidden via JS once the SVG mask takes over */
 }
 
@@ -155,7 +146,7 @@ nav {
     position: fixed;
     top: 0;
     width: 100%;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem + 4px);
     padding-left:  calc(env(safe-area-inset-left, 0px)  + 1.25rem);
     padding-right: calc(env(safe-area-inset-right, 0px) + 1.25rem);
     padding-bottom: 4.5rem;
@@ -230,12 +221,12 @@ nav.at-hero::before {
 /* ── Smart colour sensing — set by JS elementsFromPoint ─ */
 /* Default: white text on dark bg (most of the site is dark) */
 nav {
-    color: #fff;
+    color: var(--nav-text-dark);
 }
 
 /* Light background detected — switch to subtle dark grey */
 nav.nav-on-light {
-    color: rgba(20, 20, 20, 0.75);
+    color: var(--nav-text-light);
 }
 
 nav.nav-on-light .hamburger span {
@@ -266,6 +257,86 @@ nav.nav-on-light .hamburger span {
 .wordmark-logo {
     display: inline-block;
 }
+
+/* ── SVG Logo — Per-Letter Vertical Flip ──────────────────────────────────
+   Each word is an inline SVG. Each letter is a <g class="letter" style="--i:N">.
+   Stagger: 0.07s per letter. Direction reversed: default exits down, hover enters from above.
+   ────────────────────────────────────────────────────────────────────────── */
+.logo.svg-logo {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+    text-decoration: none;
+    transform: none;
+    position: relative;
+    overflow: visible;
+    cursor: pointer;
+    height: auto;
+    min-width: unset;
+    min-height: unset;
+    font-size: unset;
+    letter-spacing: unset;
+    line-height: unset;
+}
+.logo-line {
+    position: relative;
+    overflow: hidden;
+    line-height: 0;
+    /* wide enough for the hover word (RESTART is wider than ADITYA) */
+    min-width: 185px;
+}
+.logo-line:last-child {
+    min-width: 0;  /* VERMA/LAP — VERMA is wider, no clipping issue */
+}
+.logo-face {
+    display: block;
+    height: 33px;
+    width: auto;
+    /* No filter — fill="currentColor" inherits nav color (#E5E4E0 dark / #252525 light) */
+}
+.logo-line:last-child .logo-face {
+    height: 30px;
+}
+.face-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    /* inherits nav color same as ADITYA VERMA */
+}
+.letter {
+    transform-box: fill-box;
+    transform-origin: center 50%;
+    /* Mouse-LEAVE: right-to-left — highest --i exits first */
+    transition:
+        transform 0.42s cubic-bezier(0.76, 0, 0.24, 1) calc((var(--total, 4) - var(--i, 0)) * 0.07s),
+        opacity   0.35s ease                            calc((var(--total, 4) - var(--i, 0)) * 0.07s);
+}
+.face-default .letter {
+    transform: perspective(350px) rotateX(0deg);
+    opacity: 1;
+}
+.face-hover .letter {
+    transform: perspective(350px) rotateX(-90deg);
+    opacity: 0;
+}
+/* Mouse-ENTER: left-to-right — lowest --i enters first */
+.svg-logo:hover .letter {
+    transition-delay: calc(var(--i, 0) * 0.07s);
+}
+.svg-logo:hover .face-default .letter {
+    transform: perspective(350px) rotateX(90deg);
+    opacity: 0;
+}
+.svg-logo:hover .face-hover .letter {
+    transform: perspective(350px) rotateX(0deg);
+    opacity: 1;
+}
+nav.nav--hero .logo.svg-logo {
+    height: auto;
+}
+
+
 
 /* Custom Vector 'AV' Shape */
 .av-shape {
@@ -332,15 +403,17 @@ nav.nav--hero .nav-link {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: inherit; /* inherits from nav — changes with nav-on-light automatically */
+    color: inherit;
     text-decoration: none;
-    font-size: clamp(0.75rem, 1.2vw, 1rem);
-    font-weight: 400;
+    font-family: var(--font-ui);
+    font-size: var(--text-label-size);
+    font-weight: var(--text-label-weight);
+    line-height: var(--text-label-lh);
+    letter-spacing: 0.08em;
     padding-bottom: 0.25rem;
     position: relative;
     cursor: pointer;
     text-transform: uppercase;
-    /* Smooth size change when nav--hero class is toggled */
     transition: font-size 1.2s cubic-bezier(0.22, 1, 0.36, 1),
                 letter-spacing 1.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -396,8 +469,7 @@ nav.nav--hero .nav-link {
     display: block;
     width: 100%;
     height: 1.5px;
-    /* Matches nav text colour */
-    background: #E5E4E0;
+    background: var(--nav-text-dark);
     transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1),
                 opacity 0.35s cubic-bezier(0.2, 0, 0, 1),
                 background 0.65s cubic-bezier(0.4, 0, 0.2, 1);
@@ -413,7 +485,7 @@ nav.nav--hero .nav-link {
     display: none;
     position: fixed;
     inset: 0;
-    background: var(--main-dark);
+    background: var(--bg-base);
     z-index: 999;
     flex-direction: column;
     justify-content: center;
@@ -429,9 +501,10 @@ nav.nav--hero .nav-link {
 }
 
 .mobile-nav-overlay .nav-link {
+    font-family: var(--font-heading);
     font-size: clamp(2rem, 8vw, 3.5rem);
-    font-weight: 800;
-    letter-spacing: -0.04em;
+    font-weight: 600;
+    letter-spacing: -0.03em;
     padding-bottom: 0.5rem;
 }
 
@@ -546,11 +619,11 @@ nav.nav--hero .nav-link {
     margin-top: 84px;         /* shift signature 84px down from centre (60+24) */
 }
 
-/* Stroke colour — hardcoded #FF5509, overrides any Lottie baked-in value */
+/* Stroke colour — uses --sig-stroke token from color system */
 #sig-lottie path,
 #sig-lottie polyline,
 #sig-lottie ellipse {
-    stroke: #FF5509 !important;
+    stroke: var(--sig-stroke) !important;
 }
 
 
@@ -608,26 +681,27 @@ nav.nav--hero .nav-link {
     position: relative;
     z-index: 2;
     background-color: var(--bg-color);
-    padding-top: 4rem;
+    padding-top: var(--fluid-md);
 }
 
 /* ── Projects ───────────────────────────────────────────── */
 .project {
-    padding: clamp(3rem, 8vw, 8rem) clamp(1.5rem, 6vw, 6rem);
+    padding: var(--fluid-lg) var(--page-margin-x);
     position: relative;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    overflow: hidden; /* Contain the bg marquee text */
+    border-bottom: 1px solid var(--project-divider);
+    overflow: hidden;
 }
 
 .project-bg-text {
     position: absolute;
+    font-family: var(--font-heading);
     font-size: clamp(4rem, 18vw, 18vw);
-    font-weight: 900;
+    font-weight: 600;
     letter-spacing: -0.05em;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05);
-    color: transparent;
+    -webkit-text-stroke: 1px var(--project-bg-stroke);
+    color: var(--project-bg-text);
     white-space: nowrap;
     z-index: 0;
     pointer-events: none;
@@ -636,10 +710,10 @@ nav.nav--hero .nav-link {
 .project-content {
     display: grid;
     grid-template-columns: 1fr 1.6fr;
-    gap: clamp(2rem, 5vw, 5rem);
+    gap: var(--grid-gap);
     align-items: center;
     width: 100%;
-    max-width: 1300px;
+    max-width: var(--container-lg);
     margin: 0 auto;
     z-index: 2;
     position: relative;
@@ -679,28 +753,43 @@ nav.nav--hero .nav-link {
     gap: 0;
 }
 
+/* .font-accent — use on a <span> inside headings only
+   Creates editorial contrast: heavy SF Pro body ≠ elegant Brier italic accent */
+.font-accent {
+    font-family: var(--font-accent); /* Brier */
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    text-transform: none;
+}
+
 .project-title {
-    font-size: clamp(1.8rem, 4vw, 4rem);
-    margin-top: 0.5rem;
+    font-family: var(--font-heading);
+    font-size: var(--text-h1-size);
+    line-height: var(--text-h1-lh);
+    font-weight: var(--text-h1-weight);
+    letter-spacing: -0.02em;
+    margin-top: 0.75rem;
     margin-bottom: 1rem;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 1.05;
 }
 
 .project-meta {
-    font-size: clamp(0.7rem, 1.2vw, 0.8rem);
-    font-weight: 600;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    line-height: var(--text-caption-lh);
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.12em;
     color: var(--text-secondary);
     margin-bottom: 0;
 }
 
 .project-desc {
-    font-size: clamp(0.9rem, 1.5vw, 1.05rem);
-    line-height: 1.65;
-    max-width: 38ch;
+    font-family: var(--font-body);
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-lh);
+    font-weight: var(--text-body-weight);
+    max-width: 40ch;
     color: var(--text-secondary);
     margin-top: 1.25rem;
     margin-bottom: 2rem;
@@ -719,13 +808,15 @@ nav.nav--hero .nav-link {
     color: var(--main-light);
     border-radius: 40px;
     text-decoration: none;
-    font-weight: 500;
-    font-size: clamp(0.8rem, 1.2vw, 1rem);
+    font-family: var(--font-ui);
+    font-size: var(--text-label-size);
+    font-weight: var(--text-label-weight);
+    letter-spacing: 0.06em;
     transition: border-color 200ms cubic-bezier(0.2, 0, 0, 1);
     white-space: nowrap;
 }
 
-.view-btn:hover { border-color: rgba(255, 255, 255, 0.5); }
+.view-btn:hover { border-color: var(--btn-border-hover); }
 .view-btn:hover .hover-stagger .stagger-up span  { transform: translateY(-100%); }
 .view-btn:hover .hover-stagger .stagger-down span { transform: translateY(-100%); }
 
@@ -736,25 +827,26 @@ nav.nav--hero .nav-link {
 
 /* ── Footer ─────────────────────────────────────────────── */
 .footer-section {
-    padding: clamp(4rem, 10vw, 10rem) clamp(1.5rem, 4vw, 4rem);
-    background-color: var(--main-dark);
-    color: var(--main-light);
-    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: var(--fluid-xl) var(--page-margin-x);
+    background-color: var(--footer-bg);
+    color: var(--text-primary);
+    border-top: 1px solid var(--footer-divider);
 }
 
 .footer-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 4rem;
-    max-width: 1400px;
+    gap: var(--fluid-md);
+    max-width: var(--container-lg);
     margin: 0 auto;
 }
 
 .footer-heading {
-    font-size: clamp(2rem, 7vw, 6rem);
-    line-height: 1;
-    letter-spacing: -0.05em;
-    font-weight: 400;
+    font-family: var(--font-heading);
+    font-size: var(--text-display-size);
+    line-height: var(--text-display-lh);
+    font-weight: var(--text-display-weight);
+    letter-spacing: -0.03em;
     margin-bottom: 2rem;
     text-transform: uppercase;
 }
@@ -774,6 +866,14 @@ nav.nav--hero .nav-link {
     transform: translateY(-0.15em);
     padding-bottom: 0.75rem;
     letter-spacing: 0;
+}
+
+.check-icon svg {
+    stroke: var(--feedback-success) !important;
+}
+
+.copied-text {
+    color: var(--feedback-success) !important;
 }
 
 .footer-subheading {
@@ -798,11 +898,13 @@ nav.nav--hero .nav-link {
 }
 
 .footer-links-col h4 {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    font-weight: 500;
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
-    font-weight: 500;
     letter-spacing: 0.1em;
-    font-size: 0.85rem;
+    text-transform: uppercase;
 }
 
 /* ── Text Roll-up Hover ─────────────────────────────────── */
@@ -833,7 +935,7 @@ nav.nav--hero .nav-link {
 
 /* ── About Section ────────────────────────────────────────── */
 .about-section {
-    padding: 15vh 10vw;
+    padding: var(--fluid-xl) var(--page-margin-x);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -843,10 +945,10 @@ nav.nav--hero .nav-link {
 
 .about-grid {
     width: 100%;
-    max-width: 1200px;
+    max-width: var(--container-lg);
     display: grid;
     grid-template-columns: 60% 40%;
-    gap: 6rem;
+    gap: var(--fluid-lg);
 }
 
 @media (max-width: 900px) {
@@ -857,17 +959,19 @@ nav.nav--hero .nav-link {
 }
 
 .about-label {
-    font-size: clamp(0.75rem, 1.2vw, 0.85rem);
-    letter-spacing: 0.15em;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    line-height: var(--text-caption-lh);
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-secondary);
-    margin-bottom: 2.5rem;
-    font-weight: 500;
+    margin-bottom: 2rem;
 }
 
 .about-desc {
-    font-family: 'Geist', 'Inter', sans-serif;
-    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    font-family: var(--font-body);
+    font-size: var(--text-md);
     line-height: 1.6;
     color: var(--text-secondary);
     font-weight: 400;
@@ -890,25 +994,27 @@ nav.nav--hero .nav-link {
 }
 
 .exp-role {
-    font-family: 'Geist', 'Inter', sans-serif;
-    font-size: 1.25rem;
+    font-family: var(--font-heading);
+    font-size: var(--text-md);
     font-weight: 500;
     color: var(--main-light);
     margin-bottom: 0.2rem;
 }
 
 .exp-company {
-    font-size: 1rem;
-    color: #FF5509; /* Subtle accent emphasis */
-    margin-bottom: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-body-size);
+    color: var(--accent);
+    margin-bottom: 0.25rem;
 }
 
 .exp-date {
-    font-family: 'Geist Mono', 'Space Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--text-muted, #777);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption-size);
+    color: var(--text-muted);
+    opacity: 0.65;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.02em;
 }
 
 /* Minimal Fade Interaction */
