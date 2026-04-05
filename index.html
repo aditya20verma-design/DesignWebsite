@@ -18,6 +18,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Portfolio of Aditya Verma, an interactive experience.">
     <title>Aditya Verma | Product Designer</title>
+
+    <!-- ── Network Performance: Warm up connections ASAP ──────────────────────
+         preconnect = full TCP+TLS handshake done before browser asks for the resource
+         dns-prefetch = DNS-only fallback for older browsers
+         These save 100–400ms per domain for UnicornStudio's multi-server fetch chain -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unicorn.studio" crossorigin>
+    <link rel="dns-prefetch" href="https://unicorn.studio">
+    <link rel="preconnect" href="https://assets.unicorn.studio" crossorigin>
+    <link rel="dns-prefetch" href="https://assets.unicorn.studio">
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+
+    <!-- Preload the UnicornStudio script itself for faster parse -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js" as="script">
+
     <!-- Design System: Colors → Layout → Typography → Styles -->
     <link rel="stylesheet" href="shared/colors.css?v=38">
     <link rel="stylesheet" href="shared/layout.css?v=38">
@@ -25,15 +42,14 @@
     <link rel="stylesheet" href="style.css?v=38">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=38">
 
-    <!-- Dependencies -->
+    <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <!-- Unicorn Studio WebGL -->
-    <script
-        src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
-    <!-- Lottie Web (for AV signature draw-on animation) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <!-- Lottie loaded async — AV signature fires ~4.6s into loader, giving it plenty of time -->
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <!-- Unicorn Studio WebGL: must be sync so init() can be called immediately after -->
+    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
 </head>
 
 <body>
@@ -243,6 +259,8 @@
                         <div class="hero-grid-overlay">
                             <canvas id="dotsCanvas"></canvas>
                         </div>
+                        <!-- Hero cover: hides the white bg until UnicornStudio paints its first frame -->
+                        <div id="hero-cover" style="position:absolute;top:0;left:0;width:100%;height:100%;background:#ffffff;z-index:5;pointer-events:none;transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1);"></div>
                     </div> <!-- End hero-inner -->
 
 
@@ -466,9 +484,57 @@
 
     </div>
 
-    <!-- Robust UnicornStudio Initialization provided by user -->
-    <script
-        type="text/javascript">!function () { var u = window.UnicornStudio; if (u && u.init) { if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", function () { u.init() }) } else { u.init() } } else { window.UnicornStudio = { isInitialized: !1 }; var i = document.createElement("script"); i.src = "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js", i.onload = function () { if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", function () { UnicornStudio.init() }) } else { UnicornStudio.init() } }, (document.head || document.body).appendChild(i) } }();</script>
+    <!-- UnicornStudio: call init as early as possible so WebGL starts fetching project data during the loader -->
+    <script type="text/javascript">
+        !function () {
+            var u = window.UnicornStudio;
+            if (u && u.init) {
+                u.init();
+            } else {
+                window.UnicornStudio = { isInitialized: false };
+                var i = document.createElement('script');
+                i.src = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js';
+                i.onload = function () { UnicornStudio.init(); };
+                (document.head || document.body).appendChild(i);
+            }
+        }();
+
+        // ── Hero Cover: Watch for UnicornStudio to paint its first frame ──────────
+        // The cover stays white until the WebGL canvas exists, then fades away.
+        (function () {
+            var MAX_WAIT = 4000; // 4s safety timeout
+            var start = Date.now();
+            var cover = document.getElementById('hero-cover');
+            var container = document.querySelector('.unicorn-canvas');
+            if (!cover || !container) return;
+
+            function fadeOutCover() {
+                cover.style.opacity = '0';
+                setTimeout(function () { cover.style.display = 'none'; }, 900);
+            }
+
+            // MutationObserver: watches for UnicornStudio injecting its <canvas> element
+            var obs = new MutationObserver(function (mutations) {
+                for (var m of mutations) {
+                    for (var node of m.addedNodes) {
+                        if (node.nodeName === 'CANVAS' || (node.querySelector && node.querySelector('canvas'))) {
+                            obs.disconnect();
+                            // Small extra delay so WebGL has time to draw first pixels
+                            setTimeout(fadeOutCover, 200);
+                            return;
+                        }
+                    }
+                }
+            });
+            obs.observe(container, { childList: true, subtree: true });
+
+            // Safety timeout: if WebGL never renders, still remove cover
+            setTimeout(function () {
+                obs.disconnect();
+                fadeOutCover();
+            }, MAX_WAIT);
+        }());
+    </script>
 
     <!-- Persistent Scroll Hint -->
     <div class="scroll-down" id="scroll-hint">
@@ -495,11 +561,11 @@
         <span class="sound-label">SOUND OFF</span>
     </button>
 
-    <script src="script.js?v=79"></script>
+    <script src="script.js?v=80"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
-    <script src="sections/circuit/circuit.config.js?v=79"></script>
-    <script src="sections/circuit/circuit.js?v=79"></script>
-    <link rel="stylesheet" href="sections/circuit/circuit.css?v=79">
+    <script src="sections/circuit/circuit.config.js?v=80"></script>
+    <script src="sections/circuit/circuit.js?v=80"></script>
+    <link rel="stylesheet" href="sections/circuit/circuit.css?v=80">
 </body>
 
 </html>
