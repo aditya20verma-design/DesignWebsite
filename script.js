@@ -71,7 +71,11 @@ const ASSETS = {
                 const target = document.querySelector(targetId);
                 if (target) {
                     setTimeout(() => {
-                        target.scrollIntoView({ behavior: 'smooth' });
+                        if (window.__lenisInstance) {
+                            window.__lenisInstance.scrollTo(target, { duration: 1.0 });
+                        } else {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }, 350); // wait for overlay to close
                 }
             }
@@ -397,6 +401,17 @@ if (history.scrollRestoration) {
     history.scrollRestoration = 'manual';
 }
 window.scrollTo(0, 0);
+
+// bfcache fix: when user navigates back/forward, browser may
+// restore a page from memory with a non-zero scroll position.
+// pageshow fires AFTER the page is visible — reset scroll here too.
+window.addEventListener('pageshow', function(event) {
+    // event.persisted = true means loaded from bfcache
+    window.scrollTo(0, 0);
+    if (window.__lenisInstance) {
+        window.__lenisInstance.scrollTo(0, { immediate: true });
+    }
+});
 
 // ── Detect touch/mobile for disabling heavy effects ───────────────────────
 const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
