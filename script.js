@@ -392,6 +392,12 @@ const ASSETS = {
 })();
 
 
+// Force scroll to top on refresh/load
+if (history.scrollRestoration) {
+    history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 // ── Detect touch/mobile for disabling heavy effects ───────────────────────
 const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 // isMobile breakpoint — used by gsap.matchMedia() contexts below
