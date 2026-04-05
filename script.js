@@ -423,6 +423,12 @@ const lenis = !isTouchDevice ? new Lenis({
 // without being part of this file (circuit.js is self-contained).
 window.__lenisInstance = lenis;
 
+// Reset Lenis virtual scroll position to 0 — prevents it inheriting
+// any position the browser partially restored before our manual override fired.
+if (lenis) {
+    lenis.scrollTo(0, { immediate: true });
+}
+
 // Initial AV Logo Reveal (Single Wipe Masking)
 gsap.set('.av-shape', { clipPath: "inset(100% 0% 0% 0%)" });
 
