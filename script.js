@@ -893,11 +893,11 @@ magneticElements.forEach((el) => {
             attr:     { transform: twoT(2400) }
         }, '-=0.2')                                // T4_OFFSET = 0.2s overlap
 
-        /* ━━━━ EARLY TRIGGER: Start reveal while loader completes ━━━━━━━━
-           Nav and circuit start drawing 0.7 seconds BEFORE the loader finishes. */
+        /* ━━━━ EARLY TRIGGER: 3 corners reveal simultaneously, circuit separate ━━
+           Fires 2.2s before the "2" completes — all behind the expanding mask.
+           Single gsap.to() targets all 3 at once: one tween, one frame, perfect sync. */
         .call(() => {
             const el = document.getElementById('site-loader');
-            // Allow the luminance sensor to x-ray right through the expanding mask
             if (el) el.style.pointerEvents = 'none'; 
 
             if (window._senseNavBg) window._senseNavBg();
@@ -905,32 +905,25 @@ magneticElements.forEach((el) => {
             if (navEl) {
                 void navEl.offsetHeight;                 
                 navEl.classList.add('nav-color-ready');  
-                
-                gsap.to(navEl, {
-                    opacity: 1,
-                    duration: 0.35,
-                    ease: 'power2.out'
-                });
-
-                // Reveal UI toggles (sound + scroll) elegantly at the very end
-                gsap.to('#sound-toggle', {
-                    opacity: 1, 
-                    pointerEvents: 'auto',
-                    delay: 0.8,
-                    duration: 1,
-                    ease: 'power2.out'
-                });
-                gsap.to('#scroll-hint', {
-                    // CSS sensing fully controls opacity: visible on light bg, hidden on dark
-                    // GSAP just unlocks pointer-events after the loader completes
-                    pointerEvents: 'auto',
-                    delay: 0.8,
-                    duration: 0,
-                });
             }
 
+            // ── Single simultaneous reveal: Nav + Sound + Scroll ──────────────────
+            gsap.to([navEl, '#sound-toggle'].filter(Boolean), {
+                opacity: 1,
+                duration: 0.4,
+                ease: 'power2.out',
+                onStart: () => {
+                    // Enable pointer-events as soon as the tween kicks off
+                    const st = document.getElementById('sound-toggle');
+                    if (st) st.style.pointerEvents = 'auto';
+                    const sh = document.getElementById('scroll-hint');
+                    if (sh) sh.style.pointerEvents = 'auto';
+                }
+            });
+
+            // Circuit track intro — separate, 2.0s paint animation
             if (window.__circuitIntro) window.__circuitIntro();
-        }, null, '-=1.0')
+        }, null, '-=2.2')
 
         /* ━━━━ FINAL CLEANUP — Safely hide loader out of DOM ━━━━━━━━━ */
         .call(() => {
