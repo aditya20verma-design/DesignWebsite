@@ -59,6 +59,11 @@
         rootEl.appendChild(tiltEl);
 
         document.body.appendChild(pillEl);
+
+        // Play sound when pill is first entered (pill always has pointer-events: auto)
+        pillEl.addEventListener('mouseenter', () => {
+            if (window.__playHoverSound) window.__playHoverSound();
+        });
     }
 
     // ── 2. LOAD SVG ────────────────────────────────────────────────────────
@@ -123,6 +128,21 @@
         initScroll();
         initTicker();
         update(0);
+
+        // ── Zone-crossing sound via SVG-level mousemove ───────────────────
+        // More reliable than mouseenter on deep SVG children (pointer-events inheritance).
+        // Fires a tick each time the cursor crosses into a different hit zone.
+        let lastSoundZone = null;
+        svgEl.addEventListener('mousemove', (e) => {
+            const el = document.elementFromPoint(e.clientX, e.clientY);
+            if (!el) return;
+            const zone = el.closest ? el.closest('.section-zone') : null;
+            if (!zone) { lastSoundZone = null; return; }
+            if (zone !== lastSoundZone) {
+                lastSoundZone = zone;
+                if (window.__playHoverSound) window.__playHoverSound();
+            }
+        });
 
         // Sync luminance state immediately now that pill exists in DOM 
         // (Fixes hover styles not working before first scroll)
@@ -346,7 +366,7 @@
                 const midPt = animPath.getPointAtLength(midT);
 
                 labelFO = document.createElementNS(NS, 'foreignObject');
-                labelFO.setAttribute('x', midPt.x + 40); 
+                labelFO.setAttribute('x', midPt.x + 20); 
                 labelFO.setAttribute('y', midPt.y - 48); // Re-centered for the 96px tall pill to prevent bottom crop
                 labelFO.setAttribute('width', '500'); // Immense width safety
                 labelFO.setAttribute('height', '180'); // Immense height safety
@@ -369,13 +389,15 @@
                 if (!ctm) return;
                 const svgP = pt.matrixTransform(ctm.inverse());
                 
-                // Set the exact cursor position with a wider floating offset
-                // (Compensating for SVG scale-down factor to achieve ~40px visual gap)
-                labelFO.setAttribute('x', svgP.x + 120);
+                // Tightened offset so pill hugs the cursor closely (~27px visual gap at 0.5x scale)
+                labelFO.setAttribute('x', svgP.x + 55);
                 labelFO.setAttribute('y', svgP.y - 100);
             }
 
             hitPath.addEventListener('mouseenter', (e) => {
+                // Play sound
+                if (window.__playHoverSound) window.__playHoverSound();
+
                 // Highlight this segment
                 segPath.classList.add('hovered');
                 segPath.classList.remove('dimmed');
@@ -415,7 +437,6 @@
             // ── Click → context-aware scroll ─────────────────────────────────
             if (zone.scrollTo) {
                 hitPath.addEventListener('click', e => {
-                    e.stopPropagation();
                     const lenis = window.__lenisInstance;
 
                     // ── TAP FEEDBACK: brief expanding pulse at tap point ───────
@@ -423,6 +444,9 @@
                     pt.x = e.clientX; pt.y = e.clientY;
                     const ctm = svgEl.getScreenCTM();
                     if (ctm) {
+                        // Play sound on tap
+                        if (window.__playHoverSound) window.__playHoverSound();
+
                         const svgP = pt.matrixTransform(ctm.inverse());
                         const pulse = document.createElementNS(NS, 'circle');
                         pulse.setAttribute('cx', svgP.x);

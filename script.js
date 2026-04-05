@@ -188,7 +188,7 @@ const ASSETS = {
         const navH   = nav.offsetHeight;
         const sampleY = navH * 0.35; // sample near nav top — where text lives
 
-        // Three horizontal sample points: left, centre, right
+        // Three horizontal sample points for nav: left, centre, right
         const xs = [
             window.innerWidth * 0.08,
             window.innerWidth * 0.50,
@@ -199,19 +199,12 @@ const ASSETS = {
         let count    = 0;
 
         xs.forEach(function (x) {
-            // elementsFromPoint returns ALL elements at that point (z-sorted)
             const stack = document.elementsFromPoint(x, sampleY);
             for (let i = 0; i < stack.length; i++) {
                 const el = stack[i];
-                
-                // Skip the nav itself and its descendants
                 if (nav.contains(el) || el === nav) continue;
-
                 const bg = window.getComputedStyle(el).backgroundColor;
-                
-                // If this element is transparent, keep passing through to the visually deeper elements
                 if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
-                    // Fallback to body color if we've drilled all the way down
                     if (el === document.body || el === document.documentElement) {
                         const bodyBg = window.getComputedStyle(document.body).backgroundColor;
                         const m = bodyBg.match(/\d+/g);
@@ -223,27 +216,92 @@ const ASSETS = {
                     }
                     continue;
                 }
-
-                // We hit a solid background color!
                 const m = bg.match(/\d+/g);
                 if (m && m.length >= 3) {
                     totalLum += luminance(+m[0], +m[1], +m[2]);
                     count++;
                 }
-                break; // Stop drilling at the first opaque element
+                break;
             }
         });
 
         const avgLum = count > 0 ? totalLum / count : 0;
         const pill = document.getElementById('circuit-pill');
+        const soundToggle = document.getElementById('sound-toggle');
 
-        // Threshold at 140 — gives comfortable headroom for off-white and light-grey
+        // Nav threshold at 140
         if (avgLum > 140) {
             nav.classList.add('nav-on-light');
             if (pill) pill.classList.add('track-on-light');
         } else {
             nav.classList.remove('nav-on-light');
             if (pill) pill.classList.remove('track-on-light');
+        }
+
+        // ── Sound Toggle Sensing (Bottom Left) ──────────────────────────────────
+        if (soundToggle) {
+            const stX = window.innerWidth * 0.08;
+            const stY = window.innerHeight - (window.innerHeight * 0.08); // Sample near bottom left
+            
+            const stStack = document.elementsFromPoint(stX, stY);
+            let stLum = 0;
+            for (let i = 0; i < stStack.length; i++) {
+                const el = stStack[i];
+                if (soundToggle.contains(el) || el === soundToggle) continue;
+                const bg = window.getComputedStyle(el).backgroundColor;
+                if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
+                    if (el === document.body || el === document.documentElement) {
+                        const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+                        const m = bodyBg.match(/\d+/g);
+                        if (m && m.length >= 3) stLum = luminance(+m[0], +m[1], +m[2]);
+                        break;
+                    }
+                    continue;
+                }
+                const m = bg.match(/\d+/g);
+                if (m && m.length >= 3) {
+                    stLum = luminance(+m[0], +m[1], +m[2]);
+                }
+                break;
+            }
+            // Fallback for extreme bottom sensing
+            if (stLum > 140) {
+                soundToggle.classList.add('sound-on-light');
+            } else {
+                soundToggle.classList.remove('sound-on-light');
+            }
+        }
+
+        // ── Scroll Hint Sensing (Bottom Right) ──────────────────────────────────
+        const scrollHint = document.getElementById('scroll-hint');
+        if (scrollHint) {
+            const shX = window.innerWidth * 0.92;
+            const shY = window.innerHeight - (window.innerHeight * 0.08); 
+            
+            const shStack = document.elementsFromPoint(shX, shY);
+            let shLum = 0;
+            for (let i = 0; i < shStack.length; i++) {
+                const el = shStack[i];
+                if (scrollHint.contains(el) || el === scrollHint) continue;
+                const bg = window.getComputedStyle(el).backgroundColor;
+                if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
+                    if (el === document.body || el === document.documentElement) {
+                        const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+                        const m = bodyBg.match(/\d+/g);
+                        if (m && m.length >= 3) shLum = luminance(+m[0], +m[1], +m[2]);
+                        break;
+                    }
+                    continue;
+                }
+                const m = bg.match(/\d+/g);
+                if (m && m.length >= 3) shLum = luminance(+m[0], +m[1], +m[2]);
+                break;
+            }
+            if (shLum > 140) {
+                scrollHint.classList.add('scroll-on-light');
+            } else {
+                scrollHint.classList.remove('scroll-on-light');
+            }
         }
 
         rafId = null;
@@ -790,6 +848,7 @@ magneticElements.forEach((el) => {
        We keep the div-panel on top momentarily via a tiny delay. */
     gsap.set(maskSvg, { opacity: 1 });   // SVG is ready, same look as panel
     gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
+    gsap.set(logoImg, { opacity: 0, scale: 0.4 });
 
     /* ── Timeline ───────────────────────────────────────────────── */
     const tl = gsap.timeline();
@@ -851,6 +910,22 @@ magneticElements.forEach((el) => {
                     opacity: 1,
                     duration: 0.35,
                     ease: 'power2.out'
+                });
+
+                // Reveal UI toggles (sound + scroll) elegantly at the very end
+                gsap.to('#sound-toggle', {
+                    opacity: 1, 
+                    pointerEvents: 'auto',
+                    delay: 0.8,
+                    duration: 1,
+                    ease: 'power2.out'
+                });
+                gsap.to('#scroll-hint', {
+                    // CSS sensing fully controls opacity: visible on light bg, hidden on dark
+                    // GSAP just unlocks pointer-events after the loader completes
+                    pointerEvents: 'auto',
+                    delay: 0.8,
+                    duration: 0,
                 });
             }
 
@@ -1312,3 +1387,133 @@ if (emailCopyBtn) {
         }
     });
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 14. HOVER SOUND SYSTEM
+// ══════════════════════════════════════════════════════════════════════════════
+// Technique: HTMLAudioElement — same approach as gabrielveres.com
+// Key insight: reset currentTime = 0 before every play so rapid hovers
+// each produce a distinct tick instead of blocking on the previous one.
+//
+// Selectors that get hover sound (add data-sound to any new element):
+//   [data-sound]     — explicit opt-in
+//   .view-btn        — project CTA buttons
+//   #email-copy-btn  — email pill
+//   nav a            — navigation links
+// ══════════════════════════════════════════════════════════════════════════════
+
+(function initHoverSound() {
+
+    // Respect reduced-motion preference
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // ── Sound enabled state — OFF by default ──────────────────────────────────
+    // User must click the toggle to enable. This also satisfies the browser's
+    // autoplay policy (requires a genuine user gesture before any audio plays).
+    let soundEnabled = false;
+
+    const toggleBtn = document.getElementById('sound-toggle');
+
+    function enableSound() {
+        soundEnabled = true;
+        if (toggleBtn) {
+            toggleBtn.classList.add('sound-on');
+            const label = toggleBtn.querySelector('.sound-label');
+            if (label) label.textContent = 'SOUND ON';
+        }
+        // Prime all pool instances on the user gesture that enabled sound
+        pool.forEach(a => {
+            a.load();
+            a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+        });
+    }
+
+    function disableSound() {
+        soundEnabled = false;
+        if (toggleBtn) {
+            toggleBtn.classList.remove('sound-on');
+            const label = toggleBtn.querySelector('.sound-label');
+            if (label) label.textContent = 'SOUND OFF';
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            soundEnabled ? disableSound() : enableSound();
+        });
+    }
+
+    const SRC    = 'assets/sounds/hover.mp3';
+    const VOLUME = 0.3;
+
+    // ── Audio pool: 4 instances rotated so rapid hovers each get a fresh slot ──
+    const POOL_SIZE = 4;
+    const pool = Array.from({ length: POOL_SIZE }, () => {
+        const a = new Audio(SRC);
+        a.volume = VOLUME;
+        a.playbackRate = 0.5; // Half speed = one octave lower — deep, warm click
+        a.preload = 'auto';
+        return a;
+    });
+    let poolIndex = 0;
+
+    // ── Play function ──────────────────────────────────────────────────────────
+    // No unlock gate — just play() directly. .catch() absorbs all autoplay blocks.
+    // Browsers allow audio triggered from ANY user pointer event (click, mouseenter,
+    // touchstart) after the first such event on the page. The loader click is
+    // enough. For edge cases where the user goes straight to hovering before
+    // anything else, the first hover attempt may be silent — subsequent ones work.
+    function playTick() {
+        if (!soundEnabled) return; // No-op when muted
+        const audio = pool[poolIndex % POOL_SIZE];
+        poolIndex++;
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+    }
+
+    // Expose globally — circuit.js calls this via window.__playHoverSound
+    window.__playHoverSound = playTick;
+
+    // ── Bind to standard CTA elements ─────────────────────────────────────────
+    function bindSoundSelectors() {
+        const selectors = [
+            '[data-sound]',
+            '.view-btn',
+            '#email-copy-btn',
+            'nav a',
+            '.nav-link',
+            '#sound-toggle',
+        ].join(', ');
+
+        document.querySelectorAll(selectors).forEach(el => {
+            if (el.dataset.soundBound) return;
+            el.dataset.soundBound = 'true';
+            el.addEventListener('mouseenter', playTick, { passive: true });
+        });
+    }
+
+    bindSoundSelectors();
+    window.addEventListener('load', bindSoundSelectors);
+
+    // ── Restart SFX (v2 refined) ──────────────────────────────────────────
+    const RESTART_SFX = new Audio('assets/audio/restartv2.mp3');
+    RESTART_SFX.volume = 0.85;
+
+    const logoBtn = document.getElementById('logo-link');
+    if (logoBtn) {
+        logoBtn.addEventListener('click', () => {
+            // Play only if sound is toggled ON in the UI
+            if (soundEnabled) {
+                RESTART_SFX.currentTime = 0;
+                RESTART_SFX.play().catch(() => {});
+            }
+        });
+    }
+
+    // ── Auto-Activation ───────────────────────────────────────
+    // Enable sound on first interaction anywhere
+    window.addEventListener('click', () => {
+        if (!soundEnabled) enableSound();
+    }, { once: true });
+
+}());

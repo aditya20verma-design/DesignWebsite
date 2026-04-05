@@ -23,7 +23,7 @@
     -webkit-backdrop-filter: none;
     border: none;
 
-    transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 
     pointer-events: auto;
     cursor: default;
@@ -31,9 +31,9 @@
     /* Allowing huge labels to break out of the container bounds */
 }
 
-/* Pill widens on hover */
+/* Pill widens on hover for more breathable interaction zone */
 #circuit-pill:hover {
-    width: 280px;
+    width: 320px;
 }
 
 /* ── Inner wrapper — fills pill ────────────────────────────────────────── */
@@ -43,7 +43,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 12px;
+    /* Deepened horizontal padding for a broader, more premium presentation
+       Recalibrated to ensure the track layout feels expansive and integrated. */
+    padding: 20px 40px;
 }
 
 /* ── Circuit root — SVG container ──────────────────────────────────────── */
@@ -53,8 +55,8 @@
     height: 100%;
     pointer-events: none;
 
-    /* Default: compact, solid */
-    transform: scale(0.48) translateX(-10%);
+    /* Nudged track slightly toward the content/cursor zone for better proximity */
+    transform: scale(0.48) translateX(0.5%);
     transform-origin: center center;
     opacity: 1;
     /* NO transparency on track */
@@ -230,12 +232,12 @@
 /* ── Pixelwrld-style section label ─────────────────────────────────── */
 .section-label {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-    font-size: 60px;
-    /* Maps out to exactly ~15px visually after 2x downscaling layer */
-    font-weight: 400;
-    letter-spacing: 0;
+    font-size: 52px;
+    /* Maps out to exactly ~13px visually after the cumulative downscaling layers */
+    font-weight: 500;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #ffffff;
+    color: var(--text-primary);
     /* Dark pill — works on both light + dark page sections */
     /* Changed from robust 0.92 opacity to a more transparent 0.82 glass */
     background: rgba(20, 20, 20, 0.82);
@@ -243,7 +245,7 @@
     -webkit-backdrop-filter: blur(8px);
     border: 2px solid rgba(255, 255, 255, 0.12);
     padding: 18px 30px;
-    border-radius: 24px;
+    border-radius: 100px;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
@@ -251,12 +253,12 @@
     /* Hidden + collapsed by default */
     opacity: 0;
     transform: scale(0.85) translateX(-24px);
-    filter: blur(4px);
-    /* pixelwrld-style: scale up + sharpen from blur */
+    /* pixelwrld-style: scale up + sharpen from blur 
+       Upgraded to match premium 0.6s expansion duration */
     transition:
-        opacity 0.22s ease,
-        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-        filter 0.22s ease;
+        opacity 0.5s ease,
+        transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.5s ease;
     pointer-events: none;
     cursor: default;
 }
@@ -272,10 +274,10 @@
     flex-shrink: 0;
 }
 
-/* Revealed: scales to 1, sharpens, slides right */
+/* Revealed: scales to 1, sharpens, slides further toward the content zone */
 .section-label.visible {
     opacity: 1;
-    transform: scale(1) translateX(0);
+    transform: scale(1) translateX(12px);
     filter: blur(0);
 }
 
@@ -324,8 +326,8 @@
 
 /* HOVER = even bigger for clear visibility and interaction */
 .nav-mode--track #circuit-pill:hover {
-    width: 260px;
-    height: 440px;
+    width: 300px;
+    height: 480px;
 }
 
 /* Internal scale on hover matches the bigger size */
@@ -333,11 +335,11 @@
     transform: scale(0.88) translateX(4%) translateY(-6%);
 }
 
-/* Inner wrapper: centered */
+/* Inner wrapper: centered with balanced premium padding for scale math */
 .nav-mode--track #circuit-inner {
     align-items: center;
     justify-content: center;
-    padding: 4px;
+    padding: 10px;
 }
 
 /* DEFAULT: track at comfortable resting scale (was the hover scale before) */
