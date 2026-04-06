@@ -1543,10 +1543,10 @@ if (emailCopyBtn) {
 
 
         const fan = [
-            { x: fanSpread(-450), y: -40, r: isTouch ? -4 : -12, z: 1 },
-            { x: fanSpread(-150), y: -5,  r: isTouch ? -2 : -4,  z: 2 },
-            { x: fanSpread( 150), y: -55, r: isTouch ? 2 : 4,    z: 3 },
-            { x: fanSpread( 450), y: 15,  r: isTouch ? 4 : 12,   z: 4 },
+            { x: fanSpread(-450), y: -40, r: isTouch ? -4 : -12, z: 4 },
+            { x: fanSpread(-150), y: -5,  r: isTouch ? -2 : -4,  z: 3 },
+            { x: fanSpread( 150), y: -55, r: isTouch ? 2 : 4,    z: 2 },
+            { x: fanSpread( 450), y: 15,  r: isTouch ? 4 : 12,   z: 1 },
         ];
         // Sibling scatter distance also scales with viewport
         const scatterShift = isTouch ? 0 : Math.round(70 * fanScale);
@@ -1760,6 +1760,10 @@ if (emailCopyBtn) {
         gsap.to(cards, {
             opacity: 1, scale: 1,
             stagger: 0.08, duration: 0.65, ease: STD,
+            onStart: () => {
+                // Force initial stacking: 1 over 2, 2 over 3...
+                cards.forEach((card, i) => gsap.set(card, { zIndex: fan[i].z }));
+            },
             scrollTrigger: { trigger: stage, start: 'top 75%' }
         });
 
