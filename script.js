@@ -832,6 +832,14 @@ magneticElements.forEach((el) => {
     gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
     gsap.set(logoImg, { opacity: 0, scale: 0.4 });
 
+    /* ── Browser Chrome Color Management ─────────────────────────── */
+    function updateThemeColor(color) {
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', color);
+    }
+    // Set to orange during load
+    updateThemeColor('#FF5509');
+
     /* ── Lock scroll during loader — event-based, NOT overflow:hidden ────
        overflow:hidden on body disrupts UnicornStudio's IntersectionObserver
        (canvas appears 'off-screen'), preventing WebGL from rendering.
@@ -845,9 +853,14 @@ magneticElements.forEach((el) => {
     const tl = gsap.timeline();
 
     tl
-        /* ━━━━ STAGE 1 — Orange hold ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-           [T1] = 0.3s                                            */
         .set({}, {}, 0.3)                          // T1 = 0.3s
+        .call(() => {
+            // PROACTIVE TRIGGER: Start the Safari UI transition at the very first 
+            // orange hold. This gives the browser nearly 4s of runway to 
+            // complete its transition before the mask opens.
+            document.documentElement.classList.add('is-ready');
+            updateThemeColor('#1D1D1D');
+        })
 
         /* ━━━━ STAGE 2 — AV logo FADE IN ━━━━━━━━━━━━━━━━━━━━━━━━━
            [T2_FADE] = 0.7s  [T2_DELAY] = 0.1s                    */
@@ -870,6 +883,7 @@ magneticElements.forEach((el) => {
             duration: 0.05,                        // instant crossover
             ease:     'none'
         })
+        /* Previous call moved to T1 for zero-delay Safari UI */
 
         /* ━━━━ STAGE 4 — Logo fades + "2" explodes in ONE breath ━━
            [T4_LOGO] = 0.4s  [T4_SCALE] = 2.8s  [T4_OFFSET] = 0.2s */
@@ -1513,21 +1527,37 @@ if (emailCopyBtn) {
         if (!stage || !cards.length) return;
 
         // Material Design easing
+        const vw = window.innerWidth;
+        const isTouch = window.matchMedia('(pointer: coarse)').matches || vw < 600;
+
+        // Material Design easing
         const STD = 'cubic-bezier(0.2,0,0,1)';  // Standard — spatial motion
         const DEC = 'cubic-bezier(0,0,0.2,1)';  // Decelerate — settle to rest
 
+        // ── Responsive fan spread — scales to viewport so cards never overflow ──
+        // On mobile, we use narrow 260px cards (CSS), allowing us a slightly
+        // wider spread (0.15x) for visibility without clipping.
+        const fanScale = isTouch ? 0.15 : Math.min(1, vw / 1100);
+        const fanSpread = (base) => Math.round(base * (isTouch ? 0.15 : fanScale));
+
+
+
         const fan = [
-            { x: -450, y: -40, r: -12, z: 1 },
-            { x: -150, y: -5,  r: -4,  z: 2 },
-            { x:  150, y: -55, r: 4,   z: 3 },
-            { x:  450, y: 15,  r: 12,  z: 4 },
+            { x: fanSpread(-450), y: -40, r: isTouch ? -4 : -12, z: 1 },
+            { x: fanSpread(-150), y: -5,  r: isTouch ? -2 : -4,  z: 2 },
+            { x: fanSpread( 150), y: -55, r: isTouch ? 2 : 4,    z: 3 },
+            { x: fanSpread( 450), y: 15,  r: isTouch ? 4 : 12,   z: 4 },
         ];
+        // Sibling scatter distance also scales with viewport
+        const scatterShift = isTouch ? 0 : Math.round(70 * fanScale);
 
         // ── Equalize heights ──────────────────────────────────────────
-        cards.forEach(c => gsap.set(c, { visibility: 'visible', opacity: 0, position: 'relative', x: 0, y: 0 }));
         const maxH = Math.max(...cards.map(c => c.offsetHeight));
-        cards.forEach(c => gsap.set(c, { height: maxH, position: 'absolute', opacity: 0 }));
-        stage.style.height = (maxH + 80) + 'px';
+        // Equalize on desktop for symmetry. On mobile, keep natural "hugged" heights
+        // to avoid unnecessary empty space below short descriptions.
+        cards.forEach(c => gsap.set(c, { height: isTouch ? 'auto' : maxH, position: 'absolute', opacity: 0 }));
+        const stageMargin = vw < 600 ? 50 : 80;
+        stage.style.height = (maxH + stageMargin) + 'px';
 
         // ── Shared hover state ────────────────────────────────────────
         let activeIndex  = -1;
@@ -1563,7 +1593,7 @@ if (emailCopyBtn) {
         const scatterSiblings = (fromIndex) => {
             cards.forEach((_, j) => {
                 if (j === fromIndex) return;
-                const targetX = fan[j].x + (j < fromIndex ? -70 : 70);
+                const targetX = fan[j].x + (j < fromIndex ? -scatterShift : scatterShift);
                 qSetters[j].x(targetX);
                 // Siblings slightly compress vertically toward fan Y
                 qSetters[j].y(fan[j].y);
@@ -1593,13 +1623,14 @@ if (emailCopyBtn) {
             });
         };
 
-        // ── Wire up per-card events ───────────────────────────────────
-        cards.forEach((card, i) => {
-            const f = fan[i];
-            const qs = qSetters[i];
+        // ── Wire up per-card events ── (DESKTOP ONLY) ───────────────────
+        if (!isTouch) {
+            cards.forEach((card, i) => {
+                const f = fan[i];
+                const qs = qSetters[i];
 
-            // ENTER ───────────────────────────────────────────────────
-            card.addEventListener('mouseenter', () => {
+                // ENTER ───────────────────────────────────────────────────
+                card.addEventListener('mouseenter', () => {
                 // Cancel any pending collapse (cursor slid from one card to another)
                 clearTimeout(collapseTimer);
                 activeIndex = i;
@@ -1694,22 +1725,36 @@ if (emailCopyBtn) {
                 if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.25)', duration: 0.25, ease: DEC, overwrite: 'auto' });
             });
         });
+    } else {
+        // MOBILE / TOUCH: Simple Tap to Front
+        cards.forEach((card) => {
+            card.addEventListener('click', () => {
+                // Bring to front
+                gsap.set(card, { zIndex: ++zCounter });
+                // Provide audio feedback if enabled
+                if (typeof window.__playHoverSound === 'function') window.__playHoverSound();
+                // Visual feedback: brief pop
+                gsap.fromTo(card, { scale: 0.95 }, { scale: 1, duration: 0.3, ease: 'back.out(1.5)' });
+            });
+        });
+    }
 
-        // ── Stage leave: collapse immediately (cursor exited stage entirely) ──
-        stage.addEventListener('mouseleave', () => {
-            clearTimeout(collapseTimer);
-            activeIndex = -1;
-            collapseFan();
-        });
+        // ── Stage events — only on non-touch ──
+        if (!isTouch) {
+            const cursorRing = document.querySelector('.cursor-outline');
+            stage.addEventListener('mouseleave', () => {
+                clearTimeout(collapseTimer);
+                activeIndex = -1;
+                collapseFan();
+            });
 
-        // ── Cursor orange ring on deck hover ─────────────────────────
-        const cursorRing = document.querySelector('.cursor-outline');
-        stage.addEventListener('mouseenter', () => {
-            if (cursorRing) cursorRing.style.borderColor = 'var(--accent)';
-        });
-        stage.addEventListener('mouseleave', () => {
-            if (cursorRing) cursorRing.style.borderColor = '';
-        });
+            stage.addEventListener('mouseenter', () => {
+                if (cursorRing) cursorRing.style.borderColor = 'var(--accent)';
+            });
+            stage.addEventListener('mouseleave', () => {
+                if (cursorRing) cursorRing.style.borderColor = '';
+            });
+        }
 
         // ── Scroll reveal ─────────────────────────────────────────────
         gsap.to(cards, {
@@ -1718,11 +1763,13 @@ if (emailCopyBtn) {
             scrollTrigger: { trigger: stage, start: 'top 75%' }
         });
 
-        // ── Draggable — uses shared zCounter so drag + hover z-order match ──
-        Draggable.create(cards, {
-            type: 'x,y',
-            onPress() { gsap.set(this.target, { zIndex: ++zCounter }); }
-        });
+        // ── Draggable — uses shared zCounter so drag + hover z-order match (NON-TOUCH ONLY) ──
+        if (!isTouch) {
+            Draggable.create(cards, {
+                type: 'x,y',
+                onPress() { gsap.set(this.target, { zIndex: ++zCounter }); }
+            });
+        }
     };
 
     setTimeout(initJourneyDeck, 500);
