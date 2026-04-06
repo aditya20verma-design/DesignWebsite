@@ -272,37 +272,9 @@ const ASSETS = {
             }
         }
 
-        // ── Scroll Hint Sensing (Bottom Right) ──────────────────────────────────
-        const scrollHint = document.getElementById('scroll-hint');
-        if (scrollHint) {
-            const shX = window.innerWidth * 0.92;
-            const shY = window.innerHeight - (window.innerHeight * 0.08); 
-            
-            const shStack = document.elementsFromPoint(shX, shY);
-            let shLum = 0;
-            for (let i = 0; i < shStack.length; i++) {
-                const el = shStack[i];
-                if (scrollHint.contains(el) || el === scrollHint) continue;
-                const bg = window.getComputedStyle(el).backgroundColor;
-                if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
-                    if (el === document.body || el === document.documentElement) {
-                        const bodyBg = window.getComputedStyle(document.body).backgroundColor;
-                        const m = bodyBg.match(/\d+/g);
-                        if (m && m.length >= 3) shLum = luminance(+m[0], +m[1], +m[2]);
-                        break;
-                    }
-                    continue;
-                }
-                const m = bg.match(/\d+/g);
-                if (m && m.length >= 3) shLum = luminance(+m[0], +m[1], +m[2]);
-                break;
-            }
-            if (shLum > 140) {
-                scrollHint.classList.add('scroll-on-light');
-            } else {
-                scrollHint.classList.remove('scroll-on-light');
-            }
-        }
+        // Scroll hint visibility is managed exclusively by .scroll-visible class
+        // (added by loader, removed by ScrollTrigger on hero exit). No luminance
+        // sensing needed — that was causing it to appear on light sections.
 
         rafId = null;
     }
@@ -317,6 +289,16 @@ const ASSETS = {
     senseBackground(); // run immediately on page load
     // Expose so the loader can force a re-sense after it finishes
     window._senseNavBg = senseBackground;
+
+    // ── Scroll Hint: Hero-only visibility ───────────────────────────────────
+    // Toggle .scroll-visible class as hero enters/leaves viewport.
+    // CSS handles the fade via transition — no GSAP opacity conflict.
+    ScrollTrigger.create({
+        trigger: '#hero',
+        start: 'bottom 85%',
+        onEnter:      () => document.getElementById('scroll-hint')?.classList.remove('scroll-visible'),
+        onLeaveBack:  () => document.getElementById('scroll-hint')?.classList.add('scroll-visible'),
+    });
 }());
 
 
@@ -934,8 +916,12 @@ magneticElements.forEach((el) => {
                 onStart: () => {
                     const st = document.getElementById('sound-toggle');
                     if (st) st.style.pointerEvents = 'auto';
+                    // Reveal scroll hint in hero — add class, don't fight GSAP opacity
                     const sh = document.getElementById('scroll-hint');
-                    if (sh) sh.style.pointerEvents = 'auto';
+                    if (sh) {
+                        sh.style.pointerEvents = 'auto';
+                        sh.classList.add('scroll-visible');
+                    }
                 }
             });
 
@@ -1690,7 +1676,7 @@ if (emailCopyBtn) {
                 // If it lands in empty stage-space, collapse fires.
                 collapseTimer = setTimeout(() => {
                     if (activeIndex === -1) collapseFan();
-                }, 60);
+                }, 240);
 
                 // Return this card to fan position
                 qSetters[i].x(f.x);
