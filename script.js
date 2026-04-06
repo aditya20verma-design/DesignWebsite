@@ -832,13 +832,13 @@ magneticElements.forEach((el) => {
     gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
     gsap.set(logoImg, { opacity: 0, scale: 0.4 });
 
-    /* ── Lock scroll for duration of loader animation ────────────────
-       Three layers for full coverage:
-       1. CSS overflow:hidden on <html> + <body> — blocks native scroll
-       2. window.__lenis?.stop() — blocks smooth-scroll engine if running
-       Both are reversed in the final cleanup callback below. */
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow            = 'hidden';
+    /* ── Lock scroll during loader — event-based, NOT overflow:hidden ────
+       overflow:hidden on body disrupts UnicornStudio's IntersectionObserver
+       (canvas appears 'off-screen'), preventing WebGL from rendering.
+       Instead we block at event level — zero layout impact. */
+    function _blockScroll(e) { e.preventDefault(); }
+    window.addEventListener('wheel',     _blockScroll, { passive: false });
+    window.addEventListener('touchmove', _blockScroll, { passive: false });
     if (window.__lenisInstance) window.__lenisInstance.stop();
 
     /* ── Timeline ───────────────────────────────────────────────── */
@@ -898,11 +898,10 @@ magneticElements.forEach((el) => {
                 navEl.classList.add('nav-color-ready');  
             }
 
-            // ── Unlock scroll immediately — content is now visually accessible ──
-            // Scroll is restored here (not at final cleanup) so the user can
-            // interact as soon as the mask opens, while circuit paints in background.
-            document.documentElement.style.overflow = '';
-            document.body.style.overflow            = '';
+            // ── Unlock scroll ──────────────────────────────────────
+            // Remove the event-based block. No overflow reset needed.
+            window.removeEventListener('wheel',     _blockScroll);
+            window.removeEventListener('touchmove', _blockScroll);
             if (window.__lenisInstance) {
                 window.__lenisInstance.scrollTo(0, { immediate: true });
                 window.__lenisInstance.start();

@@ -94,10 +94,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <!-- Unicorn Studio WebGL: must be sync so init() can be called immediately after -->
     <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
-    <!-- ↑ Call init() IMMEDIATELY after the script parses — this fires the async WebGL
-         project fetch during the first frame of the loader, giving it a ~4s head-start.
-         By the time the curtain opens, UnicornStudio has already downloaded + rendered. -->
-    <script>if (window.UnicornStudio && window.UnicornStudio.init) { window.UnicornStudio.init(); }</script>
 </head>
 
 <body>
@@ -562,8 +558,15 @@
 
     </div>
 
-    <!-- Hero Cover: fades out once UnicornStudio paints its first canvas frame.
-         UnicornStudio.init() already called in <head> — WebGL has had a head-start. -->
+    <!-- UnicornStudio: init() called here (after canvas div exists in DOM) so
+         WebGL starts fetching project data as early as possible. -->
+    <script>
+        if (window.UnicornStudio && window.UnicornStudio.init) {
+            window.UnicornStudio.init();
+        }
+    </script>
+
+    <!-- Hero Cover: fades out once UnicornStudio paints its first canvas frame. -->
     <script>
         (function () {
             var MAX_WAIT = 4000;
