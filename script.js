@@ -850,6 +850,15 @@ magneticElements.forEach((el) => {
     gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
     gsap.set(logoImg, { opacity: 0, scale: 0.4 });
 
+    /* ── Lock scroll for duration of loader animation ────────────────
+       Three layers for full coverage:
+       1. CSS overflow:hidden on <html> + <body> — blocks native scroll
+       2. window.__lenis?.stop() — blocks smooth-scroll engine if running
+       Both are reversed in the final cleanup callback below. */
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow            = 'hidden';
+    if (window.__lenisInstance) window.__lenisInstance.stop();
+
     /* ── Timeline ───────────────────────────────────────────────── */
     const tl = gsap.timeline();
 
@@ -907,13 +916,22 @@ magneticElements.forEach((el) => {
                 navEl.classList.add('nav-color-ready');  
             }
 
-            // ── Single simultaneous reveal: Nav + Sound + Scroll ──────────────────
+            // ── Unlock scroll immediately — content is now visually accessible ──
+            // Scroll is restored here (not at final cleanup) so the user can
+            // interact as soon as the mask opens, while circuit paints in background.
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow            = '';
+            if (window.__lenisInstance) {
+                window.__lenisInstance.scrollTo(0, { immediate: true });
+                window.__lenisInstance.start();
+            }
+
+            // ── Single simultaneous reveal: Nav + Sound ────────────────────────
             gsap.to([navEl, '#sound-toggle'].filter(Boolean), {
                 opacity: 1,
                 duration: 0.4,
                 ease: 'power2.out',
                 onStart: () => {
-                    // Enable pointer-events as soon as the tween kicks off
                     const st = document.getElementById('sound-toggle');
                     if (st) st.style.pointerEvents = 'auto';
                     const sh = document.getElementById('scroll-hint');
@@ -921,11 +939,11 @@ magneticElements.forEach((el) => {
                 }
             });
 
-            // Circuit track intro — separate, 2.0s paint animation
+            // Circuit track intro — separate, 2.0s paint animation (plays in background)
             if (window.__circuitIntro) window.__circuitIntro();
         }, null, '-=2.2')
 
-        /* ━━━━ FINAL CLEANUP — Safely hide loader out of DOM ━━━━━━━━━ */
+        /* ━━━━ FINAL CLEANUP — Remove loader from DOM ━━━━━━━━━━━━━━━━━━ */
         .call(() => {
             const el = document.getElementById('site-loader');
             if (el) el.style.display = 'none';
@@ -1502,6 +1520,227 @@ if (emailCopyBtn) {
             }
         });
     }
+
+    // ── Journey Deck ────────────────────────────────────────────────────
+    const initJourneyDeck = () => {
+        const stage  = document.querySelector('.journey-stage');
+        const cards  = gsap.utils.toArray('.exp-card');
+        if (!stage || !cards.length) return;
+
+        // Material Design easing
+        const STD = 'cubic-bezier(0.2,0,0,1)';  // Standard — spatial motion
+        const DEC = 'cubic-bezier(0,0,0.2,1)';  // Decelerate — settle to rest
+
+        const fan = [
+            { x: -450, y: -40, r: -12, z: 1 },
+            { x: -150, y: -5,  r: -4,  z: 2 },
+            { x:  150, y: -55, r: 4,   z: 3 },
+            { x:  450, y: 15,  r: 12,  z: 4 },
+        ];
+
+        // ── Equalize heights ──────────────────────────────────────────
+        cards.forEach(c => gsap.set(c, { visibility: 'visible', opacity: 0, position: 'relative', x: 0, y: 0 }));
+        const maxH = Math.max(...cards.map(c => c.offsetHeight));
+        cards.forEach(c => gsap.set(c, { height: maxH, position: 'absolute', opacity: 0 }));
+        stage.style.height = (maxH + 80) + 'px';
+
+        // ── Shared hover state ────────────────────────────────────────
+        let activeIndex  = -1;
+        let zCounter     = 10;  // Last Touch Wins — monotonically incrementing
+        let collapseTimer = null; // Hover-Intent debounce timer
+
+        // ── Per-card quickTo setters (persistent, no conflicts) ───────
+        // These are the ONLY way we animate X/Y/rotations — avoids competing gsap.to() tweens
+        const qSetters = cards.map(card => ({
+            x:   gsap.quickTo(card, 'x',         { duration: 0.38, ease: STD }),
+            y:   gsap.quickTo(card, 'y',         { duration: 0.38, ease: STD }),
+            rx:  gsap.quickTo(card, 'rotationX', { duration: 0.18, ease: STD }), // Short → reactive 'surface' feel
+            ry:  gsap.quickTo(card, 'rotationY', { duration: 0.18, ease: STD }), // Short → reactive 'surface' feel
+            rz:  gsap.quickTo(card, 'rotationZ', { duration: 0.28, ease: STD }),
+            sc:  gsap.quickTo(card, 'scale',     { duration: 0.35, ease: STD }),
+        }));
+
+        // Set initial fan positions + per-card perspective (centered on each card's own origin)
+        // transformPerspective is baked into the card's own transform matrix —
+        // vanishing point is always the card center → tilt is uniform top-to-bottom.
+        cards.forEach((card, i) => {
+            const f = fan[i];
+            gsap.set(card, {
+                x: f.x, y: f.y, rotation: f.r, zIndex: f.z, scale: 0.92,
+                transformPerspective: 1200, // Per-card perspective → consistent tilt
+            });
+        });
+
+        // ── Scatter helper — drives ALL sibling positions via quickTo ─
+        // This is the single source of truth for sibling X positions.
+        // Because quickTo is a persistent tween, calling it again just
+        // redirects the current animation — zero conflict, zero jerk.
+        const scatterSiblings = (fromIndex) => {
+            cards.forEach((_, j) => {
+                if (j === fromIndex) return;
+                const targetX = fan[j].x + (j < fromIndex ? -70 : 70);
+                qSetters[j].x(targetX);
+                // Siblings slightly compress vertically toward fan Y
+                qSetters[j].y(fan[j].y);
+            });
+        };
+
+        // ── Collapse helper — return ALL cards to fan POSITIONS ───────
+        // NOTE: z-order is NOT reset here — it's persistent.
+        // The last-touched card stays on top even after the deck collapses.
+        // Only fan X/Y/rotation/scale are restored. Z is owned by zCounter.
+        const collapseFan = () => {
+            cards.forEach((card, j) => {
+                qSetters[j].x(fan[j].x);
+                qSetters[j].y(fan[j].y);
+                qSetters[j].rz(fan[j].r);
+                qSetters[j].rx(0);
+                qSetters[j].ry(0);
+                qSetters[j].sc(1);
+                gsap.to(card, { scale: 1, duration: 0.45, ease: DEC, overwrite: 'auto' });
+
+                const roleEl = card.querySelector('.exp-role');
+                const dateEl = card.querySelector('.exp-date');
+                const metaEl = card.querySelector('.role-meta');
+                if (roleEl) gsap.to(roleEl, { color: 'rgba(255,255,255,0.9)', duration: 0.3, ease: DEC });
+                if (metaEl) gsap.to(metaEl, { color: 'rgba(255,255,255,0.9)', duration: 0.3, ease: DEC });
+                if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.25)', duration: 0.3, ease: DEC });
+            });
+        };
+
+        // ── Wire up per-card events ───────────────────────────────────
+        cards.forEach((card, i) => {
+            const f = fan[i];
+            const qs = qSetters[i];
+
+            // ENTER ───────────────────────────────────────────────────
+            card.addEventListener('mouseenter', () => {
+                // Cancel any pending collapse (cursor slid from one card to another)
+                clearTimeout(collapseTimer);
+                activeIndex = i;
+
+                // ── Last Touch Wins — dynamic z-index via counter ─────
+                // Increment shared counter and assign to this card.
+                // Previously hovered cards keep their counter values below.
+                // Result: most recently touched card always sits on top.
+                // No resets needed mid-interaction — mathematically clean.
+                gsap.set(card, { zIndex: ++zCounter });
+
+                scatterSiblings(i);
+
+                // Spring pop — back.out gives a subtle elastic overshoot
+                gsap.to(card, { scale: 1.08, duration: 0.35, ease: 'back.out(1.3)', overwrite: 'auto' });
+                qs.y(f.y - 42);
+                qs.rz(f.r);
+
+                // Color highlights
+                const roleEl = card.querySelector('.exp-role');
+                const dateEl = card.querySelector('.exp-date');
+                const metaEl = card.querySelector('.role-meta');
+                if (roleEl) gsap.to(roleEl, { color: 'var(--accent)', duration: 0.2, ease: STD, overwrite: 'auto' });
+                if (metaEl) gsap.to(metaEl, { color: 'var(--accent)', duration: 0.2, ease: STD, overwrite: 'auto' });
+                if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.5)', duration: 0.2, ease: STD, overwrite: 'auto' });
+
+                if (typeof window.__playHoverSound === 'function') window.__playHoverSound();
+            });
+
+            // MOVE — physics-reactive surface ─────────────────────────
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                // Normalised cursor: -1…+1 from card centre
+                const nx = (e.clientX - rect.left  - rect.width  / 2) / (rect.width  / 2);
+                const ny = (e.clientY - rect.top   - rect.height / 2) / (rect.height / 2);
+
+                // Radial distance from card centre (0=centre, ~1.4=corner)
+                // Used to model surface resistance — further from centre,
+                // cursor 'presses' harder, subtly dampening the lift scale.
+                const d = Math.sqrt(nx * nx + ny * ny);
+
+                // ── Translate (parallax follow) ────────────────────────
+                qs.x(f.x + nx * 16);
+                qs.y(f.y + ny * 10 - 42);
+
+                // ── 3D Tilt (surface pressure) ─────────────────────────
+                // Tilt toward cursor — short quickTo duration (0.18s) makes
+                // it feel like the surface is instantly reacting to weight.
+                qs.rx(-ny * 10);
+                qs.ry( nx * 10);
+                qs.rz(f.r + nx * 3);
+
+                // ── Surface Resistance: scale dampening ───────────────
+                // As cursor moves toward card edges (d increases),
+                // scale compresses very slightly — card 'pushes back'.
+                // Δscale is tiny (max ~0.018 at corners) — subtle but physical.
+                const resistScale = 1.08 - d * 0.015;
+                qs.sc(resistScale);
+
+                // ── Cursor Spotlight glow position ────────────────────
+                const pctX = ((e.clientX - rect.left) / rect.width)  * 100;
+                const pctY = ((e.clientY - rect.top)  / rect.height) * 100;
+                card.style.setProperty('--mouse-x', `${pctX}%`);
+                card.style.setProperty('--mouse-y', `${pctY}%`);
+            });
+
+            // LEAVE ─────────────────────────────────────────────────────
+            card.addEventListener('mouseleave', () => {
+                activeIndex = -1;
+
+                // Hover-Intent debounce: give the cursor 60ms to reach the
+                // next card. If it does, mouseenter clears this timer.
+                // If it lands in empty stage-space, collapse fires.
+                collapseTimer = setTimeout(() => {
+                    if (activeIndex === -1) collapseFan();
+                }, 60);
+
+                // Return this card to fan position
+                qSetters[i].x(f.x);
+                qSetters[i].y(f.y);
+                qSetters[i].rx(0);
+                qSetters[i].ry(0);
+                qSetters[i].rz(f.r);
+                gsap.to(card, { scale: 1, duration: 0.38, ease: DEC, overwrite: 'auto' });
+
+                // Reset colors for this card only
+                const roleEl = card.querySelector('.exp-role');
+                const dateEl = card.querySelector('.exp-date');
+                const metaEl = card.querySelector('.role-meta');
+                if (roleEl) gsap.to(roleEl, { color: 'rgba(255,255,255,0.9)', duration: 0.25, ease: DEC, overwrite: 'auto' });
+                if (metaEl) gsap.to(metaEl, { color: 'rgba(255,255,255,0.9)', duration: 0.25, ease: DEC, overwrite: 'auto' });
+                if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.25)', duration: 0.25, ease: DEC, overwrite: 'auto' });
+            });
+        });
+
+        // ── Stage leave: collapse immediately (cursor exited stage entirely) ──
+        stage.addEventListener('mouseleave', () => {
+            clearTimeout(collapseTimer);
+            activeIndex = -1;
+            collapseFan();
+        });
+
+        // ── Cursor orange ring on deck hover ─────────────────────────
+        const cursorRing = document.querySelector('.cursor-outline');
+        stage.addEventListener('mouseenter', () => {
+            if (cursorRing) cursorRing.style.borderColor = 'var(--accent)';
+        });
+        stage.addEventListener('mouseleave', () => {
+            if (cursorRing) cursorRing.style.borderColor = '';
+        });
+
+        // ── Scroll reveal ─────────────────────────────────────────────
+        gsap.to(cards, {
+            opacity: 1, scale: 1,
+            stagger: 0.08, duration: 0.65, ease: STD,
+            scrollTrigger: { trigger: stage, start: 'top 75%' }
+        });
+
+        // ── Draggable — uses shared zCounter so drag + hover z-order match ──
+        Draggable.create(cards, {
+            type: 'x,y',
+            onPress() { gsap.set(this.target, { zIndex: ++zCounter }); }
+        });
+    };
+
+    setTimeout(initJourneyDeck, 500);
 
     // ── Auto-Activation ───────────────────────────────────────
     // Enable sound on first interaction anywhere

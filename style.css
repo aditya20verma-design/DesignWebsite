@@ -1121,45 +1121,189 @@ nav.nav--hero .nav-link {
     margin: 0;
 }
 
-.exp-item {
-    margin-bottom: 2.5rem;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
+/* ── Journey Deck Section ─────────────────────────────────────────── */
+.journey-section {
+    width: 100%;
+    padding: 8rem var(--page-margin-x) 10rem;
+    position: relative;
+    overflow: visible;
 }
 
-.exp-item:hover {
+.journey-stage {
+    position: relative;
+    width: 100%;
+    height: 540px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    /* Perspective moved to per-card via GSAP transformPerspective for uniform tilt */
+}
+
+/* Card — content-hugging, JS equalizes height across all */
+.exp-card {
+    position: absolute;
+    width: 320px;
+    height: auto;    /* Let content breathe; JS sets uniform height after render */
+    background: #111;
+    overflow: hidden; /* Clips the spotlight glow at border-radius */
+    transform-style: preserve-3d; /* Required for 3D rotationX/Y to be visible */
+    padding: 32px 32px 54px 32px;
+    border-radius: 28px; /* Concentric rule: at 32px padding, inner corners must be square (0) for 28px outer */
+    border: 1px solid rgba(255,255,255,0.12); /* Increased for better visual separation */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    user-select: none;
+    touch-action: none;
+    cursor: grab;
+    will-change: transform, filter;
+    filter: grayscale(1) brightness(0.85);
+    opacity: 0.75;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2); /* Even subtler base shadow as requested */
+    transition:
+        background-color 0.35s cubic-bezier(0.2,0,0,1),
+        filter 0.35s cubic-bezier(0.2,0,0,1),
+        opacity 0.35s cubic-bezier(0.2,0,0,1),
+        box-shadow 0.35s cubic-bezier(0.2,0,0,1),
+        border-color 0.35s cubic-bezier(0.2,0,0,1);
+}
+.exp-card:hover {
+    background-color: #1a1a1a;
+    filter: grayscale(0) brightness(1.05);
+    opacity: 1;
+    border-color: rgba(255,255,255,0.22);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.3);
+}
+.exp-card:active { cursor: grabbing; }
+
+/* ── Cursor Spotlight Glow ──────────────────────────────────────────────
+   A radial gradient locked to CSS custom props --mouse-x / --mouse-y
+   (set on each mousemove frame via JS). pointer-events:none prevents any
+   interference with card text or interactions.
+   The glow is hidden by default; only becomes visible on hover. ─────── */
+.exp-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        320px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(255, 120, 50, 0.12) 0%,
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.45s cubic-bezier(0.2, 0, 0, 1);
+}
+.exp-card:hover::before {
     opacity: 1;
 }
 
-.exp-item:last-child {
-    margin-bottom: 0;
+/* Ensure card children stack above the glow layer */
+.exp-card > * {
+    position: relative;
+    z-index: 1;
 }
 
-.exp-role {
-    font-family: var(--font-heading);
-    font-size: var(--text-md);
-    font-weight: 500;
-    color: var(--main-light);
-    margin-bottom: 0.2rem;
+/* ── Proximity System: Header ───────────────────── */
+.exp-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    width: 100%;
+    gap: 12px;
 }
 
-.exp-company {
+/* Container 1: Logo above company name (vertical stack) */
+.exp-card-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px; /* Proximity rule: branding tight block */
+}
+
+.exp-logo-dummy {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 6px; /* Specific aesthetic override as requested */
+    flex-shrink: 0;
+    transition: background 0.3s cubic-bezier(0.2,0,0,1);
+}
+.exp-card:hover .exp-logo-dummy {
+    background: rgba(255,255,255,0.14);
+}
+
+.exp-card-company {
     font-family: var(--font-ui);
-    font-size: var(--text-body-size);
-    color: var(--accent);
-    margin-bottom: 0.25rem;
+    font-size: 0.85rem; /* Matched to description size as requested */
+    font-weight: 600;    /* Increased weight for better presence */
+    color: rgba(255,255,255,0.45);
+    text-transform: none;
+    letter-spacing: -0.01em;
+    transition: color 0.3s cubic-bezier(0.2,0,0,1);
+    line-height: 1.25;
 }
+/*.exp-card:hover .exp-card-company { color: var(--accent); } */ /* target-removal based on request */
 
+/* Container 2: Duration — right-aligned, top-aligned with logo */
 .exp-date {
-    font-family: var(--font-mono);
-    font-size: var(--text-caption-size);
-    color: var(--text-muted);
-    opacity: 0.65;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.25);
+    text-align: right;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    flex-shrink: 0;
+    padding-top: 5px;
+    white-space: nowrap;
+    transition: color 0.3s cubic-bezier(0.2,0,0,1);
+}
+.exp-card:hover .exp-date { color: rgba(255,255,255,0.5); }
+
+/* ── Proximity System: Content ──────────────────── */
+.exp-role {
+    font-family: var(--font-accent);
+    font-size: 1.15rem; /* Re-balanced for mixed typography */
+    font-weight: 400;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.3;
+    margin: 0 0 8px 0; /* Proximity rule: Title to Detail tight block */
+    letter-spacing: 0.01em;
+    text-transform: none;
+    transition: color 0.3s cubic-bezier(0.2,0,0,1);
+}
+.exp-card:hover .exp-role,
+.exp-card:hover .role-meta { color: var(--accent); }
+
+.role-meta {
+    font-family: var(--font-ui); /* Meta-info in smaller UI font */
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.9); /* Matched to .exp-role as requested */
+    font-weight: 400;
+    white-space: nowrap;
+    transition: color 0.3s cubic-bezier(0.2,0,0,1);
 }
 
-/* Minimal Fade Interaction */
+.exp-desc {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.42);
+    margin: 0;
+    overflow: visible;
+    transition: color 0.3s cubic-bezier(0.2,0,0,1);
+}
+.exp-card:hover .exp-desc { color: rgba(255,255,255,0.65); }
+
+.exp-pills { display: none; }
+
+
+
 .fade-up-minimal {
     opacity: 0;
     transform: translateY(30px);
