@@ -1792,25 +1792,27 @@ if (emailCopyBtn) {
                 // Same stagger schedule = GSAP's internal engine handles both.
                 // No per-card forEach, no onStart rotation snap = zero jerk.
 
-                // [A] Opacity: emerge — tightly matched to movement stagger
+                // [A] Opacity: emerge — matches widened movement stagger
                 gsap.to(cards, {
                     opacity: 1,
-                    duration: 0.15,  // ← Fast: opacity shouldn't lag behind position
-                    stagger: { each: 0.12, from: 'end' }, // ← Google: 80–120ms
+                    duration: 0.25,
+                    stagger: { each: 0.28, from: 'end' }, // ← Wide gap = each card is an event
                     ease: 'none',
                     force3D: true,
                     overwrite: 'auto',
                 });
 
-                // [B] Movement: 1.2s power4 each card — total ~1.56s for 4 cards
-                //   Cinematic slow-burn entrance.
+                // [B] Movement: Physics-correct gravity model (No Bounce)
+                // expo.out = exponential deceleration. The card accelerates through
+                // the climb and decelerates SHARPLY at the end for a premium 'snap'.
+                // Total sequence: ~2.54s for 4 cards
                 gsap.to(cards, {
                     y: 0,
-                    scale: 1.0,      // ← Grow into place (from 0.88). Apple-correct.
+                    scale: 1.0,  
                     rotation: 0,
-                    duration: 1.2,
-                    stagger: { each: 0.12, from: 'end' }, // 120ms gap — Material standard
-                    ease: 'power4.out',
+                    duration: 1.7,
+                    ease: 'expo.out',
+                    stagger: { each: 0.28, from: 'end' }, // 280ms gap — each card is distinct
                     force3D: true,
                     overwrite: 'auto',
                     onComplete: function() {
@@ -1823,10 +1825,10 @@ if (emailCopyBtn) {
                             y: (idx) => fan[idx].y,
                             rotation: (idx) => fan[idx].r,
                             scale: 1,
-                            stagger: { each: 0.1, from: 'end' },
-                            duration: 1.25,
+                            stagger: { each: 0.08, from: 'end' },
+                            duration: 0.9,
                             ease: 'back.out(1.4)',
-                            delay: 0.3,
+                            delay: 0.02,
                             onComplete: () => {
                                 // Hard-snap for pixel-perfect hover registration
                                 cards.forEach((c, idx) => {
