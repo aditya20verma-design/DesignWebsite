@@ -25,20 +25,18 @@
 
 html {
     overflow-x: hidden;
-    /* Start orange – syncs with Loader UI for early transition runway 
-       (don't change to var, Safari senses raw hex faster) */
-    background-color: #FF5509; 
+    /* Dark from first paint — the loader div provides all the orange.
+       html/body being orange caused Safari's bands to lag orange 
+       2-3s after the loader disappeared. */
+    background-color: #1d1d1d;
     scrollbar-width: none;
-    /* The Fix for Safari Jerk: snap the HTML background; 
-       Safari's chrome follows this background natively.
-       0s: Absolute instant snap to dark at T1 trigger. */
-    transition: background-color 0s;
+    transition: none;
+    /* Safari Fix 1: prevent rubber-band over-scroll revealing raw
+       html background as grey/white bands at top and bottom. */
+    overscroll-behavior: none;
 }
 
-/* Triggered by JS in loader Stage 1 */
-html.is-ready {
-    background-color: #1d1d1d; /* Matches var(--bg-base) site dark */
-}
+/* Site is always dark — no class toggle needed */
 
 /* Hide system scrollbar — Chrome, Safari, Edge */
 html::-webkit-scrollbar {
@@ -46,7 +44,7 @@ html::-webkit-scrollbar {
 }
 
 body {
-    background-color: #FF5509; /* Matches loader-bg exactly */
+    background-color: #1d1d1d; /* Dark from first paint — loader covers it */
     color: var(--text-primary);
     font-family: var(--font);
     font-size: var(--text-body-size);
@@ -56,13 +54,10 @@ body {
     overflow-x: hidden;
     overflow-x: clip;
     width: 100%;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Match HTML for absolute instant snap */
-    transition: background-color 0s;
-}
-
-html.is-ready body {
-    background-color: var(--bg-base); /* Transition to site dark */
+    /* Safari Fix 2: kill rubber-band that reveals background bands */
+    overscroll-behavior: none;
+    /* Safari Fix 3: safe-area padding on body can cause bottom gaps.
+       Applied per-element instead (nav, footer, buttons that need it). */
 }
 
 /* ── Touch devices: restore cursor ──────────────────────── */
@@ -103,12 +98,20 @@ html.is-ready body {
    LOADER — Premium "2" Mask Reveal
    ═══════════════════════════════════════════════════════ */
 
-/* Outer container — sits over everything */
+/* Outer container — sits over everything, including safe areas */
 .loader {
     position: fixed;
+    /* With viewport-fit=cover in the meta viewport tag, position:fixed; inset:0
+       already covers the FULL physical screen including the status bar and home
+       indicator areas. The old negative-inset trick was pushing the loader BEYOND
+       the screen boundaries, creating regions the SVG mask could never reach —
+       which is exactly what was causing the orange bands at top and bottom. */
     inset: 0;
     z-index: 99999;
     pointer-events: all;
+    /* NO background here — loader-panel provides the orange.
+       Keeping this transparent lets the SVG "2" hole correctly
+       reveal site content as the mask expands. */
 }
 
 /* ① Solid orange panel — Phase 1 */
@@ -715,17 +718,22 @@ nav.nav--hero .nav-link {
 .hero-sticky-container {
     position: sticky;
     top: 0;
-    height: 100vh;
+    /* Safari Fix 4: 100dvh = dynamic viewport height — adjusts when
+       Safari's toolbar shows/hides. Prevents overflow gap at bottom.
+       Fallback: var(--app-height) is set by JS to window.innerHeight. */
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
     width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1;
-    overflow: visible;   /* allow signature SVG strokes to go beyond container edges */
+    overflow: visible;
 }
 
 .hero {
-    height: 100vh;
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
     width: 100%;
     display: flex;
     justify-content: center;
@@ -1178,7 +1186,7 @@ nav.nav--hero .nav-link {
     user-select: none;
     touch-action: none;
     cursor: grab;
-    will-change: transform, filter;
+    will-change: transform, filter, opacity;
     filter: grayscale(1) brightness(0.85);
     opacity: 0.75;
     box-shadow: 0 12px 35px rgba(0,0,0,0.2); /* Even subtler base shadow as requested */
@@ -1197,6 +1205,63 @@ nav.nav--hero .nav-link {
     box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.3);
 }
 .exp-card:active { cursor: grabbing; }
+
+/* ── Deck Animation Lock ─────────────────────────────────────────────────────
+   Applied to .exp-stage during the full reveal sequence (Phases 1-4).
+   Forces all cards into their colored/active state for the duration.
+   On removal, cards elegantly CSS-transition back to the grayscale default.
+──────────────────────────────────────────────────────────────────────────── */
+.deck-animating {
+    pointer-events: none; /* Disable all mouse interaction during animation */
+}
+.deck-animating .exp-card {
+    filter: grayscale(0) brightness(1.05);
+    border-color: rgba(255,255,255,0.22);
+    /* GSAP takes total control: kill all CSS property battles */
+    transition: none !important;
+}
+.deck-animating .exp-card .exp-role,
+.deck-animating .exp-card .role-meta {
+    color: var(--accent);  /* Accent text: active state */
+    transition: color 1.2s cubic-bezier(0.2,0,0,1);
+}
+.deck-animating .exp-card .exp-date {
+    color: rgba(255,255,255,0.6); /* Brightened date: active state */
+    transition: color 1.2s cubic-bezier(0.2,0,0,1);
+}
+.deck-animating .exp-card .exp-card-logo {
+    filter: grayscale(0) brightness(1); /* Colored logo: active state */
+    transition: filter 1.2s cubic-bezier(0.2,0,0,1);
+}
+/* Special brightness fix for Card 1 logo (data-index 0) during animation */
+.deck-animating .exp-card[data-index="0"] .exp-card-logo {
+    filter: grayscale(0) brightness(1);
+}
+
+/* ── Phase 4: Settle (color → grayscale) ──────────────────────────────────────
+   .deck-settling is briefly added to the stage BEFORE .deck-animating is
+   removed. This pre-loads a long, premium ease onto every card property so
+   that the revert to grayscale uses a 2s expo-out curve instead of the
+   fast 0.35s default hover transition. JS removes the class after 2.1s.
+─────────────────────────────────────────────────────────────────────── */
+.deck-settling .exp-card {
+    /* 0.65s expo-out — Apple HIG de-emphasis timing. Snappy but elegant. */
+    transition:
+        filter 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.deck-settling .exp-card .exp-role,
+.deck-settling .exp-card .role-meta {
+    transition: color 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.deck-settling .exp-card .exp-date {
+    transition: color 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.deck-settling .exp-card .exp-card-logo {
+    transition: filter 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
 /* ── Cursor Spotlight Glow ──────────────────────────────────────────────
    A radial gradient locked to CSS custom props --mouse-x / --mouse-y

@@ -35,11 +35,13 @@
          Enables "Add to Home Screen" on Android/Chrome with correct icon + theme -->
     <link rel="manifest" href="assets/favicon/site.webmanifest?v=2">
 
-    <!-- ── Browser Chrome Color ──────────────────────────────────────────────
-         Safari / Chrome mobile: initial orange for loader, 
-         then smoothly transitions to dark site. -->
-    <meta name="theme-color" content="#FF5509">
     <meta name="msapplication-TileColor" content="#1D1D1D">
+    <!-- Safari Fix: theme-color sets the status bar / browser chrome area colour.
+         Without this, Safari uses white/grey for the top band. Both modes are dark. -->
+    <meta name="theme-color" content="#1d1d1d">
+    <meta name="theme-color" content="#1d1d1d" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#1d1d1d" media="(prefers-color-scheme: light)">
+    <!-- iOS Safari: force black status bar (dark icons on dark background) -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- ── Open Graph / Social Sharing ──────────────────────────────────────

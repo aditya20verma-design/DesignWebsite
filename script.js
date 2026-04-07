@@ -36,6 +36,24 @@ const ASSETS = {
 //   scripts/shared/scroll.js    → Lenis + ScrollTrigger init
 // ══════════════════════════════════════════════════════════════════════════════
 
+// ── Safari Viewport Bands Fix ────────────────────────────────────────────
+// Safari's 100vh = max viewport (toolbar hidden). When toolbar shows,
+// content overflows by ~80px creating white/grey bands.
+// Solution: Set --app-height to window.innerHeight (always the TRUE
+// visible area) so 100dvh CSS has a reliable JS fallback.
+(function setSafariViewportFix() {
+    function updateAppHeight() {
+        const h = window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', h + 'px');
+    }
+    updateAppHeight(); // Set immediately on parse
+    window.addEventListener('resize', updateAppHeight, { passive: true });
+    // Also update on orientation change (crucial for iOS)
+    window.addEventListener('orientationchange', () => {
+        setTimeout(updateAppHeight, 100); // brief timeout lets Safari settle
+    }, { passive: true });
+}());
+
 // ── Hamburger / Mobile Nav ────────────────────────────────────────────────
 
 (function () {
@@ -832,13 +850,9 @@ magneticElements.forEach((el) => {
     gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
     gsap.set(logoImg, { opacity: 0, scale: 0.4 });
 
-    /* ── Browser Chrome Color Management ─────────────────────────── */
-    function updateThemeColor(color) {
-        let meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', color);
-    }
-    // Set to orange during load
-    updateThemeColor('#FF5509');
+    /* ── Browser Chrome Color ── handled statically in HTML meta + CSS.
+       html/body start dark; the loader div covers everything in orange.
+       No JS toggling needed. ── */
 
     /* ── Lock scroll during loader — event-based, NOT overflow:hidden ────
        overflow:hidden on body disrupts UnicornStudio's IntersectionObserver
@@ -853,14 +867,7 @@ magneticElements.forEach((el) => {
     const tl = gsap.timeline();
 
     tl
-        .set({}, {}, 0.3)                          // T1 = 0.3s
-        .call(() => {
-            // PROACTIVE TRIGGER: Start the Safari UI transition at the very first 
-            // orange hold. This gives the browser nearly 4s of runway to 
-            // complete its transition before the mask opens.
-            document.documentElement.classList.add('is-ready');
-            updateThemeColor('#1D1D1D');
-        })
+        .set({}, {}, 0.3)                          // T1 = 0.3s — hold before logo appears
 
         /* ━━━━ STAGE 2 — AV logo FADE IN ━━━━━━━━━━━━━━━━━━━━━━━━━
            [T2_FADE] = 0.7s  [T2_DELAY] = 0.1s                    */
@@ -946,6 +953,9 @@ magneticElements.forEach((el) => {
         .call(() => {
             const el = document.getElementById('site-loader');
             if (el) el.style.display = 'none';
+            // html/body are already dark from first paint.
+            // theme-color is already dark from first paint.
+            // No band-color toggle needed — bands never went orange.
         });
 
 }());
@@ -1553,9 +1563,19 @@ if (emailCopyBtn) {
 
         // ── Equalize heights ──────────────────────────────────────────
         const maxH = Math.max(...cards.map(c => c.offsetHeight));
-        // Equalize on desktop for symmetry. On mobile, keep natural "hugged" heights
-        // to avoid unnecessary empty space below short descriptions.
-        cards.forEach(c => gsap.set(c, { height: isTouch ? 'auto' : maxH, position: 'absolute', opacity: 0 }));
+        // Equalize on desktop. On mobile, keep natural heights.
+        // ALL cards start STACKED at center (x:0, y:0, r:0) — hidden.
+        // The scroll reveal will deal them out to fan positions.
+        cards.forEach((c, i) => gsap.set(c, {
+            height: isTouch ? 'auto' : maxH,
+            position: 'absolute',
+            opacity: 0,
+            x: 0, y: 140,         // ↑ Adjusted: 140px travel distance
+            rotation: i % 2 === 0 ? 0.55 : -0.55,
+            scale: 0.88,          // ← Apple: grow into place (0.88→1.0), not shrink
+            zIndex: fan[i].z,
+            transformPerspective: 1200,
+        }));
         const stageMargin = vw < 600 ? 50 : 80;
         stage.style.height = (maxH + stageMargin) + 'px';
 
@@ -1575,16 +1595,8 @@ if (emailCopyBtn) {
             sc:  gsap.quickTo(card, 'scale',     { duration: 0.35, ease: STD }),
         }));
 
-        // Set initial fan positions + per-card perspective (centered on each card's own origin)
-        // transformPerspective is baked into the card's own transform matrix —
-        // vanishing point is always the card center → tilt is uniform top-to-bottom.
-        cards.forEach((card, i) => {
-            const f = fan[i];
-            gsap.set(card, {
-                x: f.x, y: f.y, rotation: f.r, zIndex: f.z, scale: 0.92,
-                transformPerspective: 1200, // Per-card perspective → consistent tilt
-            });
-        });
+        // Set per-card perspective only — position is handled by scroll reveal
+        // Cards start at x:0, y:0, rotation:0 (stacked) — set above during equalize.
 
         // ── Scatter helper — drives ALL sibling positions via quickTo ─
         // This is the single source of truth for sibling X positions.
@@ -1645,8 +1657,8 @@ if (emailCopyBtn) {
                 scatterSiblings(i);
 
                 // Spring pop — back.out gives a subtle elastic overshoot
-                gsap.to(card, { scale: 1.08, duration: 0.35, ease: 'back.out(1.3)', overwrite: 'auto' });
-                qs.y(f.y - 42);
+                gsap.to(card, { scale: 1.05, duration: 0.3, ease: 'back.out(1.2)', overwrite: 'auto' });
+                qs.y(f.y - 24);  // ← Apple: 16–24px lift max
                 qs.rz(f.r);
 
                 // Color highlights
@@ -1673,15 +1685,13 @@ if (emailCopyBtn) {
                 const d = Math.sqrt(nx * nx + ny * ny);
 
                 // ── Translate (parallax follow) ────────────────────────
-                qs.x(f.x + nx * 16);
-                qs.y(f.y + ny * 10 - 42);
+                qs.x(f.x + nx * 10); // ← Apple: <12px subtle parallax
+                qs.y(f.y + ny * 6 - 24);
 
                 // ── 3D Tilt (surface pressure) ─────────────────────────
-                // Tilt toward cursor — short quickTo duration (0.18s) makes
-                // it feel like the surface is instantly reacting to weight.
-                qs.rx(-ny * 10);
-                qs.ry( nx * 10);
-                qs.rz(f.r + nx * 3);
+                qs.rx(-ny * 5);     // ← Apple/Material: ≤5° tilt
+                qs.ry( nx * 5);
+                qs.rz(f.r + nx * 1.5); // ← Tight wobble, not cartoonish
 
                 // ── Surface Resistance: scale dampening ───────────────
                 // As cursor moves toward card edges (d increases),
@@ -1742,41 +1752,115 @@ if (emailCopyBtn) {
         // ── Stage events — only on non-touch ──
         if (!isTouch) {
             const cursorRing = document.querySelector('.cursor-outline');
+
             stage.addEventListener('mouseleave', () => {
+                // Guard: don't interfere during reveal animation
+                if (stage.classList.contains('deck-animating')) return;
                 clearTimeout(collapseTimer);
                 activeIndex = -1;
                 collapseFan();
+                if (cursorRing) cursorRing.style.borderColor = '';
             });
 
             stage.addEventListener('mouseenter', () => {
+                if (stage.classList.contains('deck-animating')) return;
                 if (cursorRing) cursorRing.style.borderColor = 'var(--accent)';
             });
-            stage.addEventListener('mouseleave', () => {
-                if (cursorRing) cursorRing.style.borderColor = '';
-            });
         }
 
-        // ── Scroll reveal ─────────────────────────────────────────────
-        gsap.to(cards, {
-            opacity: 1, scale: 1,
-            stagger: 0.08, duration: 0.65, ease: STD,
-            onStart: () => {
-                // Force initial stacking: 1 over 2, 2 over 3...
-                cards.forEach((card, i) => gsap.set(card, { zIndex: fan[i].z }));
-            },
-            scrollTrigger: { trigger: stage, start: 'top 75%' }
+        // ── 4-PHASE COLOR-DRIVEN REVEAL ───────────────────────────────────────────────
+        // The CSS class 'deck-animating' on the stage drives everything:
+        //   Phase 1: Cards appear — instantly in FULL COLOR (class active)
+        //   Phase 2: Pile Up     — remains in FULL COLOR during climb
+        //   Phase 3: Fan Open    — remains in FULL COLOR while spreading
+        //   Phase 4: Cards land  — class removed → CSS transitions to GRAYSCALE default
+        //
+        // pointer-events: none on .deck-animating prevents hover from interfering.
+        ScrollTrigger.create({
+            trigger: stage,
+            start: 'top 75%',
+            once: true,
+            onEnter: () => {
+                // Lock the stage: forces colored state + disables mouse on all cards
+                stage.classList.add('deck-animating');
+                // NOTE: opacity managed per-card in onStart—each card appears
+                // solid only the moment it begins climbing, preventing ghost cards
+                // from being visible at y:200 while waiting their turn.
+
+                // ── Phase 1 + 2: Pile Up — DUAL STAGGER (premium rebuild) ───────
+                // Two synchronized native-stagger tweens fired in parallel.
+                // Same stagger schedule = GSAP's internal engine handles both.
+                // No per-card forEach, no onStart rotation snap = zero jerk.
+
+                // [A] Opacity: emerge — tightly matched to movement stagger
+                gsap.to(cards, {
+                    opacity: 1,
+                    duration: 0.15,  // ← Fast: opacity shouldn't lag behind position
+                    stagger: { each: 0.12, from: 'end' }, // ← Google: 80–120ms
+                    ease: 'none',
+                    force3D: true,
+                    overwrite: 'auto',
+                });
+
+                // [B] Movement: 1.2s power4 each card — total ~1.56s for 4 cards
+                //   Cinematic slow-burn entrance.
+                gsap.to(cards, {
+                    y: 0,
+                    scale: 1.0,      // ← Grow into place (from 0.88). Apple-correct.
+                    rotation: 0,
+                    duration: 1.2,
+                    stagger: { each: 0.12, from: 'end' }, // 120ms gap — Material standard
+                    ease: 'power4.out',
+                    force3D: true,
+                    overwrite: 'auto',
+                    onComplete: function() {
+                        // Guard: only fire fan-out when the LAST card (index 0) lands
+                        if (this.targets()[0] !== cards[0]) return;
+
+                        // ── Phase 3: Fan Open ─────────────────────────────
+                        gsap.to(cards, {
+                            x: (idx) => fan[idx].x,
+                            y: (idx) => fan[idx].y,
+                            rotation: (idx) => fan[idx].r,
+                            scale: 1,
+                            stagger: { each: 0.1, from: 'end' },
+                            duration: 1.25,
+                            ease: 'back.out(1.4)',
+                            delay: 0.3,
+                            onComplete: () => {
+                                // Hard-snap for pixel-perfect hover registration
+                                cards.forEach((c, idx) => {
+                                    gsap.set(c, {
+                                        x: fan[idx].x,
+                                        y: fan[idx].y,
+                                        rotation: fan[idx].r,
+                                        scale: 1,
+                                        transformPerspective: 1200,
+                                    });
+                                });
+
+                                // Phase 4: colour→grayscale settle (0.65s, Apple HIG)
+                                stage.classList.add('deck-settling');
+                                requestAnimationFrame(() => {
+                                    stage.classList.remove('deck-animating');
+                                });
+                                setTimeout(() => {
+                                    stage.classList.remove('deck-settling');
+                                }, 750); // 650ms transition + small buffer
+                            }
+                        });
+                    }
+                });
+            }
         });
-
-        // ── Draggable — uses shared zCounter so drag + hover z-order match (NON-TOUCH ONLY) ──
-        if (!isTouch) {
-            Draggable.create(cards, {
-                type: 'x,y',
-                onPress() { gsap.set(this.target, { zIndex: ++zCounter }); }
-            });
-        }
+        // NOTE: Draggable intentionally disabled.
+        // It uses its own x,y engine which conflicts with quickTo hover setters,
+        // causing snap-back on drag release. Cards can be clicked/tapped to front.
     };
 
-    setTimeout(initJourneyDeck, 500);
+    // Instant init: two rAF frames ensures DOM is fully painted and
+    // offsetHeight measurements are accurate — no artificial 500ms delay.
+    requestAnimationFrame(() => requestAnimationFrame(initJourneyDeck));
 
     // ── Auto-Activation ───────────────────────────────────────
     // Enable sound on first interaction anywhere
