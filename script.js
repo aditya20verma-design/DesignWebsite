@@ -256,6 +256,66 @@ const ASSETS = {
             if (pill) pill.classList.remove('track-on-light');
         }
 
+        // ── Rider plate: robust bg-colour sampler ────────────────────────────────
+        // For each element at a viewport point, walk UP its ancestor chain until we
+        // find a non-transparent background-color.  Sample 5 points around the pill
+        // (centre + 4 quadrant offsets) and use the most common resolved colour.
+        if (pill) {
+            function resolveElBg(el, skipRoot) {
+                let node = el;
+                while (node && node !== document.documentElement) {
+                    if (skipRoot && (skipRoot.contains(node) || node === skipRoot)) {
+                        node = node.parentElement;
+                        continue;
+                    }
+                    const bg = window.getComputedStyle(node).backgroundColor;
+                    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
+                    node = node.parentElement;
+                }
+                // Last resort: body
+                const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+                return (bodyBg && bodyBg !== 'rgba(0, 0, 0, 0)') ? bodyBg : null;
+            }
+
+            function sampleBgAt(vx, vy, skipRoot) {
+                const stack = document.elementsFromPoint(vx, vy);
+                for (const el of stack) {
+                    if (skipRoot && (skipRoot.contains(el) || el === skipRoot)) continue;
+                    const color = resolveElBg(el, skipRoot);
+                    if (color) return color;
+                }
+                return null;
+            }
+
+            const pr  = pill.getBoundingClientRect();
+            const cx  = pr.left + pr.width  * 0.5;
+            const cy  = pr.top  + pr.height * 0.5;
+            const off = Math.min(pr.width, pr.height) * 0.35; // offset into quadrants
+
+            // 5-point sample: centre + 4 corners (just outside pill SVG elements)
+            const samplePoints = [
+                [cx, cy],
+                [cx - off, cy - off],
+                [cx + off, cy - off],
+                [cx - off, cy + off],
+                [cx + off, cy + off],
+            ];
+
+            // Tally results and pick most common non-null colour
+            const tally = {};
+            for (const [vx, vy] of samplePoints) {
+                const c = sampleBgAt(vx, vy, pill);
+                if (c) tally[c] = (tally[c] || 0) + 1;
+            }
+
+            const best = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+            const plateColor = best ? best[0]
+                : (avgLum > 140 ? 'rgb(251,251,251)' : 'rgb(29,29,29)');
+
+            pill.style.setProperty('--rider-plate', plateColor);
+        }
+
+
         // ── Sound Toggle Sensing (Bottom Left) ──────────────────────────────────
         if (soundToggle) {
             const stX = window.innerWidth * 0.08;
@@ -1826,9 +1886,9 @@ if (emailCopyBtn) {
                             rotation: (idx) => fan[idx].r,
                             scale: 1,
                             stagger: { each: 0.08, from: 'end' },
-                            duration: 0.9,
+                            duration: 0.7,    // was 0.55 — touch more grace
                             ease: 'back.out(1.4)',
-                            delay: 0.02,
+                            delay: 0,         // was 0.02 — no pause between pile-up and fan-out
                             onComplete: () => {
                                 // Hard-snap for pixel-perfect hover registration
                                 cards.forEach((c, idx) => {

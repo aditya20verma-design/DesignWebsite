@@ -93,8 +93,8 @@
     stroke: rgba(80, 80, 80, 0.4);
     stroke-width: 20;
     fill: none;
-    /* 6-Layer Apple-Fidelity Shadow Stack — incredibly smooth, realistic depth gradient */
-    filter: drop-shadow(0.5px 1px 2px rgba(0, 0, 0, 0.10)) drop-shadow(1px 2px 4px rgba(0, 0, 0, 0.07)) drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.05)) drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.04)) drop-shadow(8px 16px 35px rgba(0, 0, 0, 0.03)) drop-shadow(16px 32px 80px rgba(0, 0, 0, 0.02));
+    /* Subtle 2-layer depth shadow — reduced from 6-layer heavy stack */
+    filter: drop-shadow(0.5px 1px 2px rgba(0, 0, 0, 0.06)) drop-shadow(2px 4px 10px rgba(0, 0, 0, 0.04));
 }
 
 #track-base {
@@ -104,16 +104,8 @@
     stroke-linecap: round;
     stroke-linejoin: round;
 
-    /* ── TRACK SHADOW — hugs the stroke line only, no spread
-       Zero offset = shadow rings the path symmetrically
-       Low blur (3px) = tight, doesn't bleed outside the stroke
-       Opacity 0.30 = visible on white, invisible on dark
-
-       To tune:
-         Blur   : 3px  → try 2px (crisper) or 5px (softer)
-         Opacity: 0.30 → try 0.15 (subtler) or 0.45 (bolder)
-    ── */
-    filter: drop-shadow(0px 0px 3px rgba(0, 0, 0, 0.30));
+    /* ── TRACK SHADOW — reduced to a barely-there halo */
+    filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.12));
 }
 
 /* Progress fill — scroll-synced orange, vivid */
@@ -125,6 +117,51 @@
     stroke-linejoin: round;
     filter: drop-shadow(0 0 8px rgba(255, 85, 9, 0.65));
     will-change: stroke-dashoffset;
+}
+
+/* ── F1 Sector Tick Marks ───────────────────────────────────────── */
+/* Small perpendicular lines at the start of each sector boundary.   */
+/* SVG units: stroke-width=5, total span=32 (set in circuit.js).     */
+/* At 0.48 CSS scale → ~0.24px stroke, ~1.54px span on screen.       */
+.sector-tick {
+    stroke: rgba(255, 255, 255, 0.80);   /* white on dark background  */
+    transition: stroke 0.4s ease;
+}
+
+/* On light background: flip to dark grey */
+#circuit-pill.track-on-light .sector-tick {
+    stroke: rgba(30, 30, 30, 0.75);      /* dark grey on light bg     */
+}
+
+/* ── Rider background plate — perfectly matches actual section background ─── */
+/* --rider-plate is set per-scroll-tick by senseBackground() in script.js,    */
+/* sampling the real computed background color at the pill's centre position.  */
+/* This makes the plate invisibly blend with ANY section bg — no approximation.*/
+#rider-bg {
+    fill: var(--rider-plate, #1d1d1d);   /* JS sets this; fallback = dark bg  */
+    transition: fill 0.4s ease;
+}
+
+/* ── Rider orange dot — glow filter is dark-bg only ─────────────────────── */
+/* feGaussianBlur stdDeviation=10 creates a ~10 SVG-unit orange halo that     */
+/* looks premium floating over dark, but creates a non-blending corona on     */
+/* light backgrounds. Suppress it entirely on light bg for clean crisp dot.   */
+#rider-circle {
+    filter: url(#rider-glow);            /* full orange glow bloom — dark bg  */
+    transition: filter 0.4s ease, opacity 0.4s ease;
+}
+#circuit-pill.track-on-light #rider-circle {
+    filter: none;                        /* clean crisp edge — light bg       */
+}
+
+/* ── Pulse rings — reduce opacity on light bg so they don't overwhelm ───── */
+#rider-ring-1,
+#rider-ring-2 {
+    transition: opacity 0.4s ease;
+}
+#circuit-pill.track-on-light #rider-ring-1,
+#circuit-pill.track-on-light #rider-ring-2 {
+    opacity: 0.35;                       /* subtle on light; full on dark      */
 }
 
 /* ── Section zone overlays ──────────────────────────────────────── */
@@ -140,7 +177,7 @@
 /* Visual segment — sits above base track */
 .section-seg {
     fill: none;
-    stroke-linecap: round;
+    stroke-linecap: butt;   /* flat ends — stop exactly at sector tick marks */
     stroke-linejoin: round;
     pointer-events: none;
     /* Resting: invisible — base track provides the visual */
@@ -196,7 +233,7 @@
 .section-seg-orange {
     pointer-events: none;
     fill: none;
-    stroke-linecap: round;
+    stroke-linecap: butt;   /* flat ends — stop exactly at sector tick marks */
     stroke-linejoin: round;
     transition: opacity 0.3s ease;
     opacity: 0;

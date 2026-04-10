@@ -37,12 +37,14 @@ window.CIRCUIT_CONFIG = {
         [0.62, 0.20], [0.70, 0.19],
     ],
 
-    // ── Section mapping (0–1 progress along the path)
+    // ── Section mapping (informational / advisory reference)
+    // The ACTUAL runtime source-of-truth is the ZONES array in circuit.js.
+    // To add a new section: add an entry to ZONES in circuit.js (config.js is kept in sync for docs).
     SECTIONS: [
         { id: 'hero',    progress: 0.00, label: null,      scrollTo: 'hero'    },
-        { id: 'work',    progress: 0.28, label: 'WORK',    scrollTo: 'work'    },
-        { id: 'about',   progress: 0.62, label: 'ABOUT',   scrollTo: 'contact' },
-        { id: 'contact', progress: 0.88, label: 'CONTACT', scrollTo: 'contact' },
+        { id: 'work',    progress: 0.22, label: 'WORK',    scrollTo: 'work'    },
+        { id: 'about',   progress: 0.65, label: 'ABOUT',   scrollTo: 'about'   },
+        { id: 'contact', progress: 0.85, label: 'CONTACT', scrollTo: 'contact' },
     ],
 
     // ── Colors

@@ -116,8 +116,10 @@
         buildFilters();
         buildSectionZones();
         buildRider();
+        buildStartLine(); // S/F checkered flag — must run after rider is in DOM
+        buildSectorMarkers(); // F1-style tick lines at each sector boundary — after rider so they render below it
         // Hide ALL rider elements (dynamically created by buildRider — must hide after it runs)
-        const _riderIds = ['rider-bg', 'rider-ring-1', 'rider-ring-2', 'rider-glow-blob', 'rider-core'];
+        const _riderIds = ['rider-bg', 'rider-ring-1', 'rider-ring-2', 'rider-core'];
         const _riderEls = [..._riderIds.map(id => svgEl.getElementById(id)).filter(Boolean),
                            riderCircle].filter(Boolean);
         _riderEls.forEach(el => gsap.set(el, { opacity: 0 }));
@@ -175,7 +177,7 @@
     function introAnimation() {
         const trackBase  = svgEl.querySelector('#track-base');
         const trackDepth = svgEl.querySelector('#track-depth');
-        const riderIds   = ['rider-bg','rider-ring-1','rider-ring-2','rider-glow-blob','rider-core'];
+        const riderIds   = ['rider-bg','rider-ring-1','rider-ring-2','rider-core'];
         const riderEls   = [...riderIds.map(id => svgEl.getElementById(id)).filter(Boolean),
                              riderCircle].filter(Boolean);
 
@@ -270,24 +272,29 @@
                 ease: 'power2.out'
             });
 
-            // 3d. Rider glow "birth" burst
-            const glowBlob = svgEl.getElementById('rider-glow-blob');
-            if (glowBlob) {
-                gsap.fromTo(glowBlob,
-                    { attr: { r: 0, 'fill-opacity': 0.85 } },
-                    {
-                        attr: { r: 100, 'fill-opacity': 0.55 },
-                        delay: 0.18,
-                        duration: 0.4,
-                        ease: 'power2.out',
-                        onComplete: () => gsap.to(glowBlob, {
-                            attr: { r: 55, 'fill-opacity': 0.28 },
-                            duration: 0.9,
-                            ease: 'power3.inOut'
-                        })
-                    }
-                );
+            // 3e. Reveal the S/F line with the rider burst
+            const sfGroup = svgEl && svgEl.getElementById('sf-line-group');
+            if (sfGroup) {
+                gsap.to(sfGroup, {
+                    opacity: 1,
+                    duration: 0.6,
+                    delay: 0.28,
+                    ease: 'power2.out'
+                });
             }
+
+            // 3f. Reveal sector marker ticks with the track
+            const sectorGroup = svgEl && svgEl.getElementById('sector-markers-group');
+            if (sectorGroup) {
+                gsap.to(sectorGroup, {
+                    opacity: 1,
+                    duration: 0.5,
+                    delay: 0.20,
+                    ease: 'power2.out'
+                });
+            }
+
+
         });
     }
 
@@ -301,8 +308,138 @@
                 <feGaussianBlur stdDeviation="10" result="blur"/>
                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
+            <filter id="flag-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.6)"/>
+            </filter>
         `;
         svgEl.insertBefore(defs, svgEl.firstChild);
+    }
+
+    // ── 3b. START/FINISH LINE ─────────────────────────────────────────────
+    // Draws a checkered flag rectangle + red S/F line bar at progress=0 on the
+    // track. Orientation is computed from the tangent of the path at that point.
+    function buildStartLine() {
+        if (!animPath || pathLength === 0) return;
+
+        // Sample the path tangent at the very start
+        const ptA = animPath.getPointAtLength(0);
+        const ptB = animPath.getPointAtLength(pathLength * 0.012); // tiny look-ahead for angle
+
+        const dx    = ptB.x - ptA.x;
+        const dy    = ptB.y - ptA.y;
+        // Angle of the track direction in degrees
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        // We want the flag to be PERPENDICULAR to the track
+        const perpAngle = angle + 90;
+
+        const cx = ptA.x; // centre x of the start line
+        const cy = ptA.y; // centre y of the start line
+
+        // Group all start-line elements so we can animate them together
+        const sfGroup = document.createElementNS(NS, 'g');
+        sfGroup.id = 'sf-line-group';
+        sfGroup.style.pointerEvents = 'none';
+        sfGroup.style.opacity = '0'; // hidden until intro stage 3
+
+        const transform = `translate(${cx}, ${cy}) rotate(${perpAngle})`;
+
+        // ── Checkered flag — 6 columns × 2 rows of explicit alternating squares
+        // Each cell: 10 SVG units wide × 14 SVG units tall → total 60×28
+        const FLAG_COLS   = 6;
+        const FLAG_ROWS   = 2;
+        const FLAG_W      = 60;
+        const FLAG_H      = 20;               // 2 rows × 10 = 20, cells are exactly 10×10 (square)
+        const FLAG_CELL_W = FLAG_W / FLAG_COLS; // 10 per col
+        const FLAG_CELL_H = FLAG_H / FLAG_ROWS; // 10 per row — matches width = perfect square
+
+        const flagGroup = document.createElementNS(NS, 'g');
+        flagGroup.setAttribute('transform', transform);
+        flagGroup.setAttribute('filter', 'url(#flag-shadow)');
+
+        // Draw the checkered squares, centered on the start point (progress=0)
+        for (let r = 0; r < FLAG_ROWS; r++) {
+            for (let c = 0; c < FLAG_COLS; c++) {
+                const isWhite = (r + c) % 2 === 0;
+                const cell = document.createElementNS(NS, 'rect');
+                cell.setAttribute('x',      -30 + c * FLAG_CELL_W);
+                cell.setAttribute('y',      -(FLAG_H / 2) + r * FLAG_CELL_H); 
+                cell.setAttribute('width',  FLAG_CELL_W);
+                cell.setAttribute('height', FLAG_CELL_H);
+                cell.setAttribute('fill',   isWhite ? '#ffffff' : '#111111');
+                flagGroup.appendChild(cell);
+            }
+        }
+
+        sfGroup.appendChild(flagGroup);
+
+        // Insert BEFORE the rider so the rider dot renders on top of the flag
+        const riderBg = svgEl.getElementById('rider-bg');
+        if (riderBg) {
+            svgEl.insertBefore(sfGroup, riderBg);
+        } else {
+            svgEl.appendChild(sfGroup);
+        }
+    }
+
+    // ── 3c. SECTOR MARKERS ────────────────────────────────────────────────
+    // Perpendicular tick lines at the start of each non-hero zone.
+    // AUTO-GENERATED from ZONES array — adding a new zone automatically gets a tick.
+    // Dimensions (SVG user units):
+    //   Width:     38 SVG units  (TICK_HALF × 2)
+    //   Thickness:  7 SVG units  (TICK_STROKE)
+    function buildSectorMarkers() {
+        if (!animPath || pathLength === 0) return;
+
+        const TICK_HALF   = 19; // half-width of tick line
+        const TICK_STROKE =  7; // stroke-width
+        const LOOK_AHEAD  = pathLength * 0.012;
+
+        // Group — hidden at start, revealed by intro Stage 3
+        const group = document.createElementNS(NS, 'g');
+        group.id = 'sector-markers-group';
+        group.style.pointerEvents = 'none';
+        group.style.opacity = '0';
+
+        // Auto-generate a tick for every zone EXCEPT the first (hero/home),
+        // which uses the checkered flag. Works with any number of zones.
+        ZONES.slice(1).forEach(zone => {
+            const t    = zone.start * pathLength;
+            const ptA  = animPath.getPointAtLength(t);
+            const ptB  = animPath.getPointAtLength(Math.min(t + LOOK_AHEAD, pathLength));
+
+            const dx   = ptB.x - ptA.x;
+            const dy   = ptB.y - ptA.y;
+            const len  = Math.sqrt(dx * dx + dy * dy) || 1;
+            const nx   = dx / len;
+            const ny   = dy / len;
+
+            const px   = -ny; // perpendicular
+            const py   =  nx;
+
+            const x1   = ptA.x + px * TICK_HALF;
+            const y1   = ptA.y + py * TICK_HALF;
+            const x2   = ptA.x - px * TICK_HALF;
+            const y2   = ptA.y - py * TICK_HALF;
+
+            const tick = document.createElementNS(NS, 'line');
+            tick.setAttribute('x1', x1);
+            tick.setAttribute('y1', y1);
+            tick.setAttribute('x2', x2);
+            tick.setAttribute('y2', y2);
+            tick.setAttribute('stroke-width', TICK_STROKE);
+            tick.setAttribute('stroke-linecap', 'round');
+            tick.setAttribute('class', 'sector-tick');
+            tick.dataset.sector = zone.id;
+            group.appendChild(tick);
+        });
+
+        // Insert BEFORE the rider (so rider always renders on top)
+        const riderBg = svgEl.getElementById('rider-bg');
+        if (riderBg && riderBg.parentNode) {
+            riderBg.parentNode.insertBefore(group, riderBg);
+        } else {
+            svgEl.appendChild(group);
+        }
     }
 
     // ── 4. SECTION ZONES ───────────────────────────────────────────────────
@@ -557,7 +694,7 @@
         riderBg.id = 'rider-bg';
         riderBg.setAttribute('cx', '0'); riderBg.setAttribute('cy', '0'); 
         riderBg.setAttribute('r', '26');
-        riderBg.setAttribute('fill', '#1d1d1d');
+        // fill is controlled by CSS (#rider-bg / .track-on-light) for dynamic light/dark switching
         riderBg.style.pointerEvents = 'none';
 
         // Pulse ring 1
@@ -584,20 +721,14 @@
             <animate attributeName="stroke-opacity" from="0.7" to="0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
         `;
 
-        // Glow blob
-        const glow = document.createElementNS(NS, 'circle');
-        glow.id = 'rider-glow-blob';
-        glow.setAttribute('cx', '0'); glow.setAttribute('cy', '0'); glow.setAttribute('r', '55');
-        glow.setAttribute('fill', 'rgba(255,85,9,0.28)');
-        glow.style.pointerEvents = 'none';
-
         // Main dot
         riderCircle = document.createElementNS(NS, 'circle');
+        riderCircle.id = 'rider-circle';
         riderCircle.setAttribute('cx', '0'); riderCircle.setAttribute('cy', '0');
         riderCircle.setAttribute('r', '18');
         riderCircle.setAttribute('fill', '#FF5509');
-        riderCircle.setAttribute('filter', 'url(#rider-glow)');
         riderCircle.style.pointerEvents = 'none';
+        // filter applied via CSS — suppressed on light backgrounds (see circuit.css #rider-circle)
 
         // White core
         const core = document.createElementNS(NS, 'circle');
@@ -608,7 +739,6 @@
         svgEl.appendChild(riderBg);
         svgEl.appendChild(ring1);
         svgEl.appendChild(ring2);
-        svgEl.appendChild(glow);
         svgEl.appendChild(riderCircle);
         svgEl.appendChild(core);
     }
@@ -619,7 +749,7 @@
     function computeMilestones() {
         milestones = [];
 
-        // maxScroll computed FIRST — contact zone needs it to clamp its trigger
+        // maxScroll computed FIRST — the final zone needs it to ensure progress reaches 1.0
         const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
         ZONES.forEach((z, i) => {
@@ -629,22 +759,23 @@
             const rect        = el.getBoundingClientRect();
             const absoluteTop = rect.top + window.scrollY;
 
-            // ── Contact is special: its offsetTop is near the page bottom, so its
-            //    trigger (offsetTop - 20vh) often EXCEEDS maxScroll, which breaks the
-            //    milestone order and prevents the track from ever reaching 1.0.
-            //    Fix: clamp contact trigger below maxScroll, then add 1.0 at maxScroll.
-            if (z.id === 'contact') {
-                let contactTrigger = absoluteTop - (window.innerHeight * 0.2);
-                contactTrigger = Math.min(contactTrigger, maxScroll - 200); // always reachable
-                contactTrigger = Math.max(0, contactTrigger);
-                milestones.push({ scroll: contactTrigger, progress: z.start });
-                milestones.push({ scroll: maxScroll,       progress: 1.0 });
+            const isLast = (i === ZONES.length - 1);
+
+            if (isLast) {
+                // ── Last zone: clamp trigger below maxScroll so it's always reachable,
+                //    then add a 1.0-progress milestone AT maxScroll.
+                //    This works for ANY zone name — rename 'contact' freely, add new sections.
+                let lastTrigger = absoluteTop - (window.innerHeight * 0.2);
+                lastTrigger = Math.min(lastTrigger, maxScroll - 200);
+                lastTrigger = Math.max(0, lastTrigger);
+                milestones.push({ scroll: lastTrigger, progress: z.start });
+                milestones.push({ scroll: maxScroll,   progress: 1.0 });
                 return;
             }
 
             // All other zones: trigger at 20% from top of viewport
             let triggerScroll = absoluteTop - (window.innerHeight * 0.2);
-            if (i === 0) triggerScroll = 0;
+            if (i === 0) triggerScroll = 0; // hero always starts at scroll=0
             milestones.push({ scroll: Math.max(0, triggerScroll), progress: z.start });
         });
 
@@ -716,9 +847,9 @@
         // Progress stroke fill
         trackProgressPath.style.strokeDashoffset = pathLength * (1 - prog);
 
-        // Rider position
+        // Rider position — update all rider layer elements
         const pt = animPath.getPointAtLength(prog * pathLength);
-        ['rider-bg', 'rider-ring-1','rider-ring-2','rider-glow-blob','rider-core'].forEach(id => {
+        ['rider-bg', 'rider-ring-1', 'rider-ring-2', 'rider-core'].forEach(id => {
             const el = svgEl.getElementById(id);
             if (el) { el.setAttribute('cx', pt.x); el.setAttribute('cy', pt.y); }
         });
@@ -776,27 +907,9 @@
 
     // ── COMPLETION: Energy Settle + Track Sweep ────────────────────────────
     function triggerCompletionEffects() {
-        const glowBlob = svgEl && svgEl.getElementById('rider-glow-blob');
         const riderBgEl = svgEl && svgEl.getElementById('rider-bg');
 
-        // 1. ENERGY SETTLE: glow intensifies, then breathes down to a calm stable
-        if (glowBlob) {
-            gsap.killTweensOf(glowBlob);
-            // Quick intensity burst
-            gsap.to(glowBlob, {
-                attr: { r: 90, 'fill-opacity': 0.55 },
-                duration: 0.35,
-                ease: 'power2.out',
-                onComplete: () => {
-                    // Settle to enhanced-but-calm stable state
-                    gsap.to(glowBlob, {
-                        attr: { r: 65, 'fill-opacity': 0.35 },
-                        duration: 0.9,
-                        ease: 'power3.inOut'
-                    });
-                }
-            });
-        }
+        // 1. ENERGY SETTLE: rider plate pulses slightly larger, then settles
         if (riderBgEl) {
             gsap.to(riderBgEl, { attr: { r: 30 }, duration: 0.35, ease: 'power2.out',
                 onComplete: () => gsap.to(riderBgEl, { attr: { r: 28 }, duration: 0.7, ease: 'power3.inOut' })
@@ -840,14 +953,9 @@
     }
 
     function revertCompletionEffects() {
-        const glowBlob  = svgEl && svgEl.getElementById('rider-glow-blob');
         const riderBgEl = svgEl && svgEl.getElementById('rider-bg');
 
-        // Restore rider glow to default size
-        if (glowBlob) {
-            gsap.killTweensOf(glowBlob);
-            gsap.to(glowBlob, { attr: { r: 55, 'fill-opacity': 0.28 }, duration: 0.6, ease: 'power2.out' });
-        }
+        // Restore rider plate to default size
         if (riderBgEl) {
             gsap.killTweensOf(riderBgEl);
             gsap.to(riderBgEl, { attr: { r: 26 }, duration: 0.4, ease: 'power2.out' });
