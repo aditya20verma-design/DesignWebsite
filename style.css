@@ -356,6 +356,44 @@ nav.nav--hero .logo.svg-logo {
     height: auto;
 }
 
+/* ── Hero Subtitle — cycling text below ADITYA VERMA ─────────────────────────
+   Typography exactly matches the SOUND TOGGLE component.
+   Color: #e5e4e0 (same as sound default), opacity 0.45 ghost weight.
+   Animation: GSAP fade + 5px micro-drift (premium, no clipping issues).
+   ─────────────────────────────────────────────────────────────────────────── */
+#hero-subtitle {
+    position: relative;
+    margin-top: 10px;           /* breathing room below VERMA wordmark          */
+    height: 20px;               /* 13px × 1.5 line-height — concrete, never clips */
+    font-family: var(--font-ui);
+    font-size: 13px;            /* adjusted from 14px per user request            */
+    font-weight: 400;
+    letter-spacing: 0.04em;     /* standard sentence case tracking               */
+    text-transform: none;       /* Sentence case                                 */
+    color: rgba(229, 228, 224, 0.45); /* Default: Light ghost color for dark bg  */
+    opacity: 0;                       /* hidden until GSAP reveals it             */
+    pointer-events: none;
+    white-space: nowrap;
+    /* Only color needs CSS transition — opacity is GSAP-controlled for instant re-show */
+    transition: color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* GSAP sets opacity:1 via start() — no CSS class needed for opacity */
+/* Color switches to dark when nav detects a light background */
+nav.nav-on-light #hero-subtitle {
+    color: rgba(26, 26, 26, 0.5);
+}
+
+/* Individual lines — absolutely stacked so height-per-line is stable */
+/* GSAP animates opacity + translateY per line — no overflow needed   */
+.subtitle-line {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    line-height: 1.5;
+}
+
 
 
 /* Custom Vector 'AV' Shape */

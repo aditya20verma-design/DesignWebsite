@@ -666,6 +666,127 @@ mm.add("(max-width: 600px)", () => {
     // Signature tracks the hero automatically — it's a child of .hero now
 });
 
+// ── Hero Subtitle: cycling text below ADITYA VERMA ────────────────────────────
+// Visible ONLY during the Hero section phase.
+// Typography: Sentence case, 13px, letter-spacing 0.04em
+// Color: DYNAMIC — light ghost on dark bg, dark on light bg via CSS class.
+// Animation: GSAP on wrapper (instant re-show) + GSAP drift on lines.
+// Trigger: 300ms after loader; INSTANT on Restart Lap / scroll-to-top.
+// ──────────────────────────────────────────────────────────────────────────────
+function initHeroSubtitle() {
+    const wrap  = document.getElementById('hero-subtitle');
+    const line1 = document.getElementById('subtitle-line-1');
+    const line2 = document.getElementById('subtitle-line-2');
+    if (!wrap || !line1 || !line2) return;
+
+    const HOLD_MS       = 2800;
+    const DUR           = 0.55;
+    const EASE          = 'power2.inOut';
+    const DRIFT         = 5;
+    const FADE_IN_FIRST = 0.5;   // gentle entrance on first load
+    const FADE_IN_FAST  = 0.15;  // near-instant for return visits
+
+    let current     = 0;
+    const lines     = [line1, line2];
+    let interval    = null;
+    let isActive    = false;
+    let isFirstShow = true;
+
+    function resetLines() {
+        gsap.killTweensOf([line1, line2]);
+        current = 0;
+        gsap.set(line1, { opacity: 1, y: 0 });
+        gsap.set(line2, { opacity: 0, y: DRIFT });
+    }
+
+    function cycle() {
+        const outEl = lines[current];
+        current     = (current + 1) % 2;
+        const inEl  = lines[current];
+        gsap.to(outEl, { opacity: 0, y: -DRIFT, duration: DUR, ease: EASE });
+        gsap.fromTo(inEl,
+            { opacity: 0, y: DRIFT },
+            { opacity: 1, y: 0, duration: DUR, ease: EASE, delay: DUR * 0.3 }
+        );
+    }
+
+    // start() — GSAP wrapper fade, slow on first load, instant on returns
+    function start() {
+        if (isActive) return;
+        isActive = true;
+        resetLines();
+        const dur = isFirstShow ? FADE_IN_FIRST : FADE_IN_FAST;
+        isFirstShow = false;
+        gsap.killTweensOf(wrap);
+        gsap.to(wrap, {
+            opacity: 1, duration: dur, ease: 'power2.out',
+            onComplete: () => { interval = setInterval(cycle, HOLD_MS); }
+        });
+    }
+
+    // stop() — snap wrapper to invisible instantly, no CSS transition delay
+    function stop() {
+        if (!isActive) return;
+        isActive = false;
+        if (interval) { clearInterval(interval); interval = null; }
+        gsap.killTweensOf(wrap);
+        gsap.killTweensOf([line1, line2]);
+        gsap.set(wrap, { opacity: 0 });
+    }
+
+    // Loader: first-time reveal 300ms after loader makes nav visible
+    const navEl     = document.querySelector('nav');
+    let firstReveal = false;
+
+    function doFirstReveal() {
+        if (firstReveal) return;
+        firstReveal = true;
+        if (window.scrollY < window.innerHeight * 0.5) {
+            setTimeout(start, 300);
+        }
+    }
+
+    const obs = new MutationObserver(() => {
+        if (parseFloat(navEl.style.opacity) > 0) {
+            obs.disconnect();
+            doFirstReveal();
+        }
+    });
+    obs.observe(navEl, { attributes: true, attributeFilter: ['style'] });
+
+    // ScrollTrigger: covers normal scroll-down exit, scroll-up return
+    ScrollTrigger.create({
+        trigger: '.hero-track',
+        start: 'top top',
+        end: 'bottom top',
+        onToggle(self) {
+            if (self.isActive) { if (firstReveal) start(); }
+            else { stop(); }
+        },
+        onRefresh(self) {
+            if (self.isActive && firstReveal && !isActive) start();
+        }
+    });
+
+    // Logo click: instant response, bypasses ScrollTrigger debounce
+    const logoBtn = document.getElementById('logo-link');
+    if (logoBtn) {
+        logoBtn.addEventListener('click', () => {
+            setTimeout(() => { if (firstReveal && !isActive) start(); }, 80);
+        });
+    }
+
+    // Scroll listener: fires before ScrollTrigger batching for zero delay
+    window.addEventListener('scroll', () => {
+        if (window.scrollY < 5 && firstReveal && !isActive) start();
+    }, { passive: true });
+
+    // Fallback: for direct page access with no loader
+    setTimeout(() => { if (!firstReveal && window.scrollY < 100) doFirstReveal(); }, 900);
+}
+initHeroSubtitle();
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOTTIE SIGNATURE — scroll-scrubbed draw-on animation

@@ -11,18 +11,19 @@
         // Double-lock: also reset immediately at head parse time
         window.scrollTo(0, 0);
         // Triple-lock: reset again when DOM is ready (catches bfcache restores)
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             window.scrollTo(0, 0);
         });
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Portfolio of Aditya Verma — Product Designer with 3+ years across healthcare, fintech &amp; architecture. Specialised in design systems, accessible experiences, and data-driven UX.">
+    <meta name="description"
+        content="Portfolio of Aditya Verma — Product Designer with 3+ years across healthcare, fintech &amp; architecture. Specialised in design systems, accessible experiences, and data-driven UX.">
     <title>Aditya Verma | Product Designer</title>
 
     <!-- ── Favicon Stack ─────────────────────────────────────────────────────
          Priority order: SVG (modern, vector-sharp) → PNG → ICO (legacy)
          Swap icons: replace files in /assets/favicon/ — paths never change. -->
-    <link rel="icon" type="image/svg+xml"  href="assets/favicon/favicon.svg?v=2">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon/favicon.svg?v=2">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png?v=2">
     <link rel="shortcut icon" href="assets/favicon/favicon.ico?v=2">
@@ -47,23 +48,25 @@
     <!-- ── Open Graph / Social Sharing ──────────────────────────────────────
          Controls the preview card when your URL is shared on:
          LinkedIn, Facebook, Slack, Discord, iMessage, WhatsApp, Notion -->
-    <meta property="og:type"         content="website">
-    <meta property="og:url"          content="https://aditya20verma-design.github.io/DesignWebsite/">
-    <meta property="og:title"        content="Aditya Verma | Product Designer">
-    <meta property="og:description"  content="Product Designer with 3+ years across healthcare, fintech &amp; architecture. Specialised in design systems and accessible, intuitive experiences.">
-    <meta property="og:image"        content="https://aditya20verma-design.github.io/DesignWebsite/assets/og/og-image.png">
-    <meta property="og:image:width"  content="1200">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aditya20verma-design.github.io/DesignWebsite/">
+    <meta property="og:title" content="Aditya Verma | Product Designer">
+    <meta property="og:description"
+        content="Product Designer with 3+ years across healthcare, fintech &amp; architecture. Specialised in design systems and accessible, intuitive experiences.">
+    <meta property="og:image" content="https://aditya20verma-design.github.io/DesignWebsite/assets/og/og-image.png">
+    <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt"    content="Aditya Verma — Product Designer portfolio">
-    <meta property="og:locale"       content="en_IN">
+    <meta property="og:image:alt" content="Aditya Verma — Product Designer portfolio">
+    <meta property="og:locale" content="en_IN">
 
     <!-- ── Twitter / X Card ──────────────────────────────────────────────────
          summary_large_image = wide banner card (not tiny square) -->
-    <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:title"       content="Aditya Verma | Product Designer">
-    <meta name="twitter:description" content="Product Designer specialised in healthcare, fintech &amp; architecture. Design systems, accessible UX, data-driven design.">
-    <meta name="twitter:image"       content="https://aditya20verma-design.github.io/DesignWebsite/assets/og/og-image.png">
-    <meta name="twitter:image:alt"   content="Aditya Verma — Product Designer portfolio">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Aditya Verma | Product Designer">
+    <meta name="twitter:description"
+        content="Product Designer specialised in healthcare, fintech &amp; architecture. Design systems, accessible UX, data-driven design.">
+    <meta name="twitter:image" content="https://aditya20verma-design.github.io/DesignWebsite/assets/og/og-image.png">
+    <meta name="twitter:image:alt" content="Aditya Verma — Product Designer portfolio">
 
     <!-- ── Network Performance: Warm up connections ASAP ──────────────────────
          preconnect = full TCP+TLS handshake done before browser asks for the resource
@@ -79,14 +82,16 @@
     <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
 
     <!-- Preload the UnicornStudio script itself for faster parse -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js" as="script">
+    <link rel="preload"
+        href="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"
+        as="script">
 
     <!-- Design System: Colors → Layout → Typography → Styles -->
     <link rel="stylesheet" href="shared/colors.css?v=38">
     <link rel="stylesheet" href="shared/layout.css?v=38">
     <link rel="stylesheet" href="shared/typography.css?v=38">
-    <link rel="stylesheet" href="style.css?v=57">
-    <link rel="stylesheet" href="sections/circuit/circuit.css?v=97">
+    <link rel="stylesheet" href="style.css?v=67">
+    <link rel="stylesheet" href="sections/circuit/circuit.css?v=95">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -97,7 +102,8 @@
     <!-- Lottie: must be sync — AV signature Lottie init runs in script.js at parse time -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <!-- Unicorn Studio WebGL: must be sync so init() can be called immediately after -->
-    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
 </head>
 
 <body>
@@ -270,6 +276,13 @@
                 </div>
 
             </a>
+
+            <!-- Hero subtitle: cycles below ADITYA VERMA, visible only on hero section -->
+            <div id="hero-subtitle" aria-live="polite" aria-label="Aditya Verma, Product Designer">
+                <span class="subtitle-line" id="subtitle-line-1">Product Designer · 3+ yrs</span>
+                <span class="subtitle-line" id="subtitle-line-2">Blueprints → Wireframes</span>
+            </div>
+
         </div>
         <!-- nav-center AV logo removed -->
         <!-- 
@@ -308,7 +321,9 @@
                             <canvas id="dotsCanvas"></canvas>
                         </div>
                         <!-- Hero cover: hides the white bg until UnicornStudio paints its first frame -->
-                        <div id="hero-cover" style="position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0a0a;z-index:5;pointer-events:none;transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1);"></div>
+                        <div id="hero-cover"
+                            style="position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0a0a;z-index:5;pointer-events:none;transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1);">
+                        </div>
                     </div> <!-- End hero-inner -->
 
 
@@ -353,7 +368,8 @@
                 <div class="project-content">
                     <div class="project-info">
                         <p class="project-meta reveal-text-scroll">UI/UX Redesign</p>
-                        <h2 class="project-title reveal-text-scroll">Metro Route <span class="font-accent">Finder</span></h2>
+                        <h2 class="project-title reveal-text-scroll">Metro Route <span class="font-accent">Finder</span>
+                        </h2>
                         <p class="project-desc reveal-text-scroll">Redesigning the transit companion app for better
                             route clarity and ticketing.</p>
                         <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App"
@@ -373,7 +389,8 @@
                 <div class="project-content">
                     <div class="project-info">
                         <p class="project-meta reveal-text-scroll">Health & Wellness</p>
-                        <h2 class="project-title reveal-text-scroll">Healthier food <span class="font-accent">choices</span></h2>
+                        <h2 class="project-title reveal-text-scroll">Healthier food <span
+                                class="font-accent">choices</span></h2>
                         <p class="project-desc reveal-text-scroll">Personalized diet tracking and macro management
                             tailored for Indian demographics.</p>
                         <a href="https://www.behance.net/gallery/159157943/NutriBuddy-Healthier-food-choices"
@@ -393,7 +410,8 @@
                 <div class="project-content">
                     <div class="project-info">
                         <p class="project-meta reveal-text-scroll">Competitive Analysis</p>
-                        <h2 class="project-title reveal-text-scroll">mFine App <span class="font-accent">Redesign</span></h2>
+                        <h2 class="project-title reveal-text-scroll">mFine App <span class="font-accent">Redesign</span>
+                        </h2>
                         <p class="project-desc reveal-text-scroll">A complete competitive teardown and UX optimization
                             of a prominent health platform.</p>
                         <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign"
@@ -434,52 +452,61 @@
                     <div class="exp-card" data-index="0">
                         <div class="exp-card-header">
                             <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/narayana.svg" class="exp-card-logo" alt="Narayana Health Logo">
+                                <img src="sections/about/assets/Company logos/narayana.svg" class="exp-card-logo"
+                                    alt="Narayana Health Logo">
                                 <span class="exp-card-company">Narayana Health</span>
                             </div>
                             <span class="exp-date">Nov 2024 - Present</span>
                         </div>
                         <h3 class="exp-role">Product Designer</h3>
-                        <p class="exp-desc">Led Book Appointment, Health Checkup & Smart Health Records - 3 modules powering India's largest hospital network.<br>Result: +74% app downloads, 22% fewer drop-offs, 30% reduction in manual check-ins.</p>
+                        <p class="exp-desc">Led Book Appointment, Health Checkup & Smart Health Records - 3 modules
+                            powering India's largest hospital network.<br>Result: +74% app downloads, 22% fewer
+                            drop-offs, 30% reduction in manual check-ins.</p>
                     </div>
 
                     <!-- Card 2 (BranchX) -->
                     <div class="exp-card" data-index="1">
                         <div class="exp-card-header">
                             <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/branchx.svg" class="exp-card-logo" alt="BranchX Logo">
+                                <img src="sections/about/assets/Company logos/branchx.svg" class="exp-card-logo"
+                                    alt="BranchX Logo">
                                 <span class="exp-card-company">BranchX</span>
                             </div>
                             <span class="exp-date">Sep 2023 - Nov 2024</span>
                         </div>
                         <h3 class="exp-role">UX Designer</h3>
-                        <p class="exp-desc">End-to-end design of neobanking product - onboarding to CRM - scaled to 100K+ users. Built design system that cut dev handoff time 30%.</p>
+                        <p class="exp-desc">End-to-end design of neobanking product - onboarding to CRM - scaled to
+                            100K+ users. Built design system that cut dev handoff time 30%.</p>
                     </div>
 
                     <!-- Card 3 (Avanatri) -->
                     <div class="exp-card" data-index="2">
                         <div class="exp-card-header">
                             <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/avanatri.svg" class="exp-card-logo" alt="Avantari Technologies Logo">
+                                <img src="sections/about/assets/Company logos/avanatri.svg" class="exp-card-logo"
+                                    alt="Avantari Technologies Logo">
                                 <span class="exp-card-company">Avantari Technologies</span>
                             </div>
                             <span class="exp-date">Jun 2022 - Aug 2022</span>
                         </div>
                         <h3 class="exp-role">Product Designer <span class="role-meta">• Internship</span></h3>
-                        <p class="exp-desc">Designed B2B internal tools & component libraries. Delivered physical product prototype using DFMA - shows range across digital and industrial design.</p>
+                        <p class="exp-desc">Designed B2B internal tools & component libraries. Delivered physical
+                            product prototype using DFMA - shows range across digital and industrial design.</p>
                     </div>
 
                     <!-- Card 4 (Architecture) -->
                     <div class="exp-card" data-index="3">
                         <div class="exp-card-header">
                             <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/architecture.svg" class="exp-card-logo" alt="Architecture Logo">
+                                <img src="sections/about/assets/Company logos/architecture.svg" class="exp-card-logo"
+                                    alt="Architecture Logo">
                                 <span class="exp-card-company">Architecture</span>
                             </div>
                             <span class="exp-date">~1.5 years</span>
                         </div>
                         <h3 class="exp-role">Architect <span class="role-meta">• Prior experience</span></h3>
-                        <p class="exp-desc">Where systems thinking started. Architecture taught me every decision cascades - that instinct now drives how I approach every product problem.</p>
+                        <p class="exp-desc">Where systems thinking started. Architecture taught me every decision
+                            cascades - that instinct now drives how I approach every product problem.</p>
                     </div>
 
                 </div>
@@ -614,20 +641,25 @@
          Fixed bottom-left: always visible, every section, every scroll position.
          Matches view-btn pill treatment: same border-radius, border, padding, font. -->
     <button class="sound-toggle" id="sound-toggle" aria-label="Toggle sound">
-        <svg class="sound-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg class="sound-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true">
             <!-- Speaker cone — always visible -->
-            <path d="M6 9H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l5 4V5L6 9z" fill="currentColor"/>
+            <path d="M6 9H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l5 4V5L6 9z" fill="currentColor" />
             <!-- Wave arcs — visible when active -->
-            <path class="swave swave-1" d="M15.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-            <path class="swave swave-2" d="M18.5 5.5a10 10 0 0 1 0 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path class="swave swave-1" d="M15.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" fill="none" />
+            <path class="swave swave-2" d="M18.5 5.5a10 10 0 0 1 0 13" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" fill="none" />
             <!-- Mute X — visible when inactive -->
-            <line class="smute" x1="16.5" y1="9.5" x2="21.5" y2="14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <line class="smute" x1="21.5" y1="9.5" x2="16.5" y2="14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <line class="smute" x1="16.5" y1="9.5" x2="21.5" y2="14.5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" />
+            <line class="smute" x1="21.5" y1="9.5" x2="16.5" y2="14.5" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" />
         </svg>
         <span class="sound-label">SOUND OFF</span>
     </button>
 
-    <script src="script.js?v=92"></script>
+    <script src="script.js?v=104"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>
