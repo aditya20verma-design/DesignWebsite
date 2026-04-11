@@ -418,6 +418,7 @@ const ASSETS = {
     var hRect = heading.getBoundingClientRect();
 
     window.addEventListener('mousemove', function (e) {
+        if (e._isAutoPan) return;
         mx = e.clientX;
         my = e.clientY;
     }, { passive: true });
@@ -949,9 +950,23 @@ if (!isTouchDevice) {
     }
 
     // ── Cursor tracking ───────────────────────────────────────
+    let _firstMoveCursor = true;
     window.addEventListener('mousemove', (e) => {
+        if (e._isAutoPan) return;
         mouseX = e.clientX;
         mouseY = e.clientY;
+        
+        // Prevent lerping from (0,0) (top-left) to user pointer on their first actual movement
+        // which creates an unsightly "flying ghost streak" across the entire screen.
+        if (_firstMoveCursor) {
+            outlineX = mouseX;
+            outlineY = mouseY;
+            // Fade ring in beautifully only when the user touches it
+            cursorDot.classList.add('visible');
+            cursorOutline.classList.add('visible');
+            _firstMoveCursor = false;
+        }
+
         gsap.set(cursorDot, { x: mouseX, y: mouseY });
         document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
         document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
@@ -1305,6 +1320,105 @@ magneticElements.forEach((el) => {
 
         hero.addEventListener('mousemove', onMouseMove);
         hero.addEventListener('mouseleave', reset);
+
+        // --- Ghost Parallax & Proxy Smoothing Tracker ---
+        let proxyMode = 'auto'; // 'auto' | 'catchup' | 'off'
+        let virtualX = 0, virtualY = 0;
+        let realTargetX = 0, realTargetY = 0;
+        let autoPanTime = 0;
+        let proxyRaf;
+        let lastRealTarget = null;
+
+        function proxyLoop() {
+            if (proxyMode === 'off') return;
+
+            let evTarget = target; 
+            const r = hero.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const cy = r.top + r.height / 2;
+
+            if (proxyMode === 'auto') {
+                autoPanTime += 0.015;
+                virtualX = cx + Math.sin(autoPanTime) * (r.width * 0.25);
+                virtualY = cy; 
+
+                if (autoPanTime >= Math.PI * 2) {
+                    proxyMode = 'off';
+                    hero.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+                    window.removeEventListener('mousemove', interceptRealMouse, true);
+                    return;
+                }
+            } else if (proxyMode === 'catchup') {
+                virtualX += (realTargetX - virtualX) * 0.12; 
+                virtualY += (realTargetY - virtualY) * 0.12;
+                if (lastRealTarget) evTarget = lastRealTarget;
+
+                // When the virtual pointer catches up to the real cursor mathematically:
+                if (Math.abs(realTargetX - virtualX) < 1 && Math.abs(realTargetY - virtualY) < 1) {
+                    proxyMode = 'off';
+                    window.removeEventListener('mousemove', interceptRealMouse, true);
+                    return; // Handoff completed! Real events flow naturally now.
+                }
+            }
+
+            const ev = new MouseEvent('mousemove', {
+                clientX: virtualX,
+                clientY: virtualY,
+                bubbles: true,
+                cancelable: true
+            });
+            
+            // Flags for cursor logic and interceptor
+            ev._isVirtual = true;
+            ev._isAutoPan = (proxyMode === 'auto'); // Cursor dot ignores this
+            
+            if (evTarget && evTarget.dispatchEvent) {
+                evTarget.dispatchEvent(ev);
+            } else {
+                window.dispatchEvent(ev);
+            }
+
+            proxyRaf = requestAnimationFrame(proxyLoop);
+        }
+
+        setTimeout(() => { if (proxyMode === 'auto') proxyLoop(); }, 1000);
+
+        function interceptRealMouse(e) {
+            if (e._isVirtual) return; // Ignore our own fake loop events
+            
+            realTargetX = e.clientX;
+            realTargetY = e.clientY;
+            lastRealTarget = e.target;
+
+            if (proxyMode === 'auto') {
+                proxyMode = 'catchup'; // Switch from auto-pan to catch-up smoothly
+            }
+            
+            if (proxyMode === 'catchup') {
+                // Completely block the violent real coordinate from hitting WebGL/parallax
+                e.stopPropagation();
+            }
+        }
+        
+        // Use capturing phase to intercept event before ANY components receive it
+        window.addEventListener('mousemove', interceptRealMouse, true);
+        
+        function killProxy(e) {
+            if (e && e._isVirtual) return;
+            proxyMode = 'off';
+            cancelAnimationFrame(proxyRaf);
+            window.removeEventListener('mousemove', interceptRealMouse, true);
+            window.removeEventListener('touchstart', killProxy);
+            window.removeEventListener('wheel', killProxy);
+            
+            // Safety reset if interaction occurs outside hero boundaries
+            if (e && e.target && !hero.contains(e.target)) {
+                hero.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+            }
+        }
+        
+        window.addEventListener('touchstart', killProxy, { passive: true });
+        window.addEventListener('wheel', killProxy, { passive: true });
 
         return () => {
             hero.removeEventListener('mousemove', onMouseMove);

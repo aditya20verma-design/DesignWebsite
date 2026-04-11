@@ -84,6 +84,8 @@ body {
     border-radius: 50%; pointer-events: none; z-index: 10001;
     transform: translate(-50%, -50%);
     mix-blend-mode: difference;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
 .cursor-outline {
@@ -102,7 +104,15 @@ body {
         border-radius    0.5s  cubic-bezier(0.16, 1, 0.3, 1),
         border-color     0.15s ease,   /* fast — no lag on section change  */
         background       0.3s  ease,
-        transform        0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        transform        0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity          0.4s  ease;
+    opacity: 0;
+}
+
+/* Make cursor visible instantly on first physical mouse input */
+.cursor-dot.visible,
+.cursor-outline.visible {
+    opacity: 1;
 }
 
 /* Light background: ring darkens for accessibility (JS adds this class) */
