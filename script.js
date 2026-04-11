@@ -724,14 +724,14 @@ function initHeroSubtitle() {
         });
     }
 
-    // stop() — snap wrapper to invisible instantly, no CSS transition delay
+    // stop() — smooth fade-out wrapper, matching premium feel of start()
     function stop() {
         if (!isActive) return;
         isActive = false;
         if (interval) { clearInterval(interval); interval = null; }
         gsap.killTweensOf(wrap);
         gsap.killTweensOf([line1, line2]);
-        gsap.set(wrap, { opacity: 0 });
+        gsap.to(wrap, { opacity: 0, duration: 0.35, ease: 'power2.inOut' });
     }
 
     // Loader: first-time reveal 300ms after loader makes nav visible
@@ -870,18 +870,30 @@ function initLottieSignature() {
             onUpdate: (self) => {
                 const p = self.progress;
 
-                // Fix: Force-hide any active cursor pill (like "Hover to reveal") 
-                // the moment hero collapse starts.
-                if (p > 0.02 && activePill && leavePill) {
-                    leavePill();
-                }
-
                 if (p < delay) {
                     // Pre-signature: hero scaling only, hold at frame 0
                     anim.goToAndStop(0, true);
+                    // Unlock canvas pill. If cursor is still inside canvas, re-trigger pill
+                    // (mouseenter won't re-fire because cursor never left)
+                    if (window._cursorPillLocked) {
+                        window._cursorPillLocked = false;
+                        const heroCanvas = document.querySelector('.unicorn-canvas');
+                        if (heroCanvas && typeof window._cursorEnterPill === 'function') {
+                            const r = heroCanvas.getBoundingClientRect();
+                            if (mouseX >= r.left && mouseX <= r.right &&
+                                mouseY >= r.top  && mouseY <= r.bottom) {
+                                window._cursorEnterPill(heroCanvas.dataset.cursorLabel || '');
+                            }
+                        }
+                    }
 
                 } else if (p <= heroProgress) {
                     // Phase 1: draw frames 0 → mainFrames as hero collapses
+                    // Signature is drawing — lock/dismiss the canvas pill cursor
+                    if (!window._cursorPillLocked) {
+                        window._cursorPillLocked = true;
+                        if (typeof window._cursorLeavePill === 'function') window._cursorLeavePill();
+                    }
                     const phase1Progress = (p - delay) / (heroProgress - delay);
                     const frame = Math.min(
                         Math.round(phase1Progress * mainFrames),
@@ -890,7 +902,11 @@ function initLottieSignature() {
                     anim.goToAndStop(frame, true);
 
                 } else {
-                    // Phase 2: draw final tailFrames as hero rises
+                    // Phase 2: draw final tailFrames as hero rises (keep pill locked)
+                    if (!window._cursorPillLocked) {
+                        window._cursorPillLocked = true;
+                        if (typeof window._cursorLeavePill === 'function') window._cursorLeavePill();
+                    }
                     const phase2Progress = (p - heroProgress) / (1 - heroProgress);
                     const frame = Math.min(
                         mainFrames + Math.round(phase2Progress * tailFrames),
@@ -933,10 +949,6 @@ let mouseX = 0; let mouseY = 0;
 let outlineX = 0; let outlineY = 0;  // lerped ring/pill center — also read by particle ticker
 let activePill = false;               // true when pill-state is active
 let currentPillW = 40;               // cached pill width in px (40 = ring diameter)
-
-// Exposed cursor control functions for external triggers
-let enterPill = null;
-let leavePill = null;
 
 // ── Custom Cursor — Three-State System ───────────────────────────────────────
 // States (priority order):
@@ -1001,7 +1013,7 @@ if (!isTouchDevice) {
     });
 
     // ── State helpers ──────────────────────────────────────────
-    enterPill = function(label) {
+    function enterPill(label) {
         activePill = true;
         const { pillW, offset } = calcPill(label);
         currentPillOffset = offset;
@@ -1011,16 +1023,19 @@ if (!isTouchDevice) {
         cursorLabel.textContent = label;
         cursorOutline.classList.remove('hover-state');
         cursorOutline.classList.add('pill-state');
-    };
+    }
 
-    leavePill = function() {
+    function leavePill() {
         activePill = false;
-        currentPillW = 40;  // reset to ring diameter
+        currentPillW = 40;
         cursorOutline.classList.remove('pill-state');
         cursorOutline.style.removeProperty('--pill-w');
         cursorLabel.textContent = '';
         currentPillOffset = 72;
-    };
+    }
+    // Export for cross-scope access (e.g. lottie scrub dismissing/restoring pill)
+    window._cursorLeavePill  = leavePill;
+    window._cursorEnterPill  = enterPill;
 
     function enterHover() {
         if (activePill) return; // pill wins
@@ -1075,7 +1090,13 @@ if (!isTouchDevice) {
     // ── Bind pill triggers ─────────────────────────────────────
     pillTriggers.forEach(el => {
         const label = el.dataset.cursorLabel || '';
-        el.addEventListener('mouseenter', () => enterPill(label));
+        // Only the hero canvas respects the signature-drawing lock.
+        // Project cards ("View project") are always interactive.
+        const isHeroCanvas = el.classList.contains('unicorn-canvas');
+        el.addEventListener('mouseenter', () => {
+            if (isHeroCanvas && window._cursorPillLocked) return;
+            enterPill(label);
+        });
         el.addEventListener('mouseleave', () => leavePill());
     });
 
