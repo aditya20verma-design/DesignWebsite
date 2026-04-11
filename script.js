@@ -870,6 +870,12 @@ function initLottieSignature() {
             onUpdate: (self) => {
                 const p = self.progress;
 
+                // Fix: Force-hide any active cursor pill (like "Hover to reveal") 
+                // the moment hero collapse starts.
+                if (p > 0.02 && activePill && leavePill) {
+                    leavePill();
+                }
+
                 if (p < delay) {
                     // Pre-signature: hero scaling only, hold at frame 0
                     anim.goToAndStop(0, true);
@@ -927,6 +933,10 @@ let mouseX = 0; let mouseY = 0;
 let outlineX = 0; let outlineY = 0;  // lerped ring/pill center — also read by particle ticker
 let activePill = false;               // true when pill-state is active
 let currentPillW = 40;               // cached pill width in px (40 = ring diameter)
+
+// Exposed cursor control functions for external triggers
+let enterPill = null;
+let leavePill = null;
 
 // ── Custom Cursor — Three-State System ───────────────────────────────────────
 // States (priority order):
@@ -991,7 +1001,7 @@ if (!isTouchDevice) {
     });
 
     // ── State helpers ──────────────────────────────────────────
-    function enterPill(label) {
+    enterPill = function(label) {
         activePill = true;
         const { pillW, offset } = calcPill(label);
         currentPillOffset = offset;
@@ -1001,16 +1011,16 @@ if (!isTouchDevice) {
         cursorLabel.textContent = label;
         cursorOutline.classList.remove('hover-state');
         cursorOutline.classList.add('pill-state');
-    }
+    };
 
-    function leavePill() {
+    leavePill = function() {
         activePill = false;
         currentPillW = 40;  // reset to ring diameter
         cursorOutline.classList.remove('pill-state');
         cursorOutline.style.removeProperty('--pill-w');
         cursorLabel.textContent = '';
         currentPillOffset = 72;
-    }
+    };
 
     function enterHover() {
         if (activePill) return; // pill wins
