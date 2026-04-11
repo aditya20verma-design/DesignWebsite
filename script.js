@@ -256,63 +256,17 @@ const ASSETS = {
             if (pill) pill.classList.remove('track-on-light');
         }
 
-        // ── Rider plate: robust bg-colour sampler ────────────────────────────────
-        // For each element at a viewport point, walk UP its ancestor chain until we
-        // find a non-transparent background-color.  Sample 5 points around the pill
-        // (centre + 4 quadrant offsets) and use the most common resolved colour.
+        // ── Rider plate + moat ring: driven by avgLum already computed above ──────────
+        // avgLum > 140 → light section (hero / about-me) → plate = page light bg, rings = dark
+        // avgLum ≤ 140 → dark section (experience / footer) → plate = dark bg, rings = orange
+        // Using avgLum directly is more reliable than extra pixel-sampling, which was
+        // being confused by the body's dark bg-base after skipping hero/canvas elements.
         if (pill) {
-            function resolveElBg(el, skipRoot) {
-                let node = el;
-                while (node && node !== document.documentElement) {
-                    if (skipRoot && (skipRoot.contains(node) || node === skipRoot)) {
-                        node = node.parentElement;
-                        continue;
-                    }
-                    const bg = window.getComputedStyle(node).backgroundColor;
-                    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
-                    node = node.parentElement;
-                }
-                // Last resort: body
-                const bodyBg = window.getComputedStyle(document.body).backgroundColor;
-                return (bodyBg && bodyBg !== 'rgba(0, 0, 0, 0)') ? bodyBg : null;
-            }
-
-            function sampleBgAt(vx, vy, skipRoot) {
-                const stack = document.elementsFromPoint(vx, vy);
-                for (const el of stack) {
-                    if (skipRoot && (skipRoot.contains(el) || el === skipRoot)) continue;
-                    const color = resolveElBg(el, skipRoot);
-                    if (color) return color;
-                }
-                return null;
-            }
-
-            const pr  = pill.getBoundingClientRect();
-            const cx  = pr.left + pr.width  * 0.5;
-            const cy  = pr.top  + pr.height * 0.5;
-            const off = Math.min(pr.width, pr.height) * 0.35; // offset into quadrants
-
-            // 5-point sample: centre + 4 corners (just outside pill SVG elements)
-            const samplePoints = [
-                [cx, cy],
-                [cx - off, cy - off],
-                [cx + off, cy - off],
-                [cx - off, cy + off],
-                [cx + off, cy + off],
-            ];
-
-            // Tally results and pick most common non-null colour
-            const tally = {};
-            for (const [vx, vy] of samplePoints) {
-                const c = sampleBgAt(vx, vy, pill);
-                if (c) tally[c] = (tally[c] || 0) + 1;
-            }
-
-            const best = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
-            const plateColor = best ? best[0]
-                : (avgLum > 140 ? 'rgb(251,251,251)' : 'rgb(29,29,29)');
-
-            pill.style.setProperty('--rider-plate', plateColor);
+            const isLight    = avgLum > 140;
+            const plateColor = isLight ? 'rgb(229, 228, 224)' : 'rgb(29, 29, 29)';
+            const ringColor  = isLight ? 'rgba(30, 30, 30, 0.50)' : '#FF5509';
+            pill.style.setProperty('--rider-plate',      plateColor);
+            pill.style.setProperty('--rider-ring-color', ringColor);
         }
 
 

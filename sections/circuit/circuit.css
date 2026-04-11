@@ -133,35 +133,29 @@
     stroke: rgba(30, 30, 30, 0.75);      /* dark grey on light bg     */
 }
 
-/* ── Rider background plate — perfectly matches actual section background ─── */
-/* --rider-plate is set per-scroll-tick by senseBackground() in script.js,    */
-/* sampling the real computed background color at the pill's centre position.  */
-/* This makes the plate invisibly blend with ANY section bg — no approximation.*/
+/* ── Rider background plate — perfectly matches actual bg behind rider dot ─── */
+/* --rider-plate: sampled at #rider-bg's actual screen position each frame.    */
+/* --rider-ring-color: orange on dark bg, dark grey on light bg (also per JS). */
 #rider-bg {
-    fill: var(--rider-plate, #1d1d1d);   /* JS sets this; fallback = dark bg  */
-    transition: fill 0.4s ease;
+    fill: var(--rider-plate, rgb(251, 251, 251));  /* fallback = light (hero starts on light bg) */
+    transition: fill 0.3s ease;
 }
 
 /* ── Rider orange dot — glow filter is dark-bg only ─────────────────────── */
-/* feGaussianBlur stdDeviation=10 creates a ~10 SVG-unit orange halo that     */
-/* looks premium floating over dark, but creates a non-blending corona on     */
-/* light backgrounds. Suppress it entirely on light bg for clean crisp dot.   */
 #rider-circle {
     filter: url(#rider-glow);            /* full orange glow bloom — dark bg  */
-    transition: filter 0.4s ease, opacity 0.4s ease;
+    transition: filter 0.3s ease, opacity 0.4s ease;
 }
 #circuit-pill.track-on-light #rider-circle {
     filter: none;                        /* clean crisp edge — light bg       */
 }
 
-/* ── Pulse rings — reduce opacity on light bg so they don't overwhelm ───── */
+/* ── Pulse rings — color + opacity driven entirely by --rider-ring-color ── */
+/* JS sets this per scroll tick based on luminance of bg behind rider dot.   */
 #rider-ring-1,
 #rider-ring-2 {
-    transition: opacity 0.4s ease;
-}
-#circuit-pill.track-on-light #rider-ring-1,
-#circuit-pill.track-on-light #rider-ring-2 {
-    opacity: 0.35;                       /* subtle on light; full on dark      */
+    stroke: var(--rider-ring-color, #FF5509);
+    transition: stroke 0.3s ease, opacity 0.3s ease;
 }
 
 /* ── Section zone overlays ──────────────────────────────────────── */
