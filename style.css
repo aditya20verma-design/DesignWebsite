@@ -67,32 +67,100 @@ body {
     .cursor-outline { display: none !important; }
 }
 
-/* ── Custom Cursors ─────────────────────────────────────── */
+/* ── Custom Cursor — Premium Grey System ─────────────────────────────────────
+   Ring: permanently neutral grey; never orange. Adapts to bg via JS class toggle.
+   States:
+     default     → 30px grey ring (matches pill height for visual consistency)
+     hover-state → ring scales 1.8× (grey, no color change)
+     pill-state  → morphs rightward to pill; grey stroke, text adapts dark/light
+   Background awareness: JS adds 'cursor-on-light' when nav detects light section.
+   Scalable: data-cursor="pill" data-cursor-label="text" — zero JS changes needed.
+   ─────────────────────────────────────────────────────────────────────────── */
+
 .cursor-dot {
     position: fixed;
     top: 0; left: 0; width: 8px; height: 8px;
     background-color: var(--cursor-dot-bg);
-    border-radius: 50%; pointer-events: none; z-index: 9999;
+    border-radius: 50%; pointer-events: none; z-index: 10001;
     transform: translate(-50%, -50%);
     mix-blend-mode: difference;
 }
 
 .cursor-outline {
     position: fixed;
-    top: 0; left: 0; width: 40px; height: 40px;
-    border: 1px solid var(--cursor-ring-border);
-    border-radius: 50%; pointer-events: none; z-index: 9998;
+    top: 0; left: 0;
+    width: 40px; height: 40px;          /* original ring size */
+    border: 1px solid var(--cursor-ring-border);  /* rgba(255,255,255,0.30) — original soft white */
+    border-radius: 50%;
+    pointer-events: none; z-index: 10000;
     transform: translate(-50%, -50%);
-    transition: width 200ms cubic-bezier(0.2, 0, 0, 1),
-                height 200ms cubic-bezier(0.2, 0, 0, 1),
-                border-color 200ms cubic-bezier(0.2, 0, 0, 1);
+    display: flex; align-items: center; justify-content: center;
+    overflow: visible;
+    transition:
+        width            0.5s  cubic-bezier(0.16, 1, 0.3, 1),
+        height           0.5s  cubic-bezier(0.16, 1, 0.3, 1),
+        border-radius    0.5s  cubic-bezier(0.16, 1, 0.3, 1),
+        border-color     0.15s ease,   /* fast — no lag on section change  */
+        background       0.3s  ease,
+        transform        0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.cursor-outline.hover-state {
-    transform: translate(-50%, -50%) scale(2);
-    border-color: var(--cursor-ring-accent);
-    background-color: transparent;
+/* Light background: ring darkens for accessibility (JS adds this class) */
+.cursor-outline.cursor-on-light {
+    border-color: rgba(80, 80, 80, 0.38);  /* darker than white-a30 but not too dense */
 }
+
+/* hover-state: scale only. No color change — ring stays grey throughout */
+.cursor-outline.hover-state {
+    transform: translate(-50%, -50%) scale(1.85);
+}
+
+/* pill-state: extends rightward from dot.
+   - Grey stroke (inherits from base or cursor-on-light — no override needed)
+   - Background: semi-transparent dark tint + backdrop blur for text legibility
+   - Width driven by --pill-w (set in JS from measured text width + 14px H-pad)     */
+.cursor-outline.pill-state {
+    width: var(--pill-w, 130px);
+    height: 40px;                  /* matches ring height exactly */
+    border-radius: 100px;
+    /* No border-color override — inherits grey from base or cursor-on-light       */
+    background: rgba(18, 18, 18, 0.28);   /* dark tint — white text readable       */
+    backdrop-filter: blur(8px) saturate(1.4);
+    -webkit-backdrop-filter: blur(8px) saturate(1.4);
+    transform: translate(-50%, -50%);
+}
+
+/* Light bg pill: invert to light tint so dark text reads well */
+.cursor-outline.cursor-on-light.pill-state {
+    background: rgba(245, 245, 245, 0.35);
+}
+
+/* ── Pill label text ──────────────────────────────────────────────────────── */
+.cursor-label {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    /* No text-transform — sentence case from HTML */
+    color: rgba(255, 255, 255, 0.93);    /* WCAG AAA on dark tint */
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity 0.16s ease, color 0.3s ease;
+    transition-delay: 0s, 0s;
+}
+
+/* Light section: dark text — WCAG AAA on light tint */
+.cursor-outline.cursor-on-light .cursor-label {
+    color: rgba(15, 15, 15, 0.9);
+}
+
+.cursor-outline.pill-state .cursor-label {
+    opacity: 1;
+    transition-delay: 0.2s, 0s;  /* opacity delayed, color instant */
+}
+
 
 /* ═══════════════════════════════════════════════════════
    LOADER — Premium "2" Mask Reveal
@@ -1223,7 +1291,7 @@ nav.nav--hero .nav-link {
     justify-content: flex-start;
     user-select: none;
     touch-action: none;
-    cursor: grab;
+    cursor: none;   /* custom cursor system always in control */
     will-change: transform, filter, opacity;
     filter: grayscale(1) brightness(0.85);
     opacity: 0.75;
@@ -1242,7 +1310,7 @@ nav.nav--hero .nav-link {
     border-color: rgba(255,255,255,0.22);
     box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.3);
 }
-.exp-card:active { cursor: grabbing; }
+.exp-card:active { cursor: none; }
 
 /* ── Deck Animation Lock ─────────────────────────────────────────────────────
    Applied to .exp-stage during the full reveal sequence (Phases 1-4).

@@ -90,7 +90,7 @@
     <link rel="stylesheet" href="shared/colors.css?v=38">
     <link rel="stylesheet" href="shared/layout.css?v=38">
     <link rel="stylesheet" href="shared/typography.css?v=38">
-    <link rel="stylesheet" href="style.css?v=67">
+    <link rel="stylesheet" href="style.css?v=78">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=95">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
@@ -109,7 +109,9 @@
 <body>
     <!-- Magnetic Custom Cursor -->
     <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
+    <div class="cursor-outline">
+        <span class="cursor-label"></span>
+    </div>
 
     <!-- Entrance Loader -->
     <div class="loader" id="site-loader">
@@ -316,7 +318,7 @@
                         <div class="hero-white-box"
                             style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;">
                         </div>
-                        <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL"></div>
+                        <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL" data-cursor="pill" data-cursor-label="Hover to reveal"></div>
                         <div class="hero-grid-overlay">
                             <canvas id="dotsCanvas"></canvas>
                         </div>
@@ -343,7 +345,7 @@
         <div class="content-wrapper" id="work">
 
             <!-- Project 1: UniShare -->
-            <section class="project hover-trigger" id="project-1">
+            <section class="project hover-trigger" id="project-1" data-cursor="pill" data-cursor-label="View project">
                 <div class="project-bg-text marquee-left">UNISHARE APP</div>
                 <div class="project-content">
                     <div class="project-info">
@@ -363,7 +365,7 @@
             </section>
 
             <!-- Project 2: Delhi Metro -->
-            <section class="project reverse hover-trigger" id="project-2">
+            <section class="project reverse hover-trigger" id="project-2" data-cursor="pill" data-cursor-label="View project">
                 <div class="project-bg-text marquee-right">DELHI METRO</div>
                 <div class="project-content">
                     <div class="project-info">
@@ -384,7 +386,7 @@
             </section>
 
             <!-- Project 3: NutriBuddy -->
-            <section class="project hover-trigger" id="project-3">
+            <section class="project hover-trigger" id="project-3" data-cursor="pill" data-cursor-label="View project">
                 <div class="project-bg-text marquee-left">NUTRIBUDDY</div>
                 <div class="project-content">
                     <div class="project-info">
@@ -405,7 +407,7 @@
             </section>
 
             <!-- Project 4: mFine -->
-            <section class="project reverse hover-trigger" id="project-4">
+            <section class="project reverse hover-trigger" id="project-4" data-cursor="pill" data-cursor-label="View project">
                 <div class="project-bg-text marquee-right">MFINE REDESIGN</div>
                 <div class="project-content">
                     <div class="project-info">
@@ -659,7 +661,7 @@
         <span class="sound-label">SOUND OFF</span>
     </button>
 
-    <script src="script.js?v=104"></script>
+    <script src="script.js?v=112"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>

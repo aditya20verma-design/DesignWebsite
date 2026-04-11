@@ -922,38 +922,159 @@ if (lenis) {
     gsap.ticker.lagSmoothing(0, 0);
 }
 
-// Shared mouse coordinates (used by cursor + particle system)
+// ── Shared: mouse + cursor ring tracking (used by cursor system AND particle system)
 let mouseX = 0; let mouseY = 0;
+let outlineX = 0; let outlineY = 0;  // lerped ring/pill center — also read by particle ticker
+let activePill = false;               // true when pill-state is active
+let currentPillW = 40;               // cached pill width in px (40 = ring diameter)
 
-// 2. Custom Cursor Implementation (desktop only)
+// ── Custom Cursor — Three-State System ───────────────────────────────────────
+// States (priority order):
+//   1. pill-state  — elements with data-cursor="pill" (canvas, project cards)
+//   2. hover-state — .hover-trigger, a, .view-btn (orange ring, existing)
+//   3. default     — everything else (off-white ring)
+//
+// SCALABLE: To add a new pill trigger, just add to HTML:
+//   data-cursor="pill" data-cursor-label="your text"
+// No JS changes needed.
+// ─────────────────────────────────────────────────────────────────────────────
 if (!isTouchDevice) {
-const cursorDot = document.querySelector('.cursor-dot');
-const cursorOutline = document.querySelector('.cursor-outline');
-const hoverTriggers = document.querySelectorAll('.hover-trigger, .view-btn, a, .magnetic');
+    const cursorDot     = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    const cursorLabel   = document.querySelector('.cursor-label');
+    const hoverTriggers = document.querySelectorAll('.hover-trigger, .view-btn, a, .magnetic');
+    const pillTriggers  = document.querySelectorAll('[data-cursor="pill"]');
 
-let outlineX = 0; let outlineY = 0;
+    // ── Text measurement utility ─────────────────────────────
+    // Measures actual rendered text width so the pill is always tight
+    // around the label — no fixed width, no wasted space.
+    const PILL_H_PAD = 16;
+    const DOT_RADIUS = 4;
+    const PILL_GAP   = 5;  // px gap between dot right edge and pill left edge
+    let currentPillOffset = 72; // updated per label; drives rightward slide animation
 
-window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    gsap.set(cursorDot, { x: mouseX, y: mouseY });
-    
-    // Bind cursor coordinates to global CSS runtime layout (for mask tracking)
-    document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
-    document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
-});
+    const _measure = document.createElement('span');
+    Object.assign(_measure.style, {
+        position: 'fixed', top: '-999px', left: '-999px',
+        visibility: 'hidden', pointerEvents: 'none',
+        fontFamily: 'system-ui', fontSize: '13px',
+        fontWeight: '500', letterSpacing: '0.04em',
+        whiteSpace: 'nowrap'
+        // No text-transform — sentence case matches HTML
+    });
+    document.body.appendChild(_measure);
 
-gsap.ticker.add(() => {
-    const dt = 1.0 - Math.pow(1.0 - 0.15, gsap.ticker.deltaRatio());
-    outlineX += (mouseX - outlineX) * dt;
-    outlineY += (mouseY - outlineY) * dt;
-    gsap.set(cursorOutline, { x: outlineX, y: outlineY });
-});
+    function calcPill(label) {
+        _measure.textContent = label;
+        const textW  = _measure.getBoundingClientRect().width;
+        const pillW  = Math.ceil(textW) + PILL_H_PAD * 2;
+        const offset = pillW / 2 + DOT_RADIUS + PILL_GAP;
+        return { pillW, offset };
+    }
 
-hoverTriggers.forEach(el => {
-    el.addEventListener('mouseenter', () => cursorOutline.classList.add('hover-state'));
-    el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hover-state'));
-});
+    // ── Cursor tracking ───────────────────────────────────────
+    window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        gsap.set(cursorDot, { x: mouseX, y: mouseY });
+        document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
+        document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+
+    gsap.ticker.add(() => {
+        const dt = 1.0 - Math.pow(1.0 - 0.15, gsap.ticker.deltaRatio());
+        // In pill state: offset center right so pill extends FROM the dot with a clean gap
+        const targetX = activePill ? mouseX + currentPillOffset : mouseX;
+        outlineX += (targetX - outlineX) * dt;
+        outlineY += (mouseY   - outlineY) * dt;
+        gsap.set(cursorOutline, { x: outlineX, y: outlineY });
+    });
+
+    // ── State helpers ──────────────────────────────────────────
+    function enterPill(label) {
+        activePill = true;
+        const { pillW, offset } = calcPill(label);
+        currentPillOffset = offset;
+        currentPillW = pillW;   // cache for particle system (avoids getComputedStyle in ticker)
+        // Set exact width via CSS var — transitions smoothly from 40px
+        cursorOutline.style.setProperty('--pill-w', pillW + 'px');
+        cursorLabel.textContent = label;
+        cursorOutline.classList.remove('hover-state');
+        cursorOutline.classList.add('pill-state');
+    }
+
+    function leavePill() {
+        activePill = false;
+        currentPillW = 40;  // reset to ring diameter
+        cursorOutline.classList.remove('pill-state');
+        cursorOutline.style.removeProperty('--pill-w');
+        cursorLabel.textContent = '';
+        currentPillOffset = 72;
+    }
+
+    function enterHover() {
+        if (activePill) return; // pill wins
+        cursorOutline.classList.add('hover-state');
+    }
+
+    function leaveHover() {
+        if (activePill) return;
+        cursorOutline.classList.remove('hover-state');
+    }
+
+    // ── Smart per-element cursor color sensing ─────────────────────────────────
+    // Samples the actual pixel under the cursor on every mousemove (RAF-throttled).
+    // Resolves the first non-transparent background by walking the element stack,
+    // computes Rec.601 perceived luminance, and toggles 'cursor-on-light' at L>140.
+    // This makes the ring react to individual elements (e.g. dark card on light bg)
+    // not just the coarse section background — the truest per-pixel contrast sensing.
+    let _senseRaf = false;
+    function _senseBg() {
+        _senseRaf = false;
+        const stack = document.elementsFromPoint(mouseX, mouseY);
+        let lum = null;
+        for (let i = 0; i < stack.length; i++) {
+            const el = stack[i];
+            // Skip cursor elements — they're pointer-events:none but appear in stack
+            if (el === cursorDot || el === cursorOutline) continue;
+            let bg = getComputedStyle(el).backgroundColor;
+            if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') continue;
+            const m = bg.match(/\d+\.?\d*/g);
+            if (m && m.length >= 3) {
+                lum = 0.299 * +m[0] + 0.587 * +m[1] + 0.114 * +m[2];
+                break;
+            }
+        }
+        if (lum === null) {
+            // Fallback: body background
+            const m = getComputedStyle(document.body).backgroundColor.match(/\d+\.?\d*/g);
+            lum = m && m.length >= 3 ? 0.299 * +m[0] + 0.587 * +m[1] + 0.114 * +m[2] : 0;
+        }
+        // Threshold 140 — same as nav sensing. >140 = light bg, ring darkens
+        cursorOutline.classList.toggle('cursor-on-light', lum > 140);
+    }
+    window.addEventListener('mousemove', () => {
+        if (!_senseRaf) { _senseRaf = true; requestAnimationFrame(_senseBg); }
+    }, { passive: true });
+    // Also re-sense on scroll — content shifts under cursor without mousemove events
+    window.addEventListener('scroll',    () => {
+        if (!_senseRaf) { _senseRaf = true; requestAnimationFrame(_senseBg); }
+    }, { passive: true });
+    _senseBg(); // initial check
+
+    // ── Bind pill triggers ─────────────────────────────────────
+    pillTriggers.forEach(el => {
+        const label = el.dataset.cursorLabel || '';
+        el.addEventListener('mouseenter', () => enterPill(label));
+        el.addEventListener('mouseleave', () => leavePill());
+    });
+
+    // ── Bind hover triggers (scale only — no color change) ─────
+    hoverTriggers.forEach(el => {
+        el.addEventListener('mouseenter', enterHover);
+        el.addEventListener('mouseleave', leaveHover);
+    });
+
 } // end !isTouchDevice
 
 // 3. Magnetic UI Elements (M3 Physics - No Elastic)
@@ -1467,49 +1588,103 @@ if (dotCanvas) {
     initDots();
     window.addEventListener('resize', initDots);
 
-    // Run custom rendering loop synchronously with GSAP ticker
+    // ── Pill cursor state (shared from cursor system) ─────────────────────────
+    // outlineX / outlineY: tracked ring/pill center (lerped, updated by cursor ticker)
+    // activePill / currentPillOffset / --pill-w: set by cursor system
+    // We read outlineX & outlineY from the outer cursor scope via closure.
+    // Capsule distance: distance from point P to nearest point on segment A→B.
+    // This matches the exact physical shape of the pill cursor.
+    function distToCapsule(px, py, ax, ay, bx, by) {
+        const abx = bx - ax, aby = by - ay;
+        const len2 = abx * abx + aby * aby;
+        if (len2 === 0) {
+            const dx = px - ax, dy = py - ay;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        // Project P onto segment, clamped 0…1
+        const t = Math.max(0, Math.min(1, ((px - ax) * abx + (py - ay) * aby) / len2));
+        const cx = ax + t * abx;
+        const cy = ay + t * aby;
+        const dx = px - cx, dy = py - cy;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
     gsap.ticker.add(() => {
-        // Completely clear the canvas for the next memory frame
         ctx.clearRect(0, 0, dotCanvas.width, dotCanvas.height);
-        
+
         const parentRect = dotCanvas.getBoundingClientRect();
         const localMouseX = mouseX - parentRect.left;
         const localMouseY = mouseY - parentRect.top;
 
-        // Subtler 20% opacity for premium minimalism
+        // Pill geometry in local canvas space
+        // outlineX / outlineY are viewport coords (GSAP-set on cursor-outline)
+        const localOutlineX = outlineX - parentRect.left;
+        const localOutlineY = outlineY - parentRect.top;
+
+        // Current pill width from cursor system — already cached, zero cost
+        const pillWAttr = currentPillW;  // 40 when circular, pillW when morphed
+        const pillH = 40; // matches CSS height
+        const pillR = pillH / 2; // capsule end-cap radius
+
+        // Capsule axis: from left end-cap centre to right end-cap centre
+        const capsuleAx = localOutlineX - (pillWAttr / 2 - pillR);
+        const capsuleBx = localOutlineX + (pillWAttr / 2 - pillR);
+        const capsuleY  = localOutlineY;
+
         ctx.fillStyle = 'rgba(0, 0, 0, 0.20)';
 
         for (let i = 0; i < dots.length; i++) {
             const dot = dots[i];
-            
-            // Step 1: Independently calculate distance of this specific dot to the cursor
-            const dx = localMouseX - dot.ox;
-            const dy = localMouseY - dot.oy;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Combined repulsion: dot circle UNION pill capsule
+            // Both shapes are treated as a single unit — repel from whichever is closest.
+            if (activePill && pillWAttr > 42) {
+                // Dot distance (circle at mouse position)
+                const dxDot = localMouseX - dot.ox;
+                const dyDot = localMouseY - dot.oy;
+                const distDot = Math.sqrt(dxDot * dxDot + dyDot * dyDot);
+
+                // Capsule distance
+                const distCap = distToCapsule(dot.ox, dot.oy, capsuleAx, capsuleY, capsuleBx, capsuleY);
+
+                // Use whichever shape the dot is closer to
+                if (distDot <= distCap) {
+                    dist = distDot;
+                    dx = dxDot; dy = dyDot;
+                } else {
+                    dist = distCap;
+                    // Repulsion direction: from nearest point on capsule axis
+                    const t2 = Math.max(0, Math.min(1,
+                        ((dot.ox - capsuleAx) * (capsuleBx - capsuleAx)) /
+                        ((capsuleBx - capsuleAx) * (capsuleBx - capsuleAx) || 1)
+                    ));
+                    dx = (capsuleAx + t2 * (capsuleBx - capsuleAx)) - dot.ox;
+                    dy = capsuleY - dot.oy;
+                }
+            } else {
+                // Default: circular repulsion from dot center
+                dx = localMouseX - dot.ox;
+                dy = localMouseY - dot.oy;
+                dist = Math.sqrt(dx * dx + dy * dy);
+            }
 
             let targetX = dot.ox;
             let targetY = dot.oy;
 
-            // Step 2: If the dot is within the cursor blast radius, calculate its explicit repulsion coordinate
             if (dist < repelRadius && dist > 1) {
-                // Force gets exponentially stronger the closer the cursor is to the dot
                 const force = Math.pow((repelRadius - dist) / repelRadius, 2);
-                targetX = dot.ox - (dx / dist) * force * maxDisplacement;
-                targetY = dot.oy - (dy / dist) * force * maxDisplacement;
+                const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                targetX = dot.ox - (dx / len) * force * maxDisplacement;
+                targetY = dot.oy - (dy / len) * force * maxDisplacement;
             }
 
-            // Step 3: Fast, tight spring physics pulling the particle toward its calculated target
-            dot.vx += (targetX - dot.x) * 0.08; // Spring strength (tight)
+            dot.vx += (targetX - dot.x) * 0.08;
             dot.vy += (targetY - dot.y) * 0.08;
-            
-            // Friction damping stops any continuous wave "blob" physics by absorbing the kinetic energy instantly
-            dot.vx *= 0.82; 
+            dot.vx *= 0.82;
             dot.vy *= 0.82;
-            
             dot.x += dot.vx;
             dot.y += dot.vy;
 
-            // Step 4: Draw the discrete particle element into memory
             ctx.beginPath();
             ctx.arc(dot.x, dot.y, 1.25, 0, Math.PI * 2);
             ctx.fill();
@@ -1940,12 +2115,14 @@ if (emailCopyBtn) {
                 clearTimeout(collapseTimer);
                 activeIndex = -1;
                 collapseFan();
-                if (cursorRing) cursorRing.style.borderColor = '';
+                // Use class-based cursor system
+                if (cursorRing) cursorRing.classList.remove('hover-state');
             });
 
             stage.addEventListener('mouseenter', () => {
                 if (stage.classList.contains('deck-animating')) return;
-                if (cursorRing) cursorRing.style.borderColor = 'var(--accent)';
+                // Use class-based cursor system
+                if (cursorRing) cursorRing.classList.add('hover-state');
             });
         }
 
