@@ -1266,301 +1266,9 @@ nav.nav--hero .nav-link {
     margin: 0;
 }
 
-/* ── Journey Deck Section ─────────────────────────────────────────── */
-.journey-section {
-    width: 100%;
-    padding: 8rem var(--page-margin-x) 10rem;
-    position: relative;
-    overflow: visible;
-}
-
-.journey-stage {
-    position: relative;
-    width: 100%;
-    height: 540px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: visible;
-    /* Perspective moved to per-card via GSAP transformPerspective for uniform tilt */
-}
-
-/* Card — content-hugging, JS equalizes height across all */
-.exp-card {
-    position: absolute;
-    width: 320px;
-    height: auto;    /* Let content breathe; JS sets uniform height after render */
-    background: #111;
-    overflow: hidden; /* Clips the spotlight glow at border-radius */
-    transform-style: preserve-3d; /* Required for 3D rotationX/Y to be visible */
-    padding: 32px 32px 42px 32px; /* 42px bottom padding per user request */
-    border-radius: 28px; /* Concentric rule: at 32px padding, inner corners must be square (0) for 28px outer */
-    border: 1px solid rgba(255,255,255,0.12); /* Increased for better visual separation */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    user-select: none;
-    touch-action: none;
-    cursor: none;   /* custom cursor system always in control */
-    will-change: transform, filter, opacity;
-    filter: grayscale(1) brightness(0.85);
-    opacity: 0.75;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.2); /* Even subtler base shadow as requested */
-    transition:
-        background-color 0.35s cubic-bezier(0.2,0,0,1),
-        filter 0.35s cubic-bezier(0.2,0,0,1),
-        opacity 0.35s cubic-bezier(0.2,0,0,1),
-        box-shadow 0.35s cubic-bezier(0.2,0,0,1),
-        border-color 0.35s cubic-bezier(0.2,0,0,1);
-}
-.exp-card:hover {
-    background-color: #1a1a1a;
-    filter: grayscale(0) brightness(1.05);
-    opacity: 1;
-    border-color: rgba(255,255,255,0.22);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.3);
-}
-.exp-card:active { cursor: none; }
-
-/* ── Deck Animation Lock ─────────────────────────────────────────────────────
-   Applied to .exp-stage during the full reveal sequence (Phases 1-4).
-   Forces all cards into their colored/active state for the duration.
-   On removal, cards elegantly CSS-transition back to the grayscale default.
-──────────────────────────────────────────────────────────────────────────── */
-.deck-animating {
-    pointer-events: none; /* Disable all mouse interaction during animation */
-}
-.deck-animating .exp-card {
-    filter: grayscale(0) brightness(1.05);
-    border-color: rgba(255,255,255,0.22);
-    /* GSAP takes total control: kill all CSS property battles */
-    transition: none !important;
-}
-.deck-animating .exp-card .exp-role,
-.deck-animating .exp-card .role-meta {
-    color: var(--accent);  /* Accent text: active state */
-    transition: color 1.2s cubic-bezier(0.2,0,0,1);
-}
-.deck-animating .exp-card .exp-date {
-    color: rgba(255,255,255,0.6); /* Brightened date: active state */
-    transition: color 1.2s cubic-bezier(0.2,0,0,1);
-}
-.deck-animating .exp-card .exp-card-logo {
-    filter: grayscale(0) brightness(1); /* Colored logo: active state */
-    transition: filter 1.2s cubic-bezier(0.2,0,0,1);
-}
-/* Special brightness fix for Card 1 logo (data-index 0) during animation */
-.deck-animating .exp-card[data-index="0"] .exp-card-logo {
-    filter: grayscale(0) brightness(1);
-}
-
-/* ── Phase 4: Settle (color → grayscale) ──────────────────────────────────────
-   .deck-settling is briefly added to the stage BEFORE .deck-animating is
-   removed. This pre-loads a long, premium ease onto every card property so
-   that the revert to grayscale uses a 2s expo-out curve instead of the
-   fast 0.35s default hover transition. JS removes the class after 2.1s.
-─────────────────────────────────────────────────────────────────────── */
-.deck-settling .exp-card {
-    /* 0.65s expo-out — Apple HIG de-emphasis timing. Snappy but elegant. */
-    transition:
-        filter 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-        opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.deck-settling .exp-card .exp-role,
-.deck-settling .exp-card .role-meta {
-    transition: color 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.deck-settling .exp-card .exp-date {
-    transition: color 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.deck-settling .exp-card .exp-card-logo {
-    transition: filter 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* ── Cursor Spotlight Glow ──────────────────────────────────────────────
-   A radial gradient locked to CSS custom props --mouse-x / --mouse-y
-   (set on each mousemove frame via JS). pointer-events:none prevents any
-   interference with card text or interactions.
-   The glow is hidden by default; only becomes visible on hover. ─────── */
-.exp-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-        320px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-        rgba(255, 120, 50, 0.12) 0%,
-        transparent 70%
-    );
-    opacity: 0;
-    transition: opacity 0.45s cubic-bezier(0.2, 0, 0, 1);
-}
-.exp-card:hover::before {
-    opacity: 1;
-}
-
-/* Ensure card children stack above the glow layer */
-.exp-card > * {
-    position: relative;
-    z-index: 1;
-}
-
-/* ── Proximity System: Header ───────────────────── */
-.exp-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Vercial Center symmetry per user request */
-    margin-bottom: 12px; /* Increased by 4px as requested for better brand-to-role spacing */
-    width: 100%;
-    gap: 12px;
-}
-
-/* Container 1: Logo above company name (vertical stack) */
-.exp-card-left {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px; /* Proximity rule: branding tight block */
-}
-
-.exp-card-logo {
-    width: 110px;
-    height: 44px;
-    object-fit: contain;
-    object-position: left bottom; /* Pin to left bottom for stable fanning */
-    margin-bottom: 0px; /* Separator handled by gap in.exp-card-left */
-    
-    /* Fix: Grayscale to Color Effect */
-    filter: grayscale(1) brightness(1.2);
-    opacity: 0.6;
-    transition: filter 0.4s cubic-bezier(0.2,0,0,1), 
-                opacity 0.4s cubic-bezier(0.2,0,0,1);
-}
-.exp-card:hover .exp-card-logo {
-    filter: grayscale(0) brightness(1);
-    opacity: 1;
-}
-
-/* Fix: Color Balance for Card 1 logo (Naturally very dark in grayscale) */
-.exp-card[data-index="0"] .exp-card-logo {
-    filter: grayscale(1) brightness(2.2); /* Optical balance boost */
-    opacity: 0.85; 
-}
-.exp-card[data-index="0"]:hover .exp-card-logo {
-    filter: grayscale(0) brightness(1);
-    opacity: 1;
-}
-
-.exp-card-company {
-    display: none; /* Hidden for now per user request—preserving space in the header layout */
-}
-
-/* Container 2: Duration — right-aligned, top-aligned with logo */
-.exp-date {
-    font-family: var(--font-ui);
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: rgba(255,255,255,0.25);
-    text-align: right;
-    text-transform: none;
-    letter-spacing: -0.01em;
-    flex-shrink: 0;
-    padding-top: 0px; /* Removed for proper vertical center alignment */
-    white-space: nowrap;
-    transition: color 0.3s cubic-bezier(0.2,0,0,1);
-}
-.exp-card:hover .exp-date { color: rgba(255,255,255,0.5); }
-
-/* ── Proximity System: Content ──────────────────── */
-.exp-role {
-    font-family: var(--font-accent);
-    font-size: 1.15rem; /* Re-balanced for mixed typography */
-    font-weight: 400;
-    color: rgba(255,255,255,0.9);
-    line-height: 1.3;
-    margin: 0 0 4px 0; /* Proximity rule: Title to Detail tight block */
-    letter-spacing: 0.01em;
-    text-transform: none;
-    transition: color 0.3s cubic-bezier(0.2,0,0,1);
-}
-.exp-card:hover .exp-role,
-.exp-card:hover .role-meta { color: var(--accent); }
-
-.role-meta {
-    font-family: var(--font-accent);
-    font-style: normal; /* Premium Brier Regular (No Italic) */
-    font-weight: 400;
-    font-size: 0.8em; /* Reduced size to create contrast with Role title */
-    color: rgba(255,255,255,0.45);
-    transition: color 0.3s cubic-bezier(0.2,0,0,1);
-}
-
-
-.exp-desc {
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    line-height: 1.6;
-    color: rgba(255,255,255,0.42);
-    margin: 0;
-    overflow: visible;
-    transition: color 0.3s cubic-bezier(0.2,0,0,1);
-}
-.exp-card:hover .exp-desc { color: rgba(255,255,255,0.65); }
-
-.exp-pills { display: none; }
-
-
-
-.fade-up-minimal {
-    opacity: 0;
-    transform: translateY(30px);
-}
-
-/* ── Utilities ──────────────────────────────────────────── */
-.reveal-text,
-.reveal-text-scroll {
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
-   ═══════════════════════════════════════════════════════════ */
-
-/* ── Tablet (≤ 900px) ───────────────────────────────────── */
-@media (max-width: 900px) {
-
-    /* Nav — preserve safe-area-inset so notch stays respected */
-    nav {
-        padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
-        padding-left:  calc(env(safe-area-inset-left, 0px)  + 2rem);
-        padding-right: calc(env(safe-area-inset-right, 0px) + 2rem);
-        padding-bottom: 4rem;
-    }
-
-    .nav-right {
-        display: none; /* Hidden; hamburger takes over */
-    }
-
-    .hamburger {
-        display: flex;
-    }
-
     /* Padding Adjustments — Tablet */
     .about-section {
         padding: 6rem var(--page-margin-x);
-    }
-    .journey-section {
-        padding: 4rem var(--page-margin-x) 6rem;
-    }
-
-    /* Experience Section — Tablet: stage height adjustment,
-       card appearance matches desktop (JS handles fan spread) */
-    .journey-stage {
-        height: 500px;
     }
 
     /* Projects: stack vertically */
@@ -1616,9 +1324,6 @@ nav.nav--hero .nav-link {
     /* Padding Adjustments — Mobile */
     .about-section {
         padding: 4rem var(--page-margin-x);
-    }
-    .journey-section {
-        padding: 2.5rem var(--page-margin-x) 4rem;
     }
 
     /* Keep sticky so the hero pins while the card-collapse animates */
@@ -1678,49 +1383,6 @@ nav.nav--hero .nav-link {
         height: 23px; /* 30 -> 23 */
     }
 
-    /* Experience Section — Mobile: refined sizing to match Lando Norris style 
-       compact stacking, preventing overly tall cards on portrait screens. */
-    .journey-stage {
-        height: 400px;
-        /* Remove previous global scale — we'll use precise card dimensions */
-        transform: none !important;
-    }
-    .exp-card {
-        width: 260px; /* Snug fit for mobile — prevents 'towering' height */
-        padding: 22px; /* Symmetrical padding for all sides on mobile */
-        border-radius: 20px;
-    }
-    .exp-role {
-        font-size: 1rem;
-        margin-bottom: 0.15rem;
-    }
-    .exp-desc {
-        font-size: 0.78rem;
-        line-height: 1.45;
-        /* Line-clamp removed per user request: text will be fully visible */
-        display: block;
-        overflow: visible;
-    }
-    .exp-card-logo {
-        width: 90px;
-        height: 36px;
-    }
-    .exp-card-header {
-        align-items: center;
-        margin-bottom: 10px; /* Scaled mobile proximity increased by 4px */
-    }
-    .exp-date {
-        font-size: 0.68rem;
-    }
-    .exp-logo-dummy {
-        width: 36px;
-        height: 36px;
-        margin-bottom: 0.8rem;
-    }
-    .exp-date {
-        font-size: 0.68rem;
-    }
-
     /* Footer */
     .footer-section {
         padding: 4rem 1.25rem;
@@ -1763,4 +1425,533 @@ nav.nav--hero .nav-link {
     .hero:hover .hero-grid-overlay {
         transform: none;
     }
+}
+/* ── F1 ABOUT SECTION ────────────────────────────────────────── */
+.f1-section {
+    background-color: var(--bg-base);
+    color: var(--color-neutral-100);
+    padding: var(--fluid-xl) var(--page-margin-x);
+    position: relative;
+    z-index: 10;
+}
+
+.f1-container {
+    max-width: var(--container-lg);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Common F1 Elements */
+.f1-label {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: inherit;
+}
+.f1-muted {
+    color: rgba(255, 255, 255, 0.4);
+}
+.f1-text-orange {
+    color: #FF5509;
+}
+.f1-text-bright {
+    color: #fff;
+}
+.f1-margin-bot { margin-bottom: 2rem; display: block; }
+.f1-margin-bot-sm { margin-bottom: 1rem; display: block; }
+.f1-margin-bot-lg { margin-bottom: 3rem; display: flex; align-items: center; gap: 1rem; width: 100%;}
+
+.f1-h-line {
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4rem 0;
+}
+
+/* Part 1: Identity */
+.f1-identity {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--fluid-lg);
+}
+
+@media (max-width: 900px) {
+    .f1-identity {
+        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column-reverse; /* Reorder for mobile */
+    }
+}
+
+.f1-mission {
+    margin-bottom: 2rem;
+    color: var(--color-neutral-100);
+}
+
+.f1-mission-italic {
+    font-size: 1.1em;
+}
+
+.f1-bio {
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4rem;
+    max-width: 50ch;
+}
+
+.f1-availability {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.f1-dot-green {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #00FF00;
+    box-shadow: 0 0 8px rgba(0,255,0,0.5);
+    animation: f1-pulse 2s infinite;
+}
+
+@keyframes f1-pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.f1-avail-text {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: #FF5509;
+    font-weight: 500;
+}
+
+.f1-tags {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.f1-tag-div {
+    width: 1px;
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+}
+
+/* Helmet & Photo right side */
+.f1-identity-visual {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    perspective: 1000px;
+}
+
+@media (max-width: 900px) {
+    .f1-identity-visual {
+        min-height: 300px;
+    }
+}
+
+.f1-photo-frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background: #111;
+    overflow: hidden;
+    position: absolute;
+    inset: 0;
+}
+
+.f1-helmet {
+    position: absolute;
+    bottom: -15%;
+    right: -10%;
+    width: 55%;
+    transform-origin: center center;
+    z-index: 2;
+    /* initial rotation */
+    transform: rotate(15deg); 
+    /* Interaction will augment using transform */
+}
+
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+    .f1-helmet { display: none !important; }
+    .f1-cursor-hint { display: none !important; }
+}
+
+.f1-cursor-hint {
+    position: absolute;
+    bottom: -30px;
+    right: 0;
+    font-family: var(--font-ui);
+    font-size: 10px;
+    color: rgba(255, 85, 9, 0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Part 2: Career Standings */
+.f1-section-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.f1-title-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.f1-title-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+}
+
+.f1-season {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.f1-season-name {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.f1-active-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    background: rgba(255, 85, 9, 0.1);
+    border: 1px solid rgba(255, 85, 9, 0.2);
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: #FF5509;
+    font-weight: 500;
+}
+
+.f1-dot-orange {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #FF5509;
+    animation: f1-pulse 2s infinite;
+}
+
+/* Standings Table */
+.f1-table {
+    display: flex;
+    flex-direction: column;
+}
+
+.f1-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 120px;
+    align-items: center;
+    padding: 2.5rem 0;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.2,0,0,1);
+    cursor: pointer;
+    position: relative;
+    border-left: 4px solid transparent;
+}
+
+.f1-row:hover {
+    background: rgba(255,255,255,0.02);
+    border-left-color: rgba(255, 85, 9, 0.3);
+}
+
+.f1-row.f1-row-active, .f1-row.f1-row-expanded {
+    border-left-color: #FF5509;
+}
+
+.f1-row-ghost {
+    opacity: 0.3;
+}
+.f1-row-ghost:hover {
+    opacity: 0.6;
+}
+
+.f1-pos {
+    font-family: var(--font-heading);
+    font-size: 80px;
+    font-weight: 700;
+    line-height: 0.8;
+    color: rgba(255,255,255,0.05);
+    padding-left: 1.5rem;
+    transition: color 0.4s ease;
+    letter-spacing: -0.05em;
+}
+
+@media (max-width: 900px) {
+    .f1-pos { font-size: 56px; }
+}
+
+.f1-row.f1-row-active .f1-pos, .f1-row.f1-row-expanded .f1-pos, .f1-row:hover .f1-pos {
+    color: #FF5509;
+}
+
+.f1-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.f1-role {
+    font-family: var(--font-ui);
+    font-size: var(--text-h3-size);
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.f1-company {
+    font-family: var(--font-body);
+    font-size: var(--text-caption-size);
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.f1-dot-teal { background: #00E5FF; width: 6px; height: 6px; border-radius: 50%; }
+.f1-dot-blue { background: #0055FF; width: 6px; height: 6px; border-radius: 50%; }
+
+.f1-domain {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: rgba(255,255,255,0.4);
+    text-align: right;
+    padding-right: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Hover-reveal description — no click needed */
+.f1-desc {
+    grid-column: 2 / -1;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.45s cubic-bezier(0.2,0,0,1), opacity 0.3s ease, margin 0.3s ease;
+    font-family: var(--font-body);
+    font-size: var(--text-body-sm-size);
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+    padding-right: 2rem;
+    margin-top: 0;
+}
+
+/* Show desc on row hover (pure CSS, no JS) */
+.f1-row:hover .f1-desc {
+    max-height: 120px;
+    opacity: 1;
+    margin-top: 1rem;
+}
+
+/* Also keep expanded class working as fallback for active row */
+.f1-row.f1-row-expanded .f1-desc {
+    max-height: 120px;
+    opacity: 1;
+    margin-top: 1rem;
+}
+
+.f1-live-badge {
+    padding: 4px 8px;
+    background: rgba(0, 255, 0, 0.1);
+    color: #00FF00;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .f1-row { grid-template-columns: 100px 1fr; padding: 1.5rem 0; }
+    .f1-domain { display: none; }
+    .f1-pos { font-size: 48px; padding-left: 0.5rem; }
+}
+
+/* Part 3: Education Bar */
+.f1-education {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.f1-edu-main {
+    font-family: var(--font-ui);
+    font-size: var(--text-body-sm-size);
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+}
+
+.f1-edu-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: rgba(255,255,255,0.5);
+}
+
+.f1-v-line {
+    width: 1px;
+    height: 12px;
+    background: rgba(255,255,255,0.2);
+}
+
+.f1-pill-outline-orange {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid #FF5509;
+    color: #FF5509;
+    border-radius: 20px;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+    .f1-education { flex-direction: column; align-items: flex-start; gap: 1rem; }
+}
+
+/* Part 4: Skills & Tools */
+.f1-skills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+}
+
+@media (max-width: 600px) {
+    .f1-skills { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+.f1-pill-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* Brutalist Pills */
+.f1-pill-plain {
+    padding: 0.75rem 1.2rem;
+    background: #111;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 4px;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    font-weight: 500;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s cubic-bezier(0.2,0,0,1);
+    cursor: default;
+}
+
+.f1-pill-plain:hover {
+    color: #FF5509;
+    border-color: rgba(255, 85, 9, 0.3);
+    background: rgba(255,85,9,0.05);
+    transform: translateY(-2px);
+}
+
+
+/* ── F1 LIGHT MODE BRUTALIST OVERRIDES ────────────────────────── */
+/* Applied to edge-to-edge section wrappers for aggressive contrast */
+.f1-light-mode {
+    background-color: var(--color-neutral-100, #e5e4e0);
+    color: var(--bg-base, #111);
+}
+
+.f1-light-mode .f1-title-line,
+.f1-light-mode .f1-h-line {
+    background: rgba(0,0,0,0.1);
+}
+
+.f1-light-mode .f1-label {
+    color: rgba(0,0,0,0.4);
+}
+.f1-light-mode .f1-text-orange {
+    color: #FF5509; /* Keep neon pop */
+}
+
+/* Standings */
+.f1-light-mode .f1-season-name,
+.f1-light-mode .f1-domain,
+.f1-light-mode .f1-company,
+.f1-light-mode .f1-desc {
+    color: rgba(0,0,0,0.6);
+}
+
+.f1-light-mode .f1-role {
+    color: #111;
+}
+
+.f1-light-mode .f1-pos {
+    color: rgba(0,0,0,0.06);
+}
+
+.f1-light-mode .f1-row {
+    border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+.f1-light-mode .f1-row:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.f1-light-mode .f1-row.f1-row-active .f1-pos, 
+.f1-light-mode .f1-row.f1-row-expanded .f1-pos, 
+.f1-light-mode .f1-row:hover .f1-pos {
+    color: #FF5509;
+}
+
+/* Education Bar */
+.f1-light-mode .f1-education {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.f1-light-mode .f1-edu-main {
+    color: var(--bg-base, #111);
+}
+
+.f1-light-mode .f1-edu-meta {
+    color: rgba(0,0,0,0.5);
+}
+
+.f1-light-mode .f1-v-line {
+    background: rgba(0,0,0,0.2);
+}
+
+/* Testimonials section — extra bottom padding for pileup fan overflow */
+#testimonials.f1-section {
+    padding-bottom: calc(var(--fluid-xl) + 120px);
 }

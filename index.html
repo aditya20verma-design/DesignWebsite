@@ -90,7 +90,7 @@
     <link rel="stylesheet" href="shared/colors.css?v=38">
     <link rel="stylesheet" href="shared/layout.css?v=38">
     <link rel="stylesheet" href="shared/typography.css?v=38">
-    <link rel="stylesheet" href="style.css?v=78">
+    <link rel="stylesheet" href="style.css?v=89">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=97">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
@@ -427,92 +427,207 @@
                 </div>
             </section>
 
-            <!-- About Section — Warm Clay Background -->
-            <section class="about-section hover-trigger" id="about" style="background: #e5e4e0; color: #1a1a1a;">
-                <div class="about-grid about-grid--single">
-                    <!-- About Text -->
-                    <div class="about-col-left fade-up-minimal">
-                        <p class="about-label" style="color: rgba(26,26,26,0.5);">About Me</p>
-                        <p class="about-desc" style="color: #1a1a1a;">
-                            Product Designer with 3+ years across healthcare, fintech &amp; architecture. Skilled at
-                            transforming complex systems into intuitive, accessible experiences. Specialized in scaling
-                            design systems, optimizing patient flows, and driving measurable growth. Background in
-                            architecture with an M.Des, applying systems thinking and research-driven design to complex
-                            challenges.
-                        </p>
+            <!-- ── About Section: F1 / On-Track Style ─────────────────────────────────── -->
+            <!-- BLOCK 1: IDENTITY (DARK) -->
+            <section class="f1-section f1-dark-mode" id="about">
+                <div class="f1-container">
+                    
+                    <!-- PART 1 — IDENTITY BLOCK -->
+                    <div class="f1-part f1-identity">
+                        <div class="f1-identity-text">
+                            <span class="f1-label f1-muted f1-margin-bot">ABOUT</span>
+                            
+                            <h2 class="type-h2 f1-mission">
+                                I design systems that<br>
+                                <span class="font-accent f1-text-orange">feel human</span> —<br>
+                                bulletproof underneath.
+                            </h2>
+                            
+                            <p class="type-body f1-bio">
+                                Architect by training. Product designer by choice.<br>
+                                From floor plans to <span class="f1-text-bright">Narayana Health</span> — the instinct hasn't changed.<br>
+                                Structure first, then craft, then ship.
+                            </p>
+                            
+                            <div class="f1-availability">
+                                <span class="f1-dot-green"></span>
+                                <span class="f1-avail-text">Open to work · Bangalore</span>
+                            </div>
+                            
+                            <div class="f1-tags">
+                                MOTORBIKES <span class="f1-tag-div"></span> COFFEE <span class="f1-tag-div"></span> URBAN DESIGN <span class="f1-tag-div"></span> SOUND
+                            </div>
+                        </div>
+                        
+                        <div class="f1-identity-visual" id="f1-helmet-interaction">
+                            <div class="f1-photo-frame">
+                                <!-- Tall photo goes here, placeholder background in CSS -->
+                            </div>
+                            <img src="sections/hero/assets/helmet.png" alt="Ducati Helmet" class="f1-helmet" id="f1-helmet">
+                            <span class="f1-cursor-hint">move cursor</span>
+                        </div>
                     </div>
+
                 </div>
             </section>
 
-            <!-- ── Journey Deck Section ─────────────────────────────────── -->
-            <section class="journey-section" id="journey" style="background: #e5e4e0;">
-                <div class="journey-header fade-up-minimal">
-                    <p class="about-label" style="color: rgba(26,26,26,0.5);">Experience</p>
+            <!-- BLOCK 2: CAREER & EDU (DARK/BRUTALIST CONTRAST) -->
+            <section class="f1-section f1-dark-mode">
+                <div class="f1-container">
+
+
+                    <!-- PART 2 — CAREER STANDINGS -->
+                    <div class="f1-part">
+                        <div class="f1-title-row">
+                            <span class="f1-label f1-text-orange">CAREER STANDINGS</span>
+                            <div class="f1-title-line"></div>
+                        </div>
+                        
+                        <div class="f1-season">
+                            <span class="f1-season-name">Product Design Championship · Season 2024–25</span>
+                            <span class="f1-active-pill"><span class="f1-dot-orange"></span> Active season</span>
+                        </div>
+                        
+                        <div class="f1-table">
+                            <!-- Row 1 -->
+                            <div class="f1-row f1-row-active">
+                                <div class="f1-pos f1-text-orange">01</div>
+                                <div class="f1-details">
+                                    <div class="f1-role">Assoc. Product Designer <span class="f1-live-badge">Live</span></div>
+                                    <div class="f1-company"><span class="f1-dot-teal"></span>Narayana Health</div>
+                                </div>
+                                <div class="f1-domain">Healthcare</div>
+                                <div class="f1-desc">
+                                    Led Book Appt · Health Checkup · Smart Health Records — 3 modules across India’s largest hospital network. +74% downloads, 22% fewer drop-offs.
+                                </div>
+                            </div>
+                            
+                            <!-- Row 2 -->
+                            <div class="f1-row">
+                                <div class="f1-pos">02</div>
+                                <div class="f1-details">
+                                    <div class="f1-role">UX Designer</div>
+                                    <div class="f1-company"><span class="f1-dot-blue"></span>BranchX</div>
+                                </div>
+                                <div class="f1-domain">Fintech</div>
+                                <div class="f1-desc">
+                                    End-to-end neobanking — onboarding to CRM — scaled to 100K+ users. Design system cut dev handoff 30%.
+                                </div>
+                            </div>
+                            
+                            <!-- Row 3 -->
+                            <div class="f1-row">
+                                <div class="f1-pos">03</div>
+                                <div class="f1-details">
+                                    <div class="f1-role">Product Designer · Intern</div>
+                                    <div class="f1-company"><span class="f1-dot-orange"></span>Avanatri Technologies</div>
+                                </div>
+                                <div class="f1-domain">B2B</div>
+                                <div class="f1-desc">
+                                    B2B internal tools and component libraries. Delivered physical product prototype via DFMA — spans digital and industrial design.
+                                </div>
+                            </div>
+                            
+                            <!-- Row 4 -->
+                            <div class="f1-row f1-row-ghost">
+                                <div class="f1-pos">00</div>
+                                <div class="f1-details">
+                                    <div class="f1-role">Architect · Origin season</div>
+                                    <div class="f1-company">Architecture practice · ~1.5 yrs</div>
+                                </div>
+                                <div class="f1-domain">Architecture</div>
+                                <div class="f1-desc">
+                                    Every wall has consequences — that systems instinct now drives every product decision.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+            </section>
+
+
+            <!-- Journey Deck — temporarily hidden -->
+            <section class="journey-section" id="journey" style="display:none;">
                 <div class="journey-stage">
-                    <!-- Card 1 (Front/Recent — Narayana) -->
                     <div class="exp-card" data-index="0">
                         <div class="exp-card-header">
                             <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/narayana.svg" class="exp-card-logo"
-                                    alt="Narayana Health Logo">
+                                <img src="sections/about/assets/Company logos/narayana.svg" class="exp-card-logo" alt="Narayana Health Logo">
                                 <span class="exp-card-company">Narayana Health</span>
                             </div>
                             <span class="exp-date">Nov 2024 - Present</span>
                         </div>
                         <h3 class="exp-role">Product Designer</h3>
-                        <p class="exp-desc">Led Book Appointment, Health Checkup & Smart Health Records - 3 modules
-                            powering India's largest hospital network.<br>Result: +74% app downloads, 22% fewer
-                            drop-offs, 30% reduction in manual check-ins.</p>
+                        <p class="exp-desc">Led Book Appointment, Health Checkup &amp; Smart Health Records - 3 modules powering India's largest hospital network.<br>Result: +74% app downloads, 22% fewer drop-offs, 30% reduction in manual check-ins.</p>
                     </div>
-
-                    <!-- Card 2 (BranchX) -->
-                    <div class="exp-card" data-index="1">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/branchx.svg" class="exp-card-logo"
-                                    alt="BranchX Logo">
-                                <span class="exp-card-company">BranchX</span>
-                            </div>
-                            <span class="exp-date">Sep 2023 - Nov 2024</span>
-                        </div>
-                        <h3 class="exp-role">UX Designer</h3>
-                        <p class="exp-desc">End-to-end design of neobanking product - onboarding to CRM - scaled to
-                            100K+ users. Built design system that cut dev handoff time 30%.</p>
-                    </div>
-
-                    <!-- Card 3 (Avanatri) -->
-                    <div class="exp-card" data-index="2">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/avanatri.svg" class="exp-card-logo"
-                                    alt="Avantari Technologies Logo">
-                                <span class="exp-card-company">Avantari Technologies</span>
-                            </div>
-                            <span class="exp-date">Jun 2022 - Aug 2022</span>
-                        </div>
-                        <h3 class="exp-role">Product Designer <span class="role-meta">• Internship</span></h3>
-                        <p class="exp-desc">Designed B2B internal tools & component libraries. Delivered physical
-                            product prototype using DFMA - shows range across digital and industrial design.</p>
-                    </div>
-
-                    <!-- Card 4 (Architecture) -->
-                    <div class="exp-card" data-index="3">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/architecture.svg" class="exp-card-logo"
-                                    alt="Architecture Logo">
-                                <span class="exp-card-company">Architecture</span>
-                            </div>
-                            <span class="exp-date">~1.5 years</span>
-                        </div>
-                        <h3 class="exp-role">Architect <span class="role-meta">• Prior experience</span></h3>
-                        <p class="exp-desc">Where systems thinking started. Architecture taught me every decision
-                            cascades - that instinct now drives how I approach every product problem.</p>
-                    </div>
-
                 </div>
             </section>
+
+            <!-- TESTIMONIALS — Exact exp-card structure on light background -->
+            <section class="f1-section f1-light-mode" id="testimonials">
+                <div class="f1-container">
+                    <div class="f1-title-row" style="margin-bottom: 2rem;">
+                        <span class="f1-label" style="color:rgba(0,0,0,0.4)">WHAT PEOPLE SAY</span>
+                        <div class="f1-title-line"></div>
+                    </div>
+                    
+                    <div class="journey-stage f1-testimonials-stage" style="background: transparent;">
+                        <!-- Testimonial 1 -->
+                        <div class="exp-card" data-index="0">
+                            <div class="exp-card-header">
+                                <div class="exp-card-left">
+                                    <img src="sections/about/assets/Company logos/narayana.svg" class="exp-card-logo" alt="Narayana Health">
+                                    <span class="exp-card-company">Rohan Mehta</span>
+                                </div>
+                                <span class="exp-date">Narayana Health</span>
+                            </div>
+                            <h3 class="exp-role">Product Manager</h3>
+                            <p class="exp-desc">"Aditya has a rare ability to connect user empathy with system-level thinking. He shipped three major modules in under a year — and they just worked, for patients and ops teams alike."</p>
+                        </div>
+
+                        <!-- Testimonial 2 -->
+                        <div class="exp-card" data-index="1">
+                            <div class="exp-card-header">
+                                <div class="exp-card-left">
+                                    <img src="sections/about/assets/Company logos/branchx.svg" class="exp-card-logo" alt="BranchX">
+                                    <span class="exp-card-company">Priya Nair</span>
+                                </div>
+                                <span class="exp-date">BranchX</span>
+                            </div>
+                            <h3 class="exp-role">Engineering Lead</h3>
+                            <p class="exp-desc">"Aditya built our design system from scratch. Devs loved working with him — perfectly documented, pixel-precise. Cut our handoff friction in half and raised the bar for every sprint."</p>
+                        </div>
+
+                        <!-- Testimonial 3 -->
+                        <div class="exp-card" data-index="2">
+                            <div class="exp-card-header">
+                                <div class="exp-card-left">
+                                    <img src="sections/about/assets/Company logos/avanatri.svg" class="exp-card-logo" alt="Avantari">
+                                    <span class="exp-card-company">Karan Desai</span>
+                                </div>
+                                <span class="exp-date">Avantari</span>
+                            </div>
+                            <h3 class="exp-role">Head of Product</h3>
+                            <p class="exp-desc">"One of the sharpest design interns we’ve worked with. He didn’t just deliver screens — he delivered a product mindset that outlasted the internship and influenced our long term plans."</p>
+                        </div>
+
+                        <!-- Testimonial 4 -->
+                        <div class="exp-card" data-index="3">
+                            <div class="exp-card-header">
+                                <div class="exp-card-left">
+                                    <img src="sections/about/assets/Company logos/architecture.svg" class="exp-card-logo" alt="Architecture">
+                                    <span class="exp-card-company">Amit Soni</span>
+                                </div>
+                                <span class="exp-date">Architecture</span>
+                            </div>
+                            <h3 class="exp-role">Principal Architect</h3>
+                            <p class="exp-desc">"Aditya brings the rigor of architectural thinking to every brief. He sees the whole before anyone else sees the parts — and that changes everything about the final output."</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
 
             <!-- Contact / Footer -->
             <footer class="footer-section" id="contact">
@@ -661,7 +776,7 @@
         <span class="sound-label">SOUND OFF</span>
     </button>
 
-    <script src="script.js?v=125"></script>
+    <script src="script.js?v=133"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>
