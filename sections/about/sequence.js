@@ -12,8 +12,8 @@
     'use strict';
 
     // ── Config ────────────────────────────────────────────────────────────────
-    var TOTAL = 166;
-    var PATH  = 'sections/about/assets/sequence_5/frame'; // Optimized 720p
+    var TOTAL = 83;
+    var PATH  = 'sections/about/assets/sequence_6/frame'; // 83 frames — half size, same speed
 
     // ── Preload/Search Logic ───────────────────────────────────────────────
     function findNearestFrame(target) {
@@ -52,13 +52,13 @@
     }
 
     var LABELS = [
-        { from: 1,   to: 60,  title: 'Designer.<br><em>Systems</em> thinker.',    sub: 'About Me' },
-        { from: 105, to: 168, title: 'Product Designer<br>& <em>Architect</em>.', sub: '3+ years · Healthcare · Fintech' },
+        { from: 1,   to: 30,  title: 'Designer.<br><em>Systems</em> thinker.',    sub: 'About Me' },
+        { from: 52,  to: 83,  title: 'Product Designer<br>& <em>Architect</em>.', sub: '3+ years · Healthcare · Fintech' },
     ];
 
     // Phase boundaries (fraction of total scroll 0–1)
     var P1_END = 0.85;   // frames + scale finish at 85%
-    var P2_END = 0.96;   // smoke fully in at 96% (11% of section = ~35vh of dedicated smoke scroll)
+    var P2_END = 0.96;   // smoke fully in at 96%
 
     // ── DOM ───────────────────────────────────────────────────────────────────
     var section = document.getElementById('about-sequence');

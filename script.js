@@ -1256,6 +1256,28 @@ magneticElements.forEach((el) => {
                             }
                         }, 150);
                     }
+                    // ── Robust "Double Nudge" Scroll ───────────────────────
+                    // 1. Wait for animations to settle
+                    // 2. Perform a gentle 5px nudge (visible feedback)
+                    // 3. Refresh ScrollTrigger to ensure zero-point is locked
+                    setTimeout(() => {
+                        if (window.scrollY < 10) {
+                            if (window.__lenisInstance) {
+                                window.__lenisInstance.scrollTo(5, { 
+                                    duration: 1.0, 
+                                    easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // easeInOut
+                                    onComplete: () => {
+                                        window.__lenisInstance.scrollTo(0, { duration: 0.5 });
+                                        ScrollTrigger.refresh();
+                                    }
+                                });
+                            } else {
+                                window.scrollTo({ top: 5, behavior: 'smooth' });
+                                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 1000);
+                                ScrollTrigger.refresh();
+                            }
+                        }
+                    }, 1200);
                 }
             });
 
