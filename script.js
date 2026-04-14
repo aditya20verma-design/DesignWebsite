@@ -323,12 +323,18 @@ const ASSETS = {
     window._senseNavBg = senseBackground;
 
     // ── Scroll Hint: Hero-only visibility ───────────────────────────────────
-    // Always remove when scrolling past hero, always restore when coming back.
+    // State-based toggle: visible ONLY while hero is in its active scroll range.
+    // This is much more robust than event-based onEnter/onLeaveBack.
     ScrollTrigger.create({
         trigger: '#hero',
-        start: 'bottom 85%',
-        onEnter:     () => document.getElementById('scroll-hint')?.classList.remove('scroll-visible'),
-        onLeaveBack: () => document.getElementById('scroll-hint')?.classList.add('scroll-visible'),
+        start: 'top top',
+        end: 'bottom 20%',
+        onToggle: self => {
+            const sh = document.getElementById('scroll-hint');
+            if (!sh) return;
+            if (self.isActive) sh.classList.add('scroll-visible');
+            else sh.classList.remove('scroll-visible');
+        }
     });
 }());
 
@@ -1237,14 +1243,9 @@ magneticElements.forEach((el) => {
                 onStart: () => {
                     const st = document.getElementById('sound-toggle');
                     if (st) st.style.pointerEvents = 'auto';
-                    // Reveal scroll hint in hero — only add if still at top
+                    // Ensure scroll hint is interactive
                     const sh = document.getElementById('scroll-hint');
-                    if (sh) {
-                        sh.style.pointerEvents = 'auto';
-                        if (window.scrollY < window.innerHeight * 0.5) {
-                            sh.classList.add('scroll-visible');
-                        }
-                    }
+                    if (sh) sh.style.pointerEvents = 'auto';
                     // Refresh ScrollTrigger once after loader finishes
                     setTimeout(() => ScrollTrigger.refresh(), 300);
                 }
