@@ -13,7 +13,43 @@
 
     // ── Config ────────────────────────────────────────────────────────────────
     var TOTAL = 166;
-    var PATH  = 'sections/about/assets/sequence_4/frame'; // 1920×1080, 16:9 — no crop needed
+    var PATH  = 'sections/about/assets/sequence_5/frame'; // Optimized 720p
+
+    // ── Preload/Search Logic ───────────────────────────────────────────────
+    function findNearestFrame(target) {
+        if (imgs[target]) return target;
+        // Search outwards from target
+        for (var i = 1; i < TOTAL; i++) {
+            var prev = target - i;
+            var next = target + i;
+            if (prev >= 0 && imgs[prev]) return prev;
+            if (next < TOTAL && imgs[next]) return next;
+        }
+        return -1;
+    }
+
+    function doDraw() {
+        rafPending = false;
+        if (!ready) return;
+
+        var idx = findNearestFrame(targetIdx);
+        if (idx === -1) return;
+        var img = imgs[idx];
+        if (!img || !img.naturalWidth) return;
+        if (idx === drawnIdx) return;
+        drawnIdx = idx;
+
+        // Blend contain→cover based on CSS scale progress (0.7→1.0)
+        var t         = Math.max(0, Math.min(1, (currentCssScale - 0.7) / 0.3));
+        var scContain = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+        var scCover   = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+        var sc        = scContain + (scCover - scContain) * t;
+        var dx        = (canvas.width  - img.naturalWidth  * sc) / 2;
+        var dy        = (canvas.height - img.naturalHeight * sc) / 2;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, dx, dy, img.naturalWidth * sc, img.naturalHeight * sc);
+    }
 
     var LABELS = [
         { from: 1,   to: 60,  title: 'Designer.<br><em>Systems</em> thinker.',    sub: 'About Me' },
@@ -54,7 +90,7 @@
         canvas.style.left   = '';
         canvas.style.top    = '';
         ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        ctx.imageSmoothingQuality = 'medium'; // Improved performance during scrub
         scrollRange = section.offsetHeight - window.innerHeight;
         schedDraw();
     }
@@ -72,31 +108,6 @@
     // ── RAF draw ──────────────────────────────────────────────────────────────
     function schedDraw() {
         if (!rafPending) { rafPending = true; requestAnimationFrame(doDraw); }
-    }
-
-    function doDraw() {
-        rafPending = false;
-        if (!ready) return;
-
-        var idx = targetIdx;
-        while (idx > 0 && !imgs[idx]) idx--;
-        var img = imgs[idx];
-        if (!img || !img.naturalWidth) return;
-        if (idx === drawnIdx) return;
-        drawnIdx = idx;
-
-        // Blend contain→cover based on CSS scale progress (0.7→1.0)
-        // At scale 0.7: Math.min (contain) — full frame, dark bg fills bars
-        // At scale 1.0: Math.max (cover)   — fills entire viewport, no bars
-        var t         = Math.max(0, Math.min(1, (currentCssScale - 0.7) / 0.3));
-        var scContain = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-        var scCover   = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-        var sc        = scContain + (scCover - scContain) * t;
-        var dx        = (canvas.width  - img.naturalWidth  * sc) / 2;
-        var dy        = (canvas.height - img.naturalHeight * sc) / 2;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, dx, dy, img.naturalWidth * sc, img.naturalHeight * sc);
-        // text overlay removed per user request
     }
 
     // ── Overlay label ─────────────────────────────────────────────────────────
