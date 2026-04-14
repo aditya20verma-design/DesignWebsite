@@ -322,20 +322,7 @@ const ASSETS = {
     // Expose so the loader can force a re-sense after it finishes
     window._senseNavBg = senseBackground;
 
-    // ── Scroll Hint: Hero-only visibility ───────────────────────────────────
-    // State-based toggle: visible ONLY while hero is in its active scroll range.
-    // This is much more robust than event-based onEnter/onLeaveBack.
-    ScrollTrigger.create({
-        trigger: '#hero',
-        start: 'top top',
-        end: 'bottom 20%',
-        onToggle: self => {
-            const sh = document.getElementById('scroll-hint');
-            if (!sh) return;
-            if (self.isActive) sh.classList.add('scroll-visible');
-            else sh.classList.remove('scroll-visible');
-        }
-    });
+
 }());
 
 
@@ -595,6 +582,12 @@ mm.add("(min-width: 601px)", () => {
 
     // Parallax: container collapses to golden ratio portrait, image holds at 50%
     // hero: 1.0→0.42 (+ clips)  |  canvas: 1.0→1.19  |  effective image: 0.42×1.19 = 0.50
+    // Scroll Hint: fade out early as hero start to collapse
+    tl.fromTo('#scroll-hint', 
+        { opacity: 1, pointerEvents: 'auto' },
+        { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power1.out' }, 
+        0
+    );
     tl.to('.unicorn-canvas', { scale: 1.19, ease: "power2.inOut" }, 0);
 
     // Signature tracks the hero automatically — it's a child of .hero now
@@ -619,6 +612,13 @@ mm.add("(max-width: 600px)", () => {
         opacity: 0.55,
         ease: "power2.inOut"
     }, 0);
+
+    // Scroll Hint: fade out on mobile as hero collapses
+    tl.fromTo('#scroll-hint', 
+        { opacity: 1, pointerEvents: 'auto' },
+        { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power1.out' }, 
+        0
+    );
 
     // parallax depth on mobile (gentler — 1.08 within 0.70 hero = effective 0.756)
     tl.to('.unicorn-canvas', { scale: 1.08, ease: "power2.inOut" }, 0);
