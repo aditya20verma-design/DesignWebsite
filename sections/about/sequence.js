@@ -194,7 +194,7 @@
     var BATCH_SIZE = 6;
 
     function preload() {
-        console.log('[Seq] Starting 3-tier preload…');
+
 
         // Tier 1: Frame 0 ASAP — unlock scroll engine
         loadFrame(0, function () {
@@ -207,7 +207,7 @@
             var tier2 = [];
             for (var i = 1; i < Math.min(40, TOTAL); i++) tier2.push(i);
             loadBatch(tier2, function () {
-                console.log('[Seq] Tier 2 done — first 40 frames ready');
+
 
                 // Tier 3: Rest in background at moderate speed
                 var tier3 = [];
@@ -222,7 +222,7 @@
     if ('IntersectionObserver' in window) {
         var seqObserver = new IntersectionObserver(function (entries) {
             if (entries[0].isIntersecting) {
-                console.log('[Seq] Section approaching — boosting to batch 8');
+
                 BATCH_SIZE = 8; // Full throttle
                 seqObserver.disconnect();
             }
