@@ -328,8 +328,13 @@ const ASSETS = {
     ScrollTrigger.create({
         trigger: '#hero',
         start: 'bottom 85%',
-        onEnter:      () => document.getElementById('scroll-hint')?.classList.remove('scroll-visible'),
-        onLeaveBack:  () => document.getElementById('scroll-hint')?.classList.add('scroll-visible'),
+        onEnter:     () => {
+            // Only hide if we are genuinely past the hero
+            if (window.scrollY > window.innerHeight * 0.5) {
+                document.getElementById('scroll-hint')?.classList.remove('scroll-visible');
+            }
+        },
+        onLeaveBack: () => document.getElementById('scroll-hint')?.classList.add('scroll-visible'),
     });
 }());
 
@@ -1243,6 +1248,13 @@ magneticElements.forEach((el) => {
                     if (sh) {
                         sh.style.pointerEvents = 'auto';
                         sh.classList.add('scroll-visible');
+                        // Safety: re-apply 150ms later in case ScrollTrigger's onEnter
+                        // fires in the same tick and removes the class (race condition fix)
+                        setTimeout(() => {
+                            if (window.scrollY < window.innerHeight * 0.5) {
+                                sh.classList.add('scroll-visible');
+                            }
+                        }, 150);
                     }
                 }
             });

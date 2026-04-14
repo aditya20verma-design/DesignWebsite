@@ -187,45 +187,60 @@
         setTimeout(function () { loader.style.display = 'none'; }, 450);
     }
 
-    // ── Smart Sequential Preload ─────────────────────────────────────────────
-    // Optimized for "Zero Impact" on Hero Load
-    var BATCH_SIZE = 2; // Smaller batches = less main-thread/network impact
+    // ── 3-Tier Smart Preload ──────────────────────────────────────────────────
+    // Tier 1: Frame 0 immediately → unlock scroll binding (<1 frame lag)
+    // Tier 2: Frames 1-39 at speed 6 right after load → ready before user scrolls
+    // Tier 3: Frames 40+ at speed 4, boosted to 8 when section enters view
+    var BATCH_SIZE = 6;
 
     function preload() {
-        console.log('[Seq] Starting background preload…');
-        
-        // Phase 1: Load just the first frame to have it ready for when the user scrolls down
-        loadFrame(0, function() {
+        console.log('[Seq] Starting 3-tier preload…');
+
+        // Tier 1: Frame 0 ASAP — unlock scroll engine
+        loadFrame(0, function () {
             ready = true;
-            // Note: loader logic removed/changed if you want it completely invisible initially
-            if (loader) loader.style.display = 'none'; 
+            if (loader) loader.style.display = 'none';
             bindScroll();
             schedDraw();
-            
-            // Phase 2: Start loading the rest only when the browser is idle
-            var remaining = [];
-            for (var i = 1; i < TOTAL; i++) remaining.push(i);
-            
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(function() { loadBatch(remaining); });
-            } else {
-                setTimeout(function() { loadBatch(remaining); }, 1000);
-            }
+
+            // Tier 2: Frames 1–39 at full speed (cover first scroll zone)
+            var tier2 = [];
+            for (var i = 1; i < Math.min(40, TOTAL); i++) tier2.push(i);
+            loadBatch(tier2, function () {
+                console.log('[Seq] Tier 2 done — first 40 frames ready');
+
+                // Tier 3: Rest in background at moderate speed
+                var tier3 = [];
+                for (var i = 40; i < TOTAL; i++) tier3.push(i);
+                BATCH_SIZE = 4;
+                loadBatch(tier3);
+            });
         });
+    }
+
+    // Boost load speed when user gets close to the section
+    if ('IntersectionObserver' in window) {
+        var seqObserver = new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting) {
+                console.log('[Seq] Section approaching — boosting to batch 8');
+                BATCH_SIZE = 8; // Full throttle
+                seqObserver.disconnect();
+            }
+        }, { rootMargin: '150% 0px' }); // Fire when 150vh above viewport
+        if (section) seqObserver.observe(section);
     }
 
     function loadFrame(n, callback) {
         if (imgs[n]) { if (callback) callback(); return; }
-        
         var img = new Image();
-        img.onload = function() {
+        img.onload = function () {
             imgs[n] = img;
             loadedCt++;
             updateProgress();
             if (n === targetIdx) schedDraw();
             if (callback) callback();
         };
-        img.onerror = function() {
+        img.onerror = function () {
             loadedCt++;
             console.error('[Seq] 404: ' + PATH + (n + 1) + '.webp');
             if (callback) callback();
@@ -233,15 +248,20 @@
         img.src = PATH + (n + 1) + '.webp';
     }
 
-    function loadBatch(indices) {
-        if (indices.length === 0) return;
+    // loadBatch now accepts an optional completion callback
+    function loadBatch(indices, onComplete) {
+        if (indices.length === 0) { if (onComplete) onComplete(); return; }
         var current = indices.splice(0, BATCH_SIZE);
         var completed = 0;
-        current.forEach(function(idx) {
-            loadFrame(idx, function() {
+        current.forEach(function (idx) {
+            loadFrame(idx, function () {
                 completed++;
                 if (completed === current.length) {
-                    setTimeout(function() { loadBatch(indices); }, 10);
+                    if (indices.length === 0 && onComplete) {
+                        onComplete();
+                    } else {
+                        setTimeout(function () { loadBatch(indices, onComplete); }, 8);
+                    }
                 }
             });
         });
@@ -253,9 +273,6 @@
         if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
     }
 
-    // Start loading only after the main page is completely stable
-    window.addEventListener('load', function() {
-        console.log('[Seq] Window loaded. Waiting 2s for Hero to settle…');
-        setTimeout(preload, 2000); 
-    });
+    // Start immediately on window.load — no artificial delay
+    window.addEventListener('load', preload);
 }());
