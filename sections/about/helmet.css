@@ -1,0 +1,228 @@
+/* ── Helmet Scroll Section ───────────────────────────────────────────────
+   Layout: [Portrait LEFT] [About text RIGHT]
+   Helmet: absolutely positioned, moves via GSAP
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Section container — pinned by GSAP ──────────────── */
+#about-helmet {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: #0a0a0a;            /* matches site dark bg */
+    display: flex;
+    align-items: center;
+    overflow: hidden;               /* clip oversized starting helmet */
+}
+
+.about-helmet-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--page-margin-x, 5vw);
+    min-height: 100vh;
+    gap: 4rem;
+    position: relative;
+}
+
+/* ── LEFT: Portrait ─────────────────────────────────── */
+.about-portrait-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+#about-portrait {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    object-fit: contain;
+    object-position: bottom center;
+    display: block;
+    filter: drop-shadow(0 40px 80px rgba(0,0,0,0.7));
+    user-select: none;
+    pointer-events: none;
+}
+
+/* ── Invisible head target marker ────────────────────
+   Positioned over the portrait's head so JS can read
+   exactly where the helmet must land.
+   Tune top/left to match your portrait's head position. */
+#helmet-target {
+    position: absolute;
+    top: 2%;           /* % from top of portrait-wrap — head is near top */
+    left: 58%;         /* % from left — head is upper-right of portrait */
+    width: 60px;
+    height: 60px;
+    pointer-events: none;
+    /* Debug: uncomment to see target point */
+    /* background: rgba(255,85,9,0.5); border-radius: 50%; */
+}
+
+/* ── RIGHT: About text ──────────────────────────────── */
+.about-helmet-text {
+    position: relative;
+    z-index: 2;        /* above helmet layer */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.about-helmet-label {
+    font-family: var(--font-body, 'SF Pro Display', system-ui, sans-serif);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+}
+
+.about-helmet-heading {
+    font-family: var(--font-accent, 'Brier', serif);
+    font-size: clamp(2.8rem, 5vw, 5.5rem);
+    font-weight: 400;
+    line-height: 1.05;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.about-helmet-heading em {
+    font-style: normal;
+    color: #FF5509;             /* orange accent */
+}
+
+.about-helmet-desc {
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.5);
+    max-width: 42ch;
+    margin: 0;
+}
+
+.about-helmet-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.about-helmet-meta-item {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.05em;
+}
+
+.about-helmet-meta-item strong {
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+}
+
+/* ── HELMET: fixed-layer element driven by GSAP ──────── */
+.helmet-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;                      /* GSAP overrides this instantly with offset */
+    z-index: 10;
+    pointer-events: none;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+#helmet-img {
+    width: 420px;                   /* base size — GSAP scales from here */
+    height: auto;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    /* Remove white background from helmet images */
+    mix-blend-mode: multiply;      /* blends white away against dark bg */
+    /* Fallback shadow for depth */
+    filter:
+        drop-shadow(0 20px 60px rgba(0,0,0,0.6))
+        drop-shadow(0 0 40px rgba(255,85,9,0.08));
+    transition: filter 0.3s ease;
+}
+
+/* Override blend mode for dark-background section (helmets have white bg) */
+#about-helmet #helmet-img {
+    mix-blend-mode: screen;        /* screen on dark = white disappears */
+}
+
+/* ── Scroll hint ─────────────────────────────────────── */
+.about-helmet-scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.3;
+    pointer-events: none;
+    animation: hint-fade 2s ease-in-out infinite alternate;
+}
+
+.about-helmet-scroll-hint span {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.about-helmet-scroll-hint-line {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.4);
+    animation: hint-line 2s ease-in-out infinite;
+}
+
+@keyframes hint-fade {
+    from { opacity: 0.2; }
+    to   { opacity: 0.5; }
+}
+@keyframes hint-line {
+    0%   { transform: scaleY(0); transform-origin: top; }
+    50%  { transform: scaleY(1); transform-origin: top; }
+    51%  { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 900px) {
+    .about-helmet-inner {
+        grid-template-columns: 1fr;
+        padding-top: 6rem;
+        padding-bottom: 4rem;
+    }
+
+    .about-portrait-wrap {
+        order: 1;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .about-helmet-text {
+        order: 2;
+        text-align: center;
+        align-items: center;
+    }
+
+    #about-portrait {
+        max-width: 280px;
+    }
+
+    .about-helmet-heading {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    #helmet-img {
+        width: 260px;
+    }
+}

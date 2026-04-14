@@ -1986,56 +1986,348 @@ if (emailCopyBtn) {
     }
 
     // ── Journey Deck ────────────────────────────────────────────────────
+    const initJourneyDeck = (stageSelector = '.journey-stage') => {
+        const stage  = document.querySelector(stageSelector);
+        const cards  = stage ? gsap.utils.toArray(stage.querySelectorAll('.exp-card')) : [];
+        if (!stage || !cards.length) return;
 
+        // Material Design easing
+        const vw = window.innerWidth;
+        const isTouch = window.matchMedia('(pointer: coarse)').matches || vw < 600;
+
+        // Material Design easing
+        const STD = 'cubic-bezier(0.2,0,0,1)';  // Standard — spatial motion
+        const DEC = 'cubic-bezier(0,0,0.2,1)';  // Decelerate — settle to rest
+
+        // ── Responsive fan spread — scales to viewport so cards never overflow ──
+        // On mobile, we use narrow 260px cards (CSS), allowing us a slightly
+        // wider spread (0.15x) for visibility without clipping.
+        const fanScale = isTouch ? 0.15 : Math.min(1, vw / 1100);
+        const fanSpread = (base) => Math.round(base * (isTouch ? 0.15 : fanScale));
+
+
+
+        const fan = [
+            { x: fanSpread(-450), y: -40, r: isTouch ? -4 : -12, z: 4 },
+            { x: fanSpread(-150), y: -5,  r: isTouch ? -2 : -4,  z: 3 },
+            { x: fanSpread( 150), y: -55, r: isTouch ? 2 : 4,    z: 2 },
+            { x: fanSpread( 450), y: 15,  r: isTouch ? 4 : 12,   z: 1 },
+        ];
+        // Sibling scatter distance also scales with viewport
+        const scatterShift = isTouch ? 0 : Math.round(70 * fanScale);
+
+        // ── Equalize heights ──────────────────────────────────────────
+        const maxH = Math.max(...cards.map(c => c.offsetHeight));
+        // Equalize on desktop. On mobile, keep natural heights.
+        // ALL cards start STACKED at center (x:0, y:0, r:0) — hidden.
+        // The scroll reveal will deal them out to fan positions.
+        cards.forEach((c, i) => gsap.set(c, {
+            height: isTouch ? 'auto' : maxH,
+            position: 'absolute',
+            opacity: 0,
+            x: 0, y: 140,         // ↑ Adjusted: 140px travel distance
+            rotation: i % 2 === 0 ? 0.55 : -0.55,
+            scale: 0.88,          // ← Apple: grow into place (0.88→1.0), not shrink
+            zIndex: fan[i].z,
+            transformPerspective: 1200,
+        }));
+        const stageMargin = vw < 600 ? 50 : 80;
+        stage.style.height = (maxH + stageMargin) + 'px';
+
+        // ── Shared hover state ────────────────────────────────────────
+        let activeIndex  = -1;
+        let zCounter     = 10;  // Last Touch Wins — monotonically incrementing
+        let collapseTimer = null; // Hover-Intent debounce timer
+
+        // ── Per-card quickTo setters (persistent, no conflicts) ───────
+        // These are the ONLY way we animate X/Y/rotations — avoids competing gsap.to() tweens
+        const qSetters = cards.map(card => ({
+            x:   gsap.quickTo(card, 'x',         { duration: 0.38, ease: STD }),
+            y:   gsap.quickTo(card, 'y',         { duration: 0.38, ease: STD }),
+            rx:  gsap.quickTo(card, 'rotationX', { duration: 0.18, ease: STD }), // Short → reactive 'surface' feel
+            ry:  gsap.quickTo(card, 'rotationY', { duration: 0.18, ease: STD }), // Short → reactive 'surface' feel
+            rz:  gsap.quickTo(card, 'rotationZ', { duration: 0.28, ease: STD }),
+            sc:  gsap.quickTo(card, 'scale',     { duration: 0.35, ease: STD }),
+        }));
+
+        // Set per-card perspective only — position is handled by scroll reveal
+        // Cards start at x:0, y:0, rotation:0 (stacked) — set above during equalize.
+
+        // ── Scatter helper — drives ALL sibling positions via quickTo ─
+        // This is the single source of truth for sibling X positions.
+        // Because quickTo is a persistent tween, calling it again just
+        // redirects the current animation — zero conflict, zero jerk.
+        const scatterSiblings = (fromIndex) => {
+            cards.forEach((_, j) => {
+                if (j === fromIndex) return;
+                const targetX = fan[j].x + (j < fromIndex ? -scatterShift : scatterShift);
+                qSetters[j].x(targetX);
+                // Siblings slightly compress vertically toward fan Y
+                qSetters[j].y(fan[j].y);
+            });
+        };
+
+        // ── Collapse helper — return ALL cards to fan POSITIONS ───────
+        // NOTE: z-order is NOT reset here — it's persistent.
+        // The last-touched card stays on top even after the deck collapses.
+        // Only fan X/Y/rotation/scale are restored. Z is owned by zCounter.
+        const collapseFan = () => {
+            cards.forEach((card, j) => {
+                qSetters[j].x(fan[j].x);
+                qSetters[j].y(fan[j].y);
+                qSetters[j].rz(fan[j].r);
+                qSetters[j].rx(0);
+                qSetters[j].ry(0);
+                qSetters[j].sc(1);
+                gsap.to(card, { scale: 1, duration: 0.45, ease: DEC, overwrite: 'auto' });
+
+                const roleEl = card.querySelector('.exp-role');
+                const dateEl = card.querySelector('.exp-date');
+                const metaEl = card.querySelector('.role-meta');
+                if (roleEl) gsap.to(roleEl, { color: 'rgba(255,255,255,0.9)', duration: 0.3, ease: DEC });
+                if (metaEl) gsap.to(metaEl, { color: 'rgba(255,255,255,0.9)', duration: 0.3, ease: DEC });
+                if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.25)', duration: 0.3, ease: DEC });
+            });
+        };
+
+        // ── Wire up per-card events ── (DESKTOP ONLY) ───────────────────
+        if (!isTouch) {
+            cards.forEach((card, i) => {
+                const f = fan[i];
+                const qs = qSetters[i];
+
+                // ENTER ───────────────────────────────────────────────────
+                card.addEventListener('mouseenter', () => {
+                // Cancel any pending collapse (cursor slid from one card to another)
+                clearTimeout(collapseTimer);
+                activeIndex = i;
+
+                // ── Last Touch Wins — dynamic z-index via counter ─────
+                // Increment shared counter and assign to this card.
+                // Previously hovered cards keep their counter values below.
+                // Result: most recently touched card always sits on top.
+                // No resets needed mid-interaction — mathematically clean.
+                gsap.set(card, { zIndex: ++zCounter });
+
+                scatterSiblings(i);
+
+                // Spring pop — back.out gives a subtle elastic overshoot
+                gsap.to(card, { scale: 1.05, duration: 0.3, ease: 'back.out(1.2)', overwrite: 'auto' });
+                qs.y(f.y - 24);  // ← Apple: 16–24px lift max
+                qs.rz(f.r);
+
+                // Color highlights
+                const roleEl = card.querySelector('.exp-role');
+                const dateEl = card.querySelector('.exp-date');
+                const metaEl = card.querySelector('.role-meta');
+                if (roleEl) gsap.to(roleEl, { color: 'var(--accent)', duration: 0.2, ease: STD, overwrite: 'auto' });
+                if (metaEl) gsap.to(metaEl, { color: 'var(--accent)', duration: 0.2, ease: STD, overwrite: 'auto' });
+                if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.5)', duration: 0.2, ease: STD, overwrite: 'auto' });
+
+                if (typeof window.__playHoverSound === 'function') window.__playHoverSound();
+            });
+
+            // MOVE — physics-reactive surface ─────────────────────────
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                // Normalised cursor: -1…+1 from card centre
+                const nx = (e.clientX - rect.left  - rect.width  / 2) / (rect.width  / 2);
+                const ny = (e.clientY - rect.top   - rect.height / 2) / (rect.height / 2);
+
+                // Radial distance from card centre (0=centre, ~1.4=corner)
+                // Used to model surface resistance — further from centre,
+                // cursor 'presses' harder, subtly dampening the lift scale.
+                const d = Math.sqrt(nx * nx + ny * ny);
+
+                // ── Translate (parallax follow) ────────────────────────
+                qs.x(f.x + nx * 10); // ← Apple: <12px subtle parallax
+                qs.y(f.y + ny * 6 - 24);
+
+                // ── 3D Tilt (surface pressure) ─────────────────────────
+                qs.rx(-ny * 5);     // ← Apple/Material: ≤5° tilt
+                qs.ry( nx * 5);
+                qs.rz(f.r + nx * 1.5); // ← Tight wobble, not cartoonish
+
+                // ── Surface Resistance: scale dampening ───────────────
+                // As cursor moves toward card edges (d increases),
+                // scale compresses very slightly — card 'pushes back'.
+                // Δscale is tiny (max ~0.018 at corners) — subtle but physical.
+                const resistScale = 1.08 - d * 0.015;
+                qs.sc(resistScale);
+
+                // ── Cursor Spotlight glow position ────────────────────
+                const pctX = ((e.clientX - rect.left) / rect.width)  * 100;
+                const pctY = ((e.clientY - rect.top)  / rect.height) * 100;
+                card.style.setProperty('--mouse-x', `${pctX}%`);
+                card.style.setProperty('--mouse-y', `${pctY}%`);
+            });
+
+            // LEAVE ─────────────────────────────────────────────────────
+            card.addEventListener('mouseleave', () => {
+                activeIndex = -1;
+
+                // Hover-Intent debounce: give the cursor 60ms to reach the
+                // next card. If it does, mouseenter clears this timer.
+                // If it lands in empty stage-space, collapse fires.
+                collapseTimer = setTimeout(() => {
+                    if (activeIndex === -1) collapseFan();
+                }, 240);
+
+                // Return this card to fan position
+                qSetters[i].x(f.x);
+                qSetters[i].y(f.y);
+                qSetters[i].rx(0);
+                qSetters[i].ry(0);
+                qSetters[i].rz(f.r);
+                gsap.to(card, { scale: 1, duration: 0.38, ease: DEC, overwrite: 'auto' });
+
+                // Reset colors for this card only
+                const roleEl = card.querySelector('.exp-role');
+                const dateEl = card.querySelector('.exp-date');
+                const metaEl = card.querySelector('.role-meta');
+                if (roleEl) gsap.to(roleEl, { color: 'rgba(255,255,255,0.9)', duration: 0.25, ease: DEC, overwrite: 'auto' });
+                if (metaEl) gsap.to(metaEl, { color: 'rgba(255,255,255,0.9)', duration: 0.25, ease: DEC, overwrite: 'auto' });
+                if (dateEl) gsap.to(dateEl, { color: 'rgba(255,255,255,0.25)', duration: 0.25, ease: DEC, overwrite: 'auto' });
+            });
+        });
+    } else {
+        // MOBILE / TOUCH: Simple Tap to Front
+        cards.forEach((card) => {
+            card.addEventListener('click', () => {
+                // Bring to front
+                gsap.set(card, { zIndex: ++zCounter });
+                // Provide audio feedback if enabled
+                if (typeof window.__playHoverSound === 'function') window.__playHoverSound();
+                // Visual feedback: brief pop
+                gsap.fromTo(card, { scale: 0.95 }, { scale: 1, duration: 0.3, ease: 'back.out(1.5)' });
+            });
+        });
+    }
+
+        // ── Stage events — only on non-touch ──
+        if (!isTouch) {
+            const cursorRing = document.querySelector('.cursor-outline');
+
+            stage.addEventListener('mouseleave', () => {
+                // Guard: don't interfere during reveal animation
+                if (stage.classList.contains('deck-animating')) return;
+                clearTimeout(collapseTimer);
+                activeIndex = -1;
+                collapseFan();
+                // Use class-based cursor system
+                if (cursorRing) cursorRing.classList.remove('hover-state');
+            });
+
+            stage.addEventListener('mouseenter', () => {
+                if (stage.classList.contains('deck-animating')) return;
+                // Use class-based cursor system
+                if (cursorRing) cursorRing.classList.add('hover-state');
+            });
+        }
+
+        // ── 4-PHASE COLOR-DRIVEN REVEAL ───────────────────────────────────────────────
+        // The CSS class 'deck-animating' on the stage drives everything:
+        //   Phase 1: Cards appear — instantly in FULL COLOR (class active)
+        //   Phase 2: Pile Up     — remains in FULL COLOR during climb
+        //   Phase 3: Fan Open    — remains in FULL COLOR while spreading
+        //   Phase 4: Cards land  — class removed → CSS transitions to GRAYSCALE default
+        //
+        // pointer-events: none on .deck-animating prevents hover from interfering.
+        ScrollTrigger.create({
+            trigger: stage,
+            start: 'top 75%',
+            once: true,
+            onEnter: () => {
+                // Lock the stage: forces colored state + disables mouse on all cards
+                stage.classList.add('deck-animating');
+                // NOTE: opacity managed per-card in onStart—each card appears
+                // solid only the moment it begins climbing, preventing ghost cards
+                // from being visible at y:200 while waiting their turn.
+
+                // ── Phase 1 + 2: Pile Up — DUAL STAGGER (premium rebuild) ───────
+                // Two synchronized native-stagger tweens fired in parallel.
+                // Same stagger schedule = GSAP's internal engine handles both.
+                // No per-card forEach, no onStart rotation snap = zero jerk.
+
+                // [A] Opacity: emerge — matches widened movement stagger
+                gsap.to(cards, {
+                    opacity: 1,
+                    duration: 0.25,
+                    stagger: { each: 0.28, from: 'end' }, // ← Wide gap = each card is an event
+                    ease: 'none',
+                    force3D: true,
+                    overwrite: 'auto',
+                });
+
+                // [B] Movement: Physics-correct gravity model (No Bounce)
+                // expo.out = exponential deceleration. The card accelerates through
+                // the climb and decelerates SHARPLY at the end for a premium 'snap'.
+                // Total sequence: ~2.54s for 4 cards
+                gsap.to(cards, {
+                    y: 0,
+                    scale: 1.0,  
+                    rotation: 0,
+                    duration: 1.7,
+                    ease: 'expo.out',
+                    stagger: { each: 0.28, from: 'end' }, // 280ms gap — each card is distinct
+                    force3D: true,
+                    overwrite: 'auto',
+                    onComplete: function() {
+                        // Guard: only fire fan-out when the LAST card (index 0) lands
+                        if (this.targets()[0] !== cards[0]) return;
+
+                        // ── Phase 3: Fan Open ─────────────────────────────
+                        gsap.to(cards, {
+                            x: (idx) => fan[idx].x,
+                            y: (idx) => fan[idx].y,
+                            rotation: (idx) => fan[idx].r,
+                            scale: 1,
+                            stagger: { each: 0.08, from: 'end' },
+                            duration: 0.7,    // was 0.55 — touch more grace
+                            ease: 'back.out(1.4)',
+                            delay: 0,         // was 0.02 — no pause between pile-up and fan-out
+                            onComplete: () => {
+                                // Hard-snap for pixel-perfect hover registration
+                                cards.forEach((c, idx) => {
+                                    gsap.set(c, {
+                                        x: fan[idx].x,
+                                        y: fan[idx].y,
+                                        rotation: fan[idx].r,
+                                        scale: 1,
+                                        transformPerspective: 1200,
+                                    });
+                                });
+
+                                // Phase 4: colour→grayscale settle (0.65s, Apple HIG)
+                                stage.classList.add('deck-settling');
+                                requestAnimationFrame(() => {
+                                    stage.classList.remove('deck-animating');
+                                });
+                                setTimeout(() => {
+                                    stage.classList.remove('deck-settling');
+                                }, 750); // 650ms transition + small buffer
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        // NOTE: Draggable intentionally disabled.
+        // It uses its own x,y engine which conflicts with quickTo hover setters,
+        // causing snap-back on drag release. Cards can be clicked/tapped to front.
+    };
+
+    // Instant init: two rAF frames ensures DOM is fully painted and
+    // offsetHeight measurements are accurate — no artificial 500ms delay.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        initJourneyDeck('#journey .journey-stage');       // Experience deck
+        initJourneyDeck('#testimonials .testimonial-stage'); // Testimonials deck
+    }));
 
     // ── Auto-Activation ───────────────────────────────────────
     // Enable sound on first interaction anywhere
     window.addEventListener('click', () => {
         if (!soundEnabled) enableSound();
     }, { once: true });
-    
-    // ── F1 Identify Helmet Interaction ────────────────────────
-    const f1IdentityBlock = document.getElementById('f1-helmet-interaction');
-    const f1Helmet = document.getElementById('f1-helmet');
-
-    if (f1IdentityBlock && f1Helmet && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetRotX = 0;
-        let targetRotY = 0;
-        let currentRotX = 0;
-        let currentRotY = 0;
-        const BASE_ROT_Z = 15;
-
-        f1IdentityBlock.addEventListener('mousemove', (e) => {
-            const rect = f1IdentityBlock.getBoundingClientRect();
-            // normalized coordinates from center of block: -1 left to 1 right
-            const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-            const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-            
-            // X-axis rotation depends on Y mouse value (tilt up/down)
-            // Y-axis rotation depends on X mouse value (turn left/right)
-            targetRotY = x * -10; 
-            targetRotX = y * 10;
-        });
-
-        f1IdentityBlock.addEventListener('mouseleave', () => {
-            targetRotX = 0;
-            targetRotY = 0;
-        });
-
-        function renderHelmet() {
-            currentRotX += (targetRotX - currentRotX) * 0.08;
-            currentRotY += (targetRotY - currentRotY) * 0.08;
-            
-            f1Helmet.style.transform = `rotateZ(${BASE_ROT_Z}deg) rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
-            
-            requestAnimationFrame(renderHelmet);
-        }
-        renderHelmet();
-    }
-
-    // --- F1 Career Standings: hover-reveal is pure CSS now, no JS needed ---
-    // (toggleF1Row removed, onclick attributes removed from HTML)
 
 }());

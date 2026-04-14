@@ -1,0 +1,129 @@
+/* ── About Sequence Scrub Section ────────────────────────────────────────────
+   3-phase cinematic scroll:
+     Phase 1 (0–90%):   canvas inner scales 0.6 → 1.0 (dark mat visible)
+     Phase 2 (90–99%):  #e5e4e0 smoke bleeds in
+     Phase 3 (99–100%): hold white → flows into About section
+   ────────────────────────────────────────────────────────────────────────── */
+
+#about-sequence {
+    position: relative;
+    width: 100%;
+    height: 320vh;
+    background: #1d1d1d;
+}
+
+/* Sticky wrapper — MUST NOT have transform (transforms break position:sticky) */
+#sequence-canvas-wrap {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #1d1d1d;
+}
+
+/* Inner wrapper — receives the scale transform (NOT the sticky element) */
+#sequence-canvas-inner {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 0px;
+
+    transform-origin: center center;
+    will-change: transform;
+    transform: scale(0.7);    /* JS animates 0.7 → 1.0 */
+}
+
+#sequence-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Phase 2 smoke — JS drives opacity 0 → 1 */
+#sequence-smoke {
+    position: absolute;
+    inset: 0;
+    background: #e5e4e0;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Preloader */
+#sequence-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: #1d1d1d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    pointer-events: none;
+}
+
+#sequence-loader.hidden { display: none; }
+
+.seq-loader-bar-track {
+    width: 160px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.seq-loader-bar-fill {
+    position: absolute;
+    inset: 0 100% 0 0;
+    background: #FF5509;
+}
+
+.seq-loader-label {
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* Overlay text — hidden */
+.seq-overlay {
+    display: none;
+}
+
+.seq-title {
+    font-family: var(--font-accent, 'Brier', serif);
+    font-size: clamp(3rem, 6vw, 7rem);
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    margin: 0 0 0.75rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s cubic-bezier(0.2, 0, 0, 1),
+                transform 0.5s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.seq-title em { font-style: normal; color: #FF5509; }
+
+.seq-subtitle {
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1) 0.08s,
+                transform 0.4s cubic-bezier(0.2, 0, 0, 1) 0.08s;
+}
+
+.seq-overlay.visible .seq-title,
+.seq-overlay.visible .seq-subtitle {
+    opacity: 1;
+    transform: translateY(0);
+}
