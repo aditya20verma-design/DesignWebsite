@@ -176,33 +176,63 @@
         setTimeout(function () { loader.style.display = 'none'; }, 450);
     }
 
-    // ── Preload ───────────────────────────────────────────────────────────────
+    // ── Smart Sequential Preload ─────────────────────────────────────────────
+    var BATCH_SIZE = 4; 
+
     function preload() {
-        console.log('[Seq] Preloading ' + TOTAL + ' frames…');
-        for (var i = 0; i < TOTAL; i++) {
-            (function (n) {
-                var img = new Image();
-                img.onload = function () {
-                    imgs[n] = img;
-                    loadedCt++;
-                    if (n === 0 && !ready) {
-                        ready = true;
-                        hideLoader();
-                        bindScroll();
-                        schedDraw();
-                    }
-                    var pct = loadedCt / TOTAL;
-                    if (bar)   bar.style.right   = ((1 - pct) * 100).toFixed(1) + '%';
-                    if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
-                    if (n === targetIdx) schedDraw();
-                };
-                img.onerror = function () {
-                    loadedCt++;
-                    console.error('[Seq] 404: ' + PATH + (n + 1) + '.webp');
-                };
-                img.src = PATH + (n + 1) + '.webp';
-            }(i));
-        }
+        console.log('[Seq] Starting smart preload (' + TOTAL + ' frames)');
+        
+        // 1. Load the first frame immediately to unlock the UI
+        loadFrame(0, function() {
+            ready = true;
+            hideLoader();
+            bindScroll();
+            schedDraw();
+            
+            // 2. Once first frame shows, load rest in batches
+            var remaining = [];
+            for (var i = 1; i < TOTAL; i++) remaining.push(i);
+            loadBatch(remaining);
+        });
+    }
+
+    function loadFrame(n, callback) {
+        if (imgs[n]) { if (callback) callback(); return; }
+        
+        var img = new Image();
+        img.onload = function() {
+            imgs[n] = img;
+            loadedCt++;
+            updateProgress();
+            if (n === targetIdx) schedDraw();
+            if (callback) callback();
+        };
+        img.onerror = function() {
+            loadedCt++;
+            console.error('[Seq] 404: ' + PATH + (n + 1) + '.webp');
+            if (callback) callback();
+        };
+        img.src = PATH + (n + 1) + '.webp';
+    }
+
+    function loadBatch(indices) {
+        if (indices.length === 0) return;
+        var current = indices.splice(0, BATCH_SIZE);
+        var completed = 0;
+        current.forEach(function(idx) {
+            loadFrame(idx, function() {
+                completed++;
+                if (completed === current.length) {
+                    setTimeout(function() { loadBatch(indices); }, 10);
+                }
+            });
+        });
+    }
+
+    function updateProgress() {
+        var pct = loadedCt / TOTAL;
+        if (bar)   bar.style.right   = ((1 - pct) * 100).toFixed(1) + '%';
+        if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
     }
 
     setTimeout(preload, 50);
