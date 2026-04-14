@@ -323,17 +323,11 @@ const ASSETS = {
     window._senseNavBg = senseBackground;
 
     // ── Scroll Hint: Hero-only visibility ───────────────────────────────────
-    // Toggle .scroll-visible class as hero enters/leaves viewport.
-    // CSS handles the fade via transition — no GSAP opacity conflict.
+    // Always remove when scrolling past hero, always restore when coming back.
     ScrollTrigger.create({
         trigger: '#hero',
         start: 'bottom 85%',
-        onEnter:     () => {
-            // Only hide if we are genuinely past the hero
-            if (window.scrollY > window.innerHeight * 0.5) {
-                document.getElementById('scroll-hint')?.classList.remove('scroll-visible');
-            }
-        },
+        onEnter:     () => document.getElementById('scroll-hint')?.classList.remove('scroll-visible'),
         onLeaveBack: () => document.getElementById('scroll-hint')?.classList.add('scroll-visible'),
     });
 }());
@@ -1243,41 +1237,16 @@ magneticElements.forEach((el) => {
                 onStart: () => {
                     const st = document.getElementById('sound-toggle');
                     if (st) st.style.pointerEvents = 'auto';
-                    // Reveal scroll hint in hero — add class, don't fight GSAP opacity
+                    // Reveal scroll hint in hero — only add if still at top
                     const sh = document.getElementById('scroll-hint');
                     if (sh) {
                         sh.style.pointerEvents = 'auto';
-                        sh.classList.add('scroll-visible');
-                        // Safety: re-apply 150ms later in case ScrollTrigger's onEnter
-                        // fires in the same tick and removes the class (race condition fix)
-                        setTimeout(() => {
-                            if (window.scrollY < window.innerHeight * 0.5) {
-                                sh.classList.add('scroll-visible');
-                            }
-                        }, 150);
-                    }
-                    // ── Robust "Double Nudge" Scroll ───────────────────────
-                    // 1. Wait for animations to settle
-                    // 2. Perform a gentle 5px nudge (visible feedback)
-                    // 3. Refresh ScrollTrigger to ensure zero-point is locked
-                    setTimeout(() => {
-                        if (window.scrollY < 10) {
-                            if (window.__lenisInstance) {
-                                window.__lenisInstance.scrollTo(5, { 
-                                    duration: 1.0, 
-                                    easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // easeInOut
-                                    onComplete: () => {
-                                        window.__lenisInstance.scrollTo(0, { duration: 0.5 });
-                                        ScrollTrigger.refresh();
-                                    }
-                                });
-                            } else {
-                                window.scrollTo({ top: 5, behavior: 'smooth' });
-                                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 1000);
-                                ScrollTrigger.refresh();
-                            }
+                        if (window.scrollY < window.innerHeight * 0.5) {
+                            sh.classList.add('scroll-visible');
                         }
-                    }, 1200);
+                    }
+                    // Refresh ScrollTrigger once after loader finishes
+                    setTimeout(() => ScrollTrigger.refresh(), 300);
                 }
             });
 
