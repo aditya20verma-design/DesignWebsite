@@ -188,22 +188,29 @@
     }
 
     // ── Smart Sequential Preload ─────────────────────────────────────────────
-    var BATCH_SIZE = 4; 
+    // Optimized for "Zero Impact" on Hero Load
+    var BATCH_SIZE = 2; // Smaller batches = less main-thread/network impact
 
     function preload() {
-        console.log('[Seq] Starting smart preload (' + TOTAL + ' frames)');
+        console.log('[Seq] Starting background preload…');
         
-        // 1. Load the first frame immediately to unlock the UI
+        // Phase 1: Load just the first frame to have it ready for when the user scrolls down
         loadFrame(0, function() {
             ready = true;
-            hideLoader();
+            // Note: loader logic removed/changed if you want it completely invisible initially
+            if (loader) loader.style.display = 'none'; 
             bindScroll();
             schedDraw();
             
-            // 2. Once first frame shows, load rest in batches
+            // Phase 2: Start loading the rest only when the browser is idle
             var remaining = [];
             for (var i = 1; i < TOTAL; i++) remaining.push(i);
-            loadBatch(remaining);
+            
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(function() { loadBatch(remaining); });
+            } else {
+                setTimeout(function() { loadBatch(remaining); }, 1000);
+            }
         });
     }
 
@@ -246,5 +253,9 @@
         if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
     }
 
-    setTimeout(preload, 50);
+    // Start loading only after the main page is completely stable
+    window.addEventListener('load', function() {
+        console.log('[Seq] Window loaded. Waiting 2s for Hero to settle…');
+        setTimeout(preload, 2000); 
+    });
 }());
