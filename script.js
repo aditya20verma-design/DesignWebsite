@@ -264,8 +264,8 @@ const ASSETS = {
         if (pill) {
             const isLight    = avgLum > 140;
             const plateColor = isLight ? 'rgb(229, 228, 224)' : 'rgb(29, 29, 29)';
-            // Ripples/rings must always be orange per brand request
-            const ringColor  = '#FF5509';
+            // Ripples/rings must always be orange at 70% opacity per request
+            const ringColor  = 'rgba(255, 85, 9, 0.7)';
             pill.style.setProperty('--rider-plate',      plateColor);
             pill.style.setProperty('--rider-ring-color', ringColor);
         }
