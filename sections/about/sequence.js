@@ -57,8 +57,11 @@
     ];
 
     // Phase boundaries (fraction of total scroll 0–1)
-    var P1_END = 0.85;   // frames + scale finish at 85%
-    var P2_END = 0.96;   // smoke fully in at 96%
+    // P1 (scale): 0 -> 0.85
+    // P2 (smoke): 0.85 -> 0.99 (fully white)
+    var P1_END = 0.85;
+    var P2_END = 0.99;
+    var FRAME_P = 0.96; // Frames play from 0 to 0.96 progress
 
     // ── DOM ───────────────────────────────────────────────────────────────────
     var section = document.getElementById('about-sequence');
@@ -91,6 +94,7 @@
         canvas.style.top    = '';
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'medium'; // Improved performance during scrub
+        
         scrollRange = section.offsetHeight - window.innerHeight;
         schedDraw();
     }
@@ -165,7 +169,8 @@
         }
 
         // ── Frame index ───────────────────────────────────────────────────────
-        var idx = Math.round(p * (TOTAL - 1));
+        // Frames finish at FRAME_P progress to allow a white gap at the end
+        var idx = Math.round(Math.min(1, p / FRAME_P) * (TOTAL - 1));
         if (idx !== targetIdx) { targetIdx = idx; schedDraw(); }
     }
 

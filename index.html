@@ -93,6 +93,7 @@
     <link rel="stylesheet" href="style.css?v=96">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=97">
     <link rel="stylesheet" href="sections/about/sequence.css?v=16">
+    <link rel="stylesheet" href="sections/about/about.css?v=3">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -453,103 +454,196 @@
                         <div id="sequence-smoke"></div>
                     </div>
 
-                    <!-- Overlay text — driven by frame windows -->
-                    <div class="seq-overlay">
-                        <p class="seq-subtitle"></p>
+                    <!-- Overlay text -->
+                    <div class="seq-overlay" style="display: none;">
                         <h2 class="seq-title"></h2>
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- About Section -->
-
-            <section class="about-section hover-trigger" id="about" style="background: #e5e4e0; color: #1a1a1a;">
-                <div class="about-grid about-grid--single">
-                    <div class="about-col-left fade-up-minimal">
-                        <p class="about-label" style="color: rgba(26,26,26,0.5);">About Me</p>
-                        <p class="about-desc" style="color: #1a1a1a;">
-                            Product Designer with 3+ years across healthcare, fintech &amp; architecture. Skilled at
-                            transforming complex systems into intuitive, accessible experiences. Specialized in scaling
-                            design systems, optimizing patient flows, and driving measurable growth. Background in
-                            architecture with an M.Des, applying systems thinking and research-driven design to complex
-                            challenges.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-
-            <!-- ── Journey Deck Section ─────────────────────────────────── -->
-            <section class="journey-section" id="journey" style="background: #e5e4e0;">
-                <div class="journey-header fade-up-minimal">
-                    <p class="about-label" style="color: rgba(26,26,26,0.5);">Experience</p>
-                </div>
-                <div class="journey-stage">
-                    <!-- Card 1 (Front/Recent — Narayana) -->
-                    <div class="exp-card" data-index="0">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/narayana.svg" class="exp-card-logo"
-                                    alt="Narayana Health Logo">
-                                <span class="exp-card-company">Narayana Health</span>
-                            </div>
-                            <span class="exp-date">Nov 2024 - Present</span>
-                        </div>
-                        <h3 class="exp-role">Product Designer</h3>
-                        <p class="exp-desc">Led Book Appointment, Health Checkup & Smart Health Records - 3 modules
-                            powering India's largest hospital network.<br>Result: +74% app downloads, 22% fewer
-                            drop-offs, 30% reduction in manual check-ins.</p>
-                    </div>
-
-                    <!-- Card 2 (BranchX) -->
-                    <div class="exp-card" data-index="1">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/branchx.svg" class="exp-card-logo"
-                                    alt="BranchX Logo">
-                                <span class="exp-card-company">BranchX</span>
-                            </div>
-                            <span class="exp-date">Sep 2023 - Nov 2024</span>
-                        </div>
-                        <h3 class="exp-role">UX Designer</h3>
-                        <p class="exp-desc">End-to-end design of neobanking product - onboarding to CRM - scaled to
-                            100K+ users. Built design system that cut dev handoff time 30%.</p>
-                    </div>
-
-                    <!-- Card 3 (Avanatri) -->
-                    <div class="exp-card" data-index="2">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/avanatri.svg" class="exp-card-logo"
-                                    alt="Avantari Technologies Logo">
-                                <span class="exp-card-company">Avantari Technologies</span>
-                            </div>
-                            <span class="exp-date">Jun 2022 - Aug 2022</span>
-                        </div>
-                        <h3 class="exp-role">Product Designer <span class="role-meta">• Internship</span></h3>
-                        <p class="exp-desc">Designed B2B internal tools & component libraries. Delivered physical
-                            product prototype using DFMA - shows range across digital and industrial design.</p>
-                    </div>
-
-                    <!-- Card 4 (Architecture) -->
-                    <div class="exp-card" data-index="3">
-                        <div class="exp-card-header">
-                            <div class="exp-card-left">
-                                <img src="sections/about/assets/Company logos/architecture.svg" class="exp-card-logo"
-                                    alt="Architecture Logo">
-                                <span class="exp-card-company">Architecture</span>
-                            </div>
-                            <span class="exp-date">~1.5 years</span>
-                        </div>
-                        <h3 class="exp-role">Architect <span class="role-meta">• Prior experience</span></h3>
-                        <p class="exp-desc">Where systems thinking started. Architecture taught me every decision
-                            cascades - that instinct now drives how I approach every product problem.</p>
+                        <p class="seq-subtitle"></p>
                     </div>
 
                 </div>
             </section>
+
+            <!-- ── About Me Section ──────────────────────────────────────────
+                 Fades in on top of the white smoke frame. No background cut.
+                 F1 Timing Board × Apple Minimalism aesthetic.
+                 We use margin-top: -100vh to overlap the sequence pin seamlessly.
+            ──────────────────────────────────────────────────────────────── -->
+            <section id="about" aria-label="About Me">
+
+                <div id="about-me" aria-label="About Aditya Verma">
+                    <div class="about-me__inner">
+
+                        <!-- 1. IDENTITY BLOCK -->
+                        <div class="about-me__identity" id="identity-parent">
+                            <p class="about-me__identity-line1">
+                                <span class="mask-line"><span class="mask-text">Product Designer&thinsp;&middot;&thinsp;3Y</span></span>
+                            </p>
+                            <p class="about-me__identity-line2">
+                                <span class="mask-line"><span class="mask-text">Architect <span class="about-me__arrow">&#8594;</span> UX&thinsp;/&thinsp;Product</span></span>
+                            </p>
+                        </div>
+
+                        <div class="about-me__rule rule-anim"></div>
+
+                        <!-- 2. CAREER PROGRESSION -->
+                        <div class="about-me__career">
+                            <p class="about-me__section-label">Career Progression</p>
+
+                            <div class="about-me__board" role="list">
+
+                                <!-- P1 — Narayana Health (current) -->
+                                <div class="about-me__row about-me__row--p1" role="listitem">
+                                    <span class="about-me__pos">
+                                        <span class="mask-line"><span class="mask-text">P1</span></span>
+                                    </span>
+
+                                    <div class="about-me__company-block">
+                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
+                                            <img
+                                                src="sections/about/assets/Company logos/narayana.svg"
+                                                alt="Narayana Health"
+                                                class="about-me__logo"
+                                                width="56" height="18">
+                                            <div class="about-me__company-info">
+                                                <span class="about-me__company-name">Narayana Health</span>
+                                                <span class="about-me__role">Assoc. Product Designer</span>
+                                            </div>
+                                        </div></div>
+                                    </div>
+
+                                    <div class="about-me__duration-col">
+                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
+                                            <span class="about-me__duration">2024 — Present</span>
+                                            <div class="about-me__live" aria-label="Currently active">
+                                                <span class="about-me__live-dot" aria-hidden="true"></span>
+                                                <span class="about-me__live-text">Live</span>
+                                            </div>
+                                        </div></div>
+                                    </div>
+                                </div>
+
+                                <!-- P2 — BranchX -->
+                                <div class="about-me__row about-me__row--secondary" role="listitem">
+                                    <span class="about-me__pos">
+                                        <span class="mask-line"><span class="mask-text">P2</span></span>
+                                    </span>
+
+                                    <div class="about-me__company-block">
+                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
+                                            <img
+                                                src="sections/about/assets/Company logos/branchx.svg"
+                                                alt="BranchX"
+                                                class="about-me__logo"
+                                                width="60" height="18">
+                                            <div class="about-me__company-info">
+                                                <span class="about-me__company-name">BranchX</span>
+                                                <span class="about-me__role">UX Designer</span>
+                                            </div>
+                                        </div></div>
+                                    </div>
+
+                                    <div class="about-me__duration-col">
+                                        <div class="mask-line"><div class="mask-text">
+                                            <span class="about-me__duration">2023 — 2024</span>
+                                        </div></div>
+                                    </div>
+                                </div>
+
+                                <!-- P3 — Avanatri -->
+                                <div class="about-me__row about-me__row--secondary" role="listitem">
+                                    <span class="about-me__pos">
+                                        <span class="mask-line"><span class="mask-text">P3</span></span>
+                                    </span>
+
+                                    <div class="about-me__company-block">
+                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
+                                            <img
+                                                src="sections/about/assets/Company logos/avanatri.svg"
+                                                alt="Avanatri Technologies"
+                                                class="about-me__logo"
+                                                width="60" height="18">
+                                            <div class="about-me__company-info">
+                                                <span class="about-me__company-name">Avanatri Technologies</span>
+                                                <span class="about-me__role">Product Design Intern</span>
+                                            </div>
+                                        </div></div>
+                                    </div>
+
+                                    <div class="about-me__duration-col">
+                                        <div class="mask-line"><div class="mask-text">
+                                            <span class="about-me__duration">2022</span>
+                                        </div></div>
+                                    </div>
+                                </div>
+
+                                <!-- P0 — Architect -->
+                                <div class="about-me__row about-me__row--secondary" role="listitem">
+                                    <span class="about-me__pos">
+                                        <span class="mask-line"><span class="mask-text">P0</span></span>
+                                    </span>
+
+                                    <div class="about-me__company-block">
+                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
+                                            <img
+                                                src="sections/about/assets/Company logos/architecture.svg"
+                                                alt="Architecture"
+                                                class="about-me__logo"
+                                                width="48" height="18">
+                                            <div class="about-me__company-info">
+                                                <span class="about-me__company-name">Architect</span>
+                                                <span class="about-me__role">Prior experience</span>
+                                            </div>
+                                        </div></div>
+                                    </div>
+
+                                    <div class="about-me__duration-col">
+                                        <div class="mask-line"><div class="mask-text">
+                                            <span class="about-me__duration">~1.5 yrs</span>
+                                        </div></div>
+                                    </div>
+                                </div>
+
+                            </div><!-- /.about-me__board -->
+                        </div><!-- /.about-me__career -->
+
+                        <div class="about-me__rule rule-anim"></div>
+
+                        <!-- 3. THINKING STATEMENTS -->
+                        <div class="about-me__thinking" aria-label="Design philosophy">
+                            <span class="about-me__statement">
+                                <span class="mask-line"><span class="mask-text">Systems Over Screens</span></span>
+                            </span>
+                            <span class="about-me__statement">
+                                <span class="mask-line"><span class="mask-text">Clarity Over Complexity</span></span>
+                            </span>
+                            <span class="about-me__statement">
+                                <span class="mask-line"><span class="mask-text">Real Users Over Assumptions</span></span>
+                            </span>
+                        </div>
+
+                        <div class="about-me__rule rule-anim"></div>
+
+                        <!-- 4. TRANSITION LINE -->
+                        <div class="about-me__transition-line">
+                            <p class="about-me__transition-text">
+                                <span class="mask-line">
+                                    <span class="mask-text">Architecture <span class="about-me__arrow">&#8594;</span> Product Design</span>
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- 5. CLOSING LINE -->
+                        <div class="about-me__closing">
+                            <p class="about-me__closing-text">
+                                <span class="mask-line"><span class="mask-text">Good Design Feels Inevitable</span></span>
+                            </p>
+                        </div>
+
+                    </div><!-- /.about-me__inner -->
+                </div><!-- /#about-me -->
+
+            </section>
+
 
             <!-- ── Testimonials Deck Section ──────────────────────────── -->
             <!-- Content rendered by sections/about/testimonials.config.js -->
@@ -564,7 +658,6 @@
 
 
             <!-- Contact / Footer -->
-
             <footer class="footer-section" id="contact">
                 <div class="footer-grid">
                     <div class="footer-left">
@@ -714,13 +807,13 @@
     <!-- Section config scripts: inject dynamic content BEFORE script.js measures DOM -->
     <script src="sections/about/testimonials.config.js?v=1"></script>
 
+    <script src="sections/about/about.js?v=5"></script>
     <script src="script.js?v=147"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>
     <!-- About Sequence: image scrub engine (needs GSAP + ScrollTrigger) -->
     <script src="sections/about/sequence.js?v=28"></script>
-
 </body>
 
 </html>

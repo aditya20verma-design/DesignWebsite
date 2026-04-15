@@ -8,7 +8,8 @@
 #about-sequence {
     position: relative;
     width: 100%;
-    height: 320vh;
+    /* 350vh for scrub + 100vh for overlap with about-me section */
+    height: 450vh;
     background: #1d1d1d;
 }
 
