@@ -39,11 +39,7 @@
         if (idx === drawnIdx) return;
         drawnIdx = idx;
 
-        // Blend contain→cover based on CSS scale progress (0.7→1.0)
-        var t         = Math.max(0, Math.min(1, (currentCssScale - 0.7) / 0.3));
-        var scContain = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-        var scCover   = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-        var sc        = scContain + (scCover - scContain) * t;
+        var sc        = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
         var dx        = (canvas.width  - img.naturalWidth  * sc) / 2;
         var dy        = (canvas.height - img.naturalHeight * sc) / 2;
         
@@ -83,7 +79,6 @@
 
     // ── Canvas sizing — always full viewport ─────────────────────────────────────────
     var scrollRange  = 0;
-    var currentCssScale = 0.7; // tracks live CSS scale — drives contain→cover blend
 
     function resize() {
         canvas.width  = window.innerWidth;
@@ -148,16 +143,6 @@
         // p = 0 when section top hits viewport top, p = 1 at section bottom
         var rectTop = section.getBoundingClientRect().top;
         var p = Math.max(0, Math.min(1, -rectTop / scrollRange));
-
-        // ── Phase 1: scale 0.4 → 1.0 + cinematic tilt (0 to P1_END) ─────────────
-        var sp1   = easeOutCubic(Math.min(p / P1_END, 1));
-        var scale = 0.7 + 0.3 * sp1;   // 0.7 → 1.0
-        currentCssScale = scale;        // keep draw blend in sync
-        
-        if (Math.abs(scale - lastScale) > 0.0003) {
-            lastScale = scale;
-            inner.style.transform = 'scale(' + scale.toFixed(4) + ')';
-        }
 
         // ── Phase 2: smoke opacity 0 → 1 (P1_END to P2_END) ─────────────────
         if (smoke) {
