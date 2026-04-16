@@ -962,7 +962,7 @@ nav.nav--hero .nav-link {
 .content-wrapper {
     position: relative;
     z-index: 2;
-    background-color: var(--bg-color);
+    background-color: var(--color-neutral-100); /* Applies light theme #e5e4e0 to the work container */
     padding-top: var(--fluid-md);
 }
 
@@ -972,8 +972,10 @@ nav.nav--hero .nav-link {
     position: relative;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--project-divider);
+    border-bottom: 1px solid var(--border-on-light);
     overflow: hidden;
+    background-color: var(--color-neutral-100);
+    color: var(--text-inverted);
 }
 
 .project-bg-text {
@@ -982,8 +984,8 @@ nav.nav--hero .nav-link {
     font-size: clamp(4rem, 18vw, 18vw);
     font-weight: 600;
     letter-spacing: -0.05em;
-    -webkit-text-stroke: 1px var(--project-bg-stroke);
-    color: var(--project-bg-text);
+    -webkit-text-stroke: 1px rgba(0,0,0,0.06);
+    color: transparent;
     white-space: nowrap;
     z-index: 0;
     pointer-events: none;
@@ -1053,6 +1055,7 @@ nav.nav--hero .nav-link {
     letter-spacing: -0.02em;
     margin-top: 0.75rem;
     margin-bottom: 1rem;
+    color: var(--text-inverted);
 }
 
 .project-meta {
@@ -1062,7 +1065,7 @@ nav.nav--hero .nav-link {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: var(--text-secondary);
+    color: var(--color-neutral-600);
     margin-bottom: 0;
 }
 
@@ -1072,7 +1075,7 @@ nav.nav--hero .nav-link {
     line-height: var(--text-body-lh);
     font-weight: var(--text-body-weight);
     max-width: 40ch;
-    color: var(--text-secondary);
+    color: var(--color-neutral-700);
     margin-top: 1.25rem;
     margin-bottom: 2rem;
 }
@@ -1086,8 +1089,8 @@ nav.nav--hero .nav-link {
     width: fit-content;
     gap: 0.5rem;
     padding: 0.875rem 1.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: var(--main-light);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: var(--text-inverted);
     border-radius: 40px;
     text-decoration: none;
     font-family: var(--font-ui);
@@ -1098,7 +1101,7 @@ nav.nav--hero .nav-link {
     white-space: nowrap;
 }
 
-.view-btn:hover { border-color: var(--btn-border-hover); }
+.view-btn:hover { border-color: rgba(0, 0, 0, 0.8); }
 .view-btn:hover .hover-stagger .stagger-up span  { transform: translateY(-100%); }
 .view-btn:hover .hover-stagger .stagger-down span { transform: translateY(-100%); }
 
