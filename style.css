@@ -200,14 +200,16 @@ body {
     /* Hidden via JS once the SVG mask takes over */
 }
 
-/* ② AV wordmark wrapper — centered, clips children for line-reveal */
+/* ② AV wordmark wrapper — flex column: logo on top, progress below */
 .loader-logo-wrap {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 3;         /* always above the "2" SVG (z-index 2) */
+    gap: 28px;              /* space between AV logo and progress bar */
+    z-index: 3;
     pointer-events: none;
 }
 
@@ -239,51 +241,64 @@ body {
 }
 
 
-/* ── Loader: Progress counter ────────────────────────────────────────────────
-   Large ultralight numeral in bottom-right. Shows 0 → 100 tied to real load.
-   SF Pro Display at weight 200 — the same system font as the site, consistent.
-   transform-origin bottom-right so it feels anchored to its corner.
-   tabular-nums: prevents layout jump as digit count changes (1→2→3 digits).
+/* ── Loader: Inline progress system ────────────────────────────────────────
+   Sits directly below the AV wordmark (flex-column gap in logo-wrap).
+   Ghost track: 1px, very faint. Fill: grows left→right via width.
+   Number: 9px monospace, floats 15px above track tip, slides with fill.
+   Width (130px) matches the AV logo for clean vertical alignment.
    ─────────────────────────────────────────────────────────────────────────── */
-.loader-counter {
-    position: absolute;
-    bottom:   clamp(1.75rem, 3.5vw, 3rem);
-    right:    clamp(1.75rem, 3.5vw, 3rem);
-    z-index:  4;   /* above panel, below nothing */
-    font-family: var(--font-sf);
-    font-size:   clamp(80px, 10.5vw, 148px);
-    font-weight: 200;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
-    color: rgba(0, 0, 0, 0.82);
-    opacity: 0;                    /* GSAP fades in */
-    pointer-events: none;
+/* Outer wrapper — only controls width + opacity-fade-in */
+.loader-progress-wrap {
+    width:   130px;      /* Matches AV logo width (130px) exactly */
+    opacity: 0;          /* GSAP fades in after logo entrance */
     will-change: opacity;
-    /* Anchor scaling to bottom-right so it doesn't jump */
-    transform-origin: bottom right;
+    pointer-events: none;
 }
 
-/* ── Loader: Progress line ────────────────────────────────────────────────────
-   1.5px line at the very bottom of the loader. Grows left→right via scaleX.
-   Using transform instead of width change = GPU-composited, zero jank.
-   transform-origin: left center so it grows from the left edge.
-   ─────────────────────────────────────────────────────────────────────────── */
-.loader-line {
-    position: absolute;
-    bottom:   0;
-    left:     0;
-    width:    100%;
-    height:   1.5px;
-    z-index:  4;
-    background: rgba(0, 0, 0, 0.50);
-    transform: scaleX(0);
-    transform-origin: left center;
-    opacity: 0;                    /* GSAP fades in */
-    pointer-events: none;
-    will-change: transform, opacity;
+/* Ghost track — the full-width underline that shows what’s coming */
+.loader-progress-track {
+    position: relative;
+    width: 100%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.15);
+    overflow: visible;   /* number floats above, not clipped */
 }
+
+/* Growing fill — solid black, width driven by JS */
+.loader-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: rgba(0, 0, 0, 0.80);
+    will-change: width;
+}
+
+/* Riding number — hovers above the fill tip, slides with it.
+   JS sets both `left` AND `transform` each tick so the number:
+     at  0% → left:0%,  translateX(0)    — flush to left edge
+     at 50% → left:50%, translateX(-50%) — centered on midpoint
+     at100% → left:100%,translateX(-100%)— flush to right edge */
+.loader-progress-num {
+    position:    absolute;
+    top:  -15px;          /* distance above the 1px track */
+    left: 0%;             /* JS drives this */
+    /* JS also drives transform so we start at 0 */
+    font-family: var(--font-sf-mono);
+    font-size:   9px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: rgba(0, 0, 0, 0.60);
+    white-space: nowrap;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    pointer-events: none;
+    min-width: 16px;
+    text-align: center;
+}
+
 
 
 /* ── Navigation ─────────────────────────────────────────────────── */

@@ -180,21 +180,27 @@
     <!-- Entrance Loader -->
     <div class="loader" id="site-loader">
 
-        <!-- ① Orange curtain panel — full screen, z sits on top -->
+        <!-- ① Orange curtain panel — full screen -->
         <div class="loader-panel" id="loader-panel"></div>
 
-        <!-- ② AV wordmark — centered, breathes (scale only) while assets load -->
+        <!-- ② AV wordmark + inline progress — centered column -->
         <div class="loader-logo-wrap" id="loader-logo-wrap">
+
+            <!-- Logo: breathes scale-only, opacity always 1 -->
             <div class="loader-logo-mask">
                 <img id="loader-logo-img" src="sections/loader/assets/AV wordmark.svg" class="loader-logo-img" alt="AV">
             </div>
+
+            <!-- Progress: thin line + riding counter, sits below AV -->
+            <div class="loader-progress-wrap" id="loader-progress-wrap" aria-label="Loading progress" aria-live="polite">
+                <div class="loader-progress-track">
+                    <div class="loader-progress-fill" id="loader-progress-fill"></div>
+                    <!-- Number rides the right tip of the fill -->
+                    <span class="loader-progress-num" id="loader-progress-num">0</span>
+                </div>
+            </div>
+
         </div>
-
-        <!-- ④ Progress counter — large numeral, bottom-right -->
-        <div class="loader-counter" id="loader-counter" aria-label="Loading progress" aria-live="polite">0</div>
-
-        <!-- ⑤ Progress line — 1px, grows left→right at very bottom -->
-        <div class="loader-line" id="loader-line" aria-hidden="true"></div>
 
         <!-- ③ "2" shape mask — expands from center revealing the site -->
         <svg class="loader-mask-svg" id="loader-mask-svg" xmlns="http://www.w3.org/2000/svg">
