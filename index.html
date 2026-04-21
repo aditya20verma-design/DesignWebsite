@@ -86,14 +86,58 @@
         href="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"
         as="script">
 
+    <!-- ── PRELOADER GATE ──────────────────────────────────────────────────────
+         window.__preloaderReady resolves when BOTH heavy assets are ready:
+           1. UnicornStudio WebGL canvas injected (hero background)
+           2. Bike sequence frame-0 decoded (first visible bike frame)
+         The loader's "2" reveal animation waits for this before firing.
+         Hard timeout: 7 000 ms — ensures no hang on slow connections.
+         ────────────────────────────────────────────────────────── -->
+    <script>
+        (function () {
+            // ── TUNABLE VALUES ─────────────────────────────────────
+            var GATE_TIMEOUT_MS      = 7000;   // max wait before force-reveal
+            var UNICORN_SETTLE_MS    = 250;    // ms after canvas inject → first pixels drawn
+            var SEQ_FRAME_SETTLE_MS  = 80;     // ms after frame-0 load → decoded in RAM
+            // ──────────────────────────────────────────────────────
+
+            var _resolve;
+            window.__preloaderReady = new Promise(function (res) { _resolve = res; });
+
+            var _unicornDone = false;
+            var _seqDone     = false;
+
+            function _check() {
+                if (_unicornDone && _seqDone) _resolve();
+            }
+
+            // ── SIGNAL A: UnicornStudio canvas injected ───────────────
+            // Exposed on window so the UnicornStudio init block below can call it.
+            window.__gateUnicornReady = function () {
+                if (_unicornDone) return;
+                setTimeout(function () { _unicornDone = true; _check(); }, UNICORN_SETTLE_MS);
+            };
+
+            // ── SIGNAL B: Sequence frame-0 decoded ───────────────────
+            // sequence.js calls this after frames[0].onload fires.
+            window.__gateSeqReady = function () {
+                if (_seqDone) return;
+                setTimeout(function () { _seqDone = true; _check(); }, SEQ_FRAME_SETTLE_MS);
+            };
+
+            // ── HARD TIMEOUT — never hang on bad connection ───────────
+            setTimeout(function () { _unicornDone = true; _seqDone = true; _check(); }, GATE_TIMEOUT_MS);
+        }());
+    </script>
+
     <!-- Design System: Colors → Layout → Typography → Styles -->
     <link rel="stylesheet" href="shared/colors.css?v=38">
     <link rel="stylesheet" href="shared/layout.css?v=38">
     <link rel="stylesheet" href="shared/typography.css?v=38">
-    <link rel="stylesheet" href="style.css?v=96">
+    <link rel="stylesheet" href="style.css?v=53">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=97">
-    <link rel="stylesheet" href="sections/about/sequence.css?v=16">
-    <link rel="stylesheet" href="sections/about/about.css?v=3">
+    <link rel="stylesheet" href="sections/about/sequence.css?v=57">
+    <link rel="stylesheet" href="sections/about/about.css?v=43">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -121,18 +165,14 @@
         <!-- ① Orange curtain panel — full screen, z sits on top -->
         <div class="loader-panel" id="loader-panel"></div>
 
-        <!-- ② AV wordmark — centered, smaller size, editorial slide-up reveal -->
+        <!-- ② AV wordmark — centered, breathes (scale + opacity) while assets load -->
         <div class="loader-logo-wrap" id="loader-logo-wrap">
-            <!-- .loader-logo-mask is overflow:hidden — logo slides up from beneath -->
             <div class="loader-logo-mask">
                 <img id="loader-logo-img" src="sections/loader/assets/AV wordmark.svg" class="loader-logo-img" alt="AV">
             </div>
         </div>
 
         <!-- ③ "2" shape mask — expands from center revealing the site -->
-        <!-- This SVG draws the "2" as a black fill; we use it as an
-             SVG <mask> so the orange curtain has a "2"-shaped hole that
-             grows until it covers the whole screen. -->
         <svg class="loader-mask-svg" id="loader-mask-svg" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <mask id="two-reveal-mask" maskUnits="userSpaceOnUse">
@@ -147,7 +187,6 @@
             <rect id="two-curtain" width="100%" height="100%" fill="#FF5509" mask="url(#two-reveal-mask)" />
         </svg>
 
-    </div>
     </div>
 
     <!-- Mobile Nav Overlay -->
@@ -343,8 +382,9 @@
             </div> <!-- End Sticky Container -->
         </div> <!-- End Hero Track -->
 
-        <!-- Dynamic Content Wrapper (Slides over Hero) -->
+        <!-- ── Work Section (normal scroll) ─────────────────────────── -->
         <div class="content-wrapper" id="work">
+            <div id="work-inner">
 
             <!-- Project 1: UniShare -->
             <section class="project hover-trigger" id="project-1" data-cursor="pill" data-cursor-label="View project">
@@ -428,6 +468,19 @@
                     </div>
                 </div>
             </section>
+            </div> <!-- End of #work-inner -->
+            <!-- Dark scrim overlay: JS drives opacity 0→1 as bike canvas rises.
+                 Lives INSIDE #work — clipped to its bounds. No filter = no compositing bleed. -->
+            <div id="work-scrim"></div>
+        </div> <!-- End of content-wrapper (#work) -->
+
+        <!-- ── Rest of Content: Bike Sequence + About + Footer ─────────────────
+             z-index:10 means this layer rises over the sticky #work-pin-shadow
+             below it. Canvas is position:sticky so it locks at top:0 for the
+             frame scrub. No margin-top tricks — geometry is clean.
+             ──────────────────────────────────────────────────────────────────── -->
+        <div id="rest-of-content">
+
 
             <!-- ── About Intro: Image Sequence Scrub ──────────────────────
                  168 WebP frames scrubbed via GSAP ScrollTrigger.
@@ -450,8 +503,17 @@
                     <!-- Inner wrapper: receives the scale transform (NOT the sticky el) -->
                     <div id="sequence-canvas-inner">
                         <canvas id="sequence-canvas"></canvas>
-                        <!-- Phase 2: #e5e4e0 smoke bleeds in -->
-                        <div id="sequence-smoke"></div>
+                        <!-- Phase 2: smoke + about-intro text emerges from mist -->
+                        <div id="sequence-smoke">
+                            <!-- About-intro: positioned in the smoke layer.
+                                 Opacity driven by sequence.js (0→1 at 80-95% scroll).
+                                 NO transform/translate — text materialises in place, like rising from smoke. -->
+                            <div id="seq-about-intro" aria-hidden="true">
+                                <p class="seq-about-label">About Me</p>
+                                <h2 class="seq-about-headline">Product Designer<br><em>&amp; Systems Thinker.</em></h2>
+                                <p class="seq-about-sub">3+ years &middot; Healthcare &middot; Fintech</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Overlay text -->
@@ -729,9 +791,7 @@
                     </div>
                 </div>
             </footer>
-
-        </div> <!-- End of content-wrapper -->
-
+        </div> <!-- End of rest-of-content -->
     </div>
 
     <!-- UnicornStudio: init() called here (after canvas div exists in DOM) so
@@ -742,13 +802,17 @@
         }
     </script>
 
-    <!-- Hero Cover: fades out once UnicornStudio paints its first canvas frame. -->
+    <!-- Hero Cover + Preloader Gate: fades cover once WebGL paints, signals gate. -->
     <script>
         (function () {
-            var MAX_WAIT = 4000;
-            var cover = document.getElementById('hero-cover');
+            var MAX_WAIT = 5000;
+            var cover     = document.getElementById('hero-cover');
             var container = document.querySelector('.unicorn-canvas');
-            if (!cover || !container) return;
+            if (!cover || !container) {
+                // No canvas container — still signal gate so loader can proceed
+                if (window.__gateUnicornReady) window.__gateUnicornReady();
+                return;
+            }
 
             function fadeOutCover() {
                 cover.style.opacity = '0';
@@ -761,7 +825,9 @@
                     for (var node of m.addedNodes) {
                         if (node.nodeName === 'CANVAS' || (node.querySelector && node.querySelector('canvas'))) {
                             obs.disconnect();
-                            setTimeout(fadeOutCover, 200); // 200ms so WebGL draws first pixels
+                            // Signal preloader gate — WebGL canvas is live
+                            if (window.__gateUnicornReady) window.__gateUnicornReady();
+                            setTimeout(fadeOutCover, 200); // small settle so first pixels draw
                             return;
                         }
                     }
@@ -769,8 +835,12 @@
             });
             obs.observe(container, { childList: true, subtree: true });
 
-            // Safety timeout: if WebGL never fires, still remove cover after 4s
-            setTimeout(function () { obs.disconnect(); fadeOutCover(); }, MAX_WAIT);
+            // Safety timeout: if WebGL never fires, signal gate + remove cover
+            setTimeout(function () {
+                obs.disconnect();
+                if (window.__gateUnicornReady) window.__gateUnicornReady();
+                fadeOutCover();
+            }, MAX_WAIT);
         }());
     </script>
 
@@ -808,12 +878,12 @@
     <script src="sections/about/testimonials.config.js?v=1"></script>
 
     <script src="sections/about/about.js?v=5"></script>
-    <script src="script.js?v=147"></script>
+    <script src="script.js?v=54"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>
     <!-- About Sequence: image scrub engine (needs GSAP + ScrollTrigger) -->
-    <script src="sections/about/sequence.js?v=28"></script>
+    <script src="sections/about/sequence.js?v=58"></script>
 </body>
 
 </html>

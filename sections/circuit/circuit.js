@@ -756,20 +756,23 @@
             const el = document.getElementById(z.target);
             if (!el) return;
 
-            const rect        = el.getBoundingClientRect();
-            const absoluteTop = rect.top + window.scrollY;
+            // Get standard document-level top position
+            let absoluteTop = 0;
+            let curr = el;
+            while (curr && curr !== document.body) {
+                absoluteTop += curr.offsetTop || 0;
+                curr = curr.offsetParent;
+            }
 
             const isLast = (i === ZONES.length - 1);
 
             if (isLast) {
-                // ── Last zone: clamp trigger below maxScroll so it's always reachable,
-                //    then add a 1.0-progress milestone AT maxScroll.
-                //    This works for ANY zone name — rename 'contact' freely, add new sections.
-                let lastTrigger = absoluteTop - (window.innerHeight * 0.2);
-                lastTrigger = Math.min(lastTrigger, maxScroll - 200);
-                lastTrigger = Math.max(0, lastTrigger);
-                milestones.push({ scroll: lastTrigger, progress: z.start });
-                milestones.push({ scroll: maxScroll,   progress: 1.0 });
+                // ── Last zone (Contact): trigger when we hit the reveal threshold
+                // Since the footer is sticky, we map the entire reveal range (last 100vh)
+                // into this zone to ensure the rider hits 100% exactly at maxScroll.
+                let revealThreshold = maxScroll - (window.innerHeight * 0.5);
+                milestones.push({ scroll: Math.max(0, revealThreshold), progress: z.start });
+                milestones.push({ scroll: maxScroll, progress: 1.0 });
                 return;
             }
 

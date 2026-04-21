@@ -1,59 +1,208 @@
-/* ── About Sequence Scrub Section ────────────────────────────────────────────
-   3-phase cinematic scroll:
-     Phase 1 (0–90%):   canvas inner scales 0.6 → 1.0 (dark mat visible)
-     Phase 2 (90–99%):  #e5e4e0 smoke bleeds in
-     Phase 3 (99–100%): hold white → flows into About section
-   ────────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   About Sequence — Definitive CSS v18
+   ══════════════════════════════════════════════════════════════════════════════
 
+   Layout architecture (icomat pattern v2):
+
+   #transition-zone (relative)
+   ├─ #work-cap (sticky; top:0; height:100vh; z:2; bg:beige)  ← scales+dims
+   └─ #rest-of-content (relative; z:10; margin-top:-100vh)    ← overlaps cap
+       ├─ #about-sequence (height:300vh)                       ← scrub zone
+       │   └─ #sequence-canvas-wrap (sticky; top:0; 100vh)    ← frame window
+       │       ├─ canvas (83 frames, cover-fill)
+       │       └─ #sequence-smoke (beige overlay, op:0→1)
+       │           └─ #seq-about-intro (text, op:0→1)
+       └─ #about                                               ← flows after
+
+   Scroll phases (200vh of actual scroll travel):
+     p=0.00 → Frame  1  (canvas sticky, scrub begins)
+     p=0.55 → Frame 46  (smoke mist starts rising)
+     p=0.70 → Frame 58  (bg switch dark → beige)
+     p=0.80 → Frame 66  (about-intro text materialises from smoke)
+     p=0.90 → Frame 75  (smoke fully opaque)
+     p=0.95 → Frame 79  (about-intro text fully visible)
+     p=1.00             (#about flows in below)
+
+   WHY NO box-shadow ON #about-sequence:
+     The box-shadow was projecting a dark halo ABOVE the section into the
+     work-cap area, making the transition look "black" even before the first
+     frame was drawn. The shadow is instead applied via the canvas-wrap
+     ::before pseudo-element, which only appears once the canvas is sticking.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Section Container ────────────────────────────────────────────────────── */
+/* #about-sequence overlaps the end of #work by 100vh via negative margin-top.
+   This is the ICOMAT pattern:
+   - At Y = (work_bottom - 100vh), the canvas-wrap starts rising from viewport bottom
+   - At Y = work_bottom, the canvas-wrap is at the midpoint (half into viewport)  
+   - At Y = work_bottom + 100vh, the canvas-wrap reaches top:0 and LOCKS
+   This gives a smooth, page-filling curtain rise during the last 200vh of #work.
+   CRITICAL: overflow:hidden on #about-sequence clips the sticky before section start.
+             Use overflow:visible and let the body clip it instead. */
 #about-sequence {
     position: relative;
+    z-index: 1;            /* creates stacking context so canvas-wrap z:10 beats footer z:0 */
     width: 100%;
-    /* 350vh for scrub + 100vh for overlap with about-me section */
-    height: 450vh;
-    background: #1d1d1d;
+    height: 420vh;         /* 420vh = 100vh (rise) + 320vh (scrub) — tighter for faster frame drive */
+    margin-top: -100vh;    /* overlap #work by 1 viewport — ICOMAT pattern */
+    background: #e5e4e0;   /* matches work section beige — hides any gap above rising canvas */
+    overflow: visible;     /* must NOT clip the sticky child before section starts */
 }
 
-/* Sticky wrapper — MUST NOT have transform (transforms break position:sticky) */
+/* Beige state — triggered at p=0.70 via classList (instant, no CSS transition) */
+#about-sequence.seq-beige {
+    background: #e5e4e0;
+}
+
+/* ── Canvas Frame Window ──────────────────────────────────────────────────── */
+/* The canvas-wrap is just the section anchor. The canvas itself is fixed by JS */
+/* ── Sticky window — the ICOMAT pattern ─────────────────────────────────────
+   This element physically rises from below as user scrolls into #about-sequence.
+   When it reaches top:0, it locks (sticky fires). The scrub begins.
+   z-index: 10 ensures it sits ABOVE the sticky footer (z-index:0) during the sequence.
+   ──────────────────────────────────────────────────────────────────────────── */
 #sequence-canvas-wrap {
     position: sticky;
     top: 0;
     width: 100%;
     height: 100vh;
     overflow: hidden;
-    background: #1d1d1d;
+    pointer-events: none;
+    z-index: 10;  /* above footer (z-index:0) and work section (z-index:1) */
+    background: #e5e4e0;  /* beige fallback — prevents dark body showing through any gap */
+    /* Depth shadow: gives the curtain physical weight above the work section */
+    box-shadow: 0 -8px 48px rgba(0,0,0,0.22), 0 -2px 12px rgba(0,0,0,0.14);
 }
 
-/* Inner wrapper — receives the scale transform (NOT the sticky element) */
+/* ── Anamorphic Vignette (cinematic lens depth) ───────────────────────────── */
+/* Radial gradient darkens the edges of every frame — exactly like anamorphic  */
+/* cinema lenses. Creates depth, draws the eye to the center. Always-on effect. */
+#sequence-canvas-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse 88% 72% at 50% 50%,
+        transparent 35%,
+        rgba(0, 0, 0, 0.10) 58%,
+        rgba(0, 0, 0, 0.32) 80%,
+        rgba(0, 0, 0, 0.50) 100%
+    );
+    z-index: 4;  /* above canvas (z:0), smoke (z:2) — always on top */
+    pointer-events: none;
+    mix-blend-mode: multiply;  /* blends naturally with both dark and light frames */
+}
+
+/* No top-shadow needed — depth comes from the work section dimming via opacity */
+
+
+/* ── Canvas Inner ─────────────────────────────────────────────────────────── */
 #sequence-canvas-inner {
     position: absolute;
     inset: 0;
     overflow: hidden;
-    border-radius: 0px;
 }
 
+/* ── Canvas Element ───────────────────────────────────────────────────────── */
+/* position:absolute + inset:0 ensures the canvas fills the sticky container
+   exactly. width/height are set by JS via canvas.style.width/height after
+   setting the pixel buffer — this prevents CSS from stretching a mismatched
+   pixel buffer which causes the "canvas only in top half" rendering bug. */
+/* Canvas fills the sticky wrap exactly. JS sets width/height pixel buffer.
+   position:absolute + inset:0 means it always covers the full 100vh wrap. */
 #sequence-canvas {
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    position: relative;
+    pointer-events: none;
+    background: #e5e4e0;  /* beige until first frame paints — no dark flash */
 }
 
-/* Phase 2 smoke — JS drives opacity 0 → 1 */
+/* ── Smoke Overlay ────────────────────────────────────────────────────────── */
+/*
+ *  Full-screen beige overlay that fades in over the final bike frames.
+ *  JS drives opacity 0 → 1 using easeInCubic from p=0.55 to p=0.90.
+ *  NO CSS transition — opacity is set directly each tick for perfect
+ *  scroll synchronisation. A CSS transition would cause lag at fast scroll.
+ */
+/* Smoke lives inside the sticky wrap — moves with it, always aligned */
 #sequence-smoke {
     position: absolute;
     inset: 0;
-    background: #e5e4e0;
+    /* Warm beige with very subtle warm tint — feels like actual exhaust haze */
+    background: radial-gradient(
+        ellipse 120% 100% at 30% 60%,
+        #ede9e3 0%,
+        #e5e4e0 55%,
+        #dddbd7 100%
+    );
     opacity: 0;
-    z-index: 5;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* ── About-Intro Text (emerges from smoke) ────────────────────────────────── */
+/*
+ *  Lives INSIDE #sequence-smoke so it inherits the beige background.
+ *  JS drives opacity 0 → 1 from p=0.80 to p=0.95.
+ *  NO transform/translateY — text materialises in-place from the mist.
+ *  This is the "smoke signal" effect: content feels like it rises from
+ *  the Ducati's final exhaust plume.
+ */
+#seq-about-intro {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 clamp(2rem, 8vw, 9rem);
+    opacity: 0;
     pointer-events: none;
 }
 
-/* Preloader */
+.seq-about-label {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(0.6rem, 0.85vw, 0.75rem);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(17, 17, 17, 0.40);
+    margin: 0 0 2rem;
+}
+
+.seq-about-headline {
+    font-family: var(--font-accent, 'Brier', Georgia, serif);
+    font-size: clamp(3.2rem, 7.5vw, 7.5rem);
+    font-weight: 400;
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    color: #111111;
+    margin: 0 0 2.5rem;
+}
+
+.seq-about-headline em {
+    font-style: italic;
+    color: #FF5509;
+}
+
+.seq-about-sub {
+    font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+    font-size: clamp(0.75rem, 1vw, 0.9rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(17, 17, 17, 0.45);
+    margin: 0;
+}
+
+/* ── Preloader ────────────────────────────────────────────────────────────── */
 #sequence-loader {
     position: absolute;
     inset: 0;
     z-index: 30;
-    background: #1d1d1d;
+    background: #0d0d0d;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -67,7 +216,7 @@
 .seq-loader-bar-track {
     width: 160px;
     height: 1px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.10);
     position: relative;
     overflow: hidden;
 }
@@ -86,41 +235,6 @@
     color: rgba(255, 255, 255, 0.25);
 }
 
-/* Overlay text — hidden */
-.seq-overlay {
-    display: none;
-}
-
-.seq-title {
-    font-family: var(--font-accent, 'Brier', serif);
-    font-size: clamp(3rem, 6vw, 7rem);
-    font-weight: 400;
-    color: #fff;
-    letter-spacing: -0.025em;
-    line-height: 1;
-    margin: 0 0 0.75rem;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s cubic-bezier(0.2, 0, 0, 1),
-                transform 0.5s cubic-bezier(0.2, 0, 0, 1);
-}
-
-.seq-title em { font-style: normal; color: #FF5509; }
-
-.seq-subtitle {
-    font-family: var(--font-body, system-ui, sans-serif);
-    font-size: clamp(0.8rem, 1.1vw, 0.95rem);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1) 0.08s,
-                transform 0.4s cubic-bezier(0.2, 0, 0, 1) 0.08s;
-}
-
-.seq-overlay.visible .seq-title,
-.seq-overlay.visible .seq-subtitle {
-    opacity: 1;
-    transform: translateY(0);
-}
+/* ── Overlay Text (legacy — hidden) ──────────────────────────────────────── */
+.seq-overlay       { display: none; }
+.seq-title em      { font-style: normal; color: #FF5509; }

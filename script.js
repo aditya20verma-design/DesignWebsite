@@ -510,6 +510,50 @@ if (lenis) {
     lenis.scrollTo(0, { immediate: true });
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// CINEMATIC SCROLL SYSTEM — Clean Curtain (v3)
+// ════════════════════════════════════════════════════════════════════════════
+//
+// DOM Architecture:
+//   #work           (position:sticky; top:0; z:2; bg:beige)
+//                   → stays pinned at top while #rest-of-content rises over it
+//                   → JS drives: scale 1→0.88, opacity 1→0.60, clip via overflow
+//   #rest-of-content (position:relative; z:10)
+//                   → rises naturally over sticky #work as user scrolls
+//     → #about-sequence (height:300vh; normal flow)
+//         → #sequence-canvas-wrap (sticky; top:0; 100vh)
+//             → canvas (83-frame scrub, always full viewport)
+//             → #sequence-smoke (opacity 0→1, JS-driven)
+//
+// Work dimming trigger:
+//   Starts when #about-sequence top edge enters the viewport bottom.
+//   Ends (fully dimmed) when #about-sequence top reaches viewport top.
+//   Uses getBoundingClientRect directly on #about-sequence — reliable because
+//   #about-sequence is in normal flow (no sticky on its container).
+// ════════════════════════════════════════════════════════════════════════════
+
+// Work section dimming is handled inside sections/about/sequence.js → applyWorkDim()
+
+
+
+
+
+// ── Cinematic Footer Reveal (Icomat / Connor Love Style) ────────────────
+// Footer is position:sticky bottom:0 — it ONLY reveals as #about section scrolls away.
+// DO NOT use blur or partial opacity here — it bleeds through as grey band during bike sequence.
+// Simple opacity 0→1 + scale is sufficient and clean.
+gsap.from('#contact', {
+    scale: 0.97,
+    opacity: 0,          // fully hidden until trigger fires
+    ease: 'power2.out',
+    scrollTrigger: {
+        trigger: '#about',   // trigger off #about section, not #contact itself
+        start: 'bottom 80%',
+        end: 'bottom 20%',
+        scrub: true,
+    }
+});
+
 // Initial AV Logo Reveal (Single Wipe Masking)
 gsap.set('.av-shape', { clipPath: "inset(100% 0% 0% 0%)" });
 
@@ -526,6 +570,35 @@ gsap.to('.av-shape', {
 
 // pin canvas transform-origin to TOP so GSAP scale grows downward (matches CSS)
 gsap.set('.unicorn-canvas', { transformOrigin: '58% 0%' });
+
+// ── Cinematic UI Suppression ──────────────────────────────────────────
+// Hides circuit nav + nav header during the bike sequence for full immersion.
+// BUG #4 FIX: Nav header (wordmark) also fades during sequence.
+ScrollTrigger.create({
+    trigger: '#about-sequence',
+    start: 'top 80%',
+    onEnter: () => {
+        gsap.to('#circuit-pill', { opacity: 0, duration: 0.4, pointerEvents: 'none' });
+        gsap.to('nav', { opacity: 0, duration: 0.5, pointerEvents: 'none' }); // BUG #4
+    },
+    onEnterBack: () => {
+        gsap.to('#circuit-pill', { opacity: 0, duration: 0.4, pointerEvents: 'none' });
+        gsap.to('nav', { opacity: 0, duration: 0.3, pointerEvents: 'none' });
+    },
+});
+
+ScrollTrigger.create({
+    trigger: '#about',
+    start: 'top 80%',
+    onEnter: () => {
+        gsap.to('#circuit-pill', { opacity: 1, duration: 0.6, pointerEvents: 'auto' });
+        gsap.to('nav', { opacity: 1, duration: 0.6, pointerEvents: 'auto' }); // BUG #4
+    },
+    onLeaveBack: () => {
+        gsap.to('#circuit-pill', { opacity: 1, duration: 0.6, pointerEvents: 'auto' });
+        gsap.to('nav', { opacity: 1, duration: 0.4, pointerEvents: 'auto' });
+    }
+});
 
 // pin hero transform-origin so card collapses toward upper viewport (matches CSS)
 gsap.set('.hero', { transformOrigin: 'center center' }); // collapse toward viewport centre
@@ -546,7 +619,7 @@ mm.add("(min-width: 601px)", () => {
             trigger: ".hero-track",
             start: "top top",
             end: () => "+=" + Math.round(window.innerHeight * 0.7),
-            scrub: 1,
+            scrub: true, // Removed 1s delay
             onUpdate: (self) => {
                 const p = self.progress;
 
@@ -603,7 +676,7 @@ mm.add("(max-width: 600px)", () => {
             trigger: ".hero-track",
             start: "top top",
             end: () => "+=" + Math.round(window.innerHeight * 0.7), // same 70vh end on mobile
-            scrub: 1, // matches Lando Norris desktop feel
+            scrub: true, // matches Lando Norris desktop feel
         }
     });
 
@@ -1108,20 +1181,22 @@ magneticElements.forEach((el) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// 4. LOADER — Premium AV Brand Mask Reveal
+// 4. LOADER — AV Breathe → "2" Mask Reveal
 // ═══════════════════════════════════════════════════════════════
 //
-// Stage 1  →  Full #FF5509 orange background (instantaneous)
-// Stage 2  →  Black AV wordmark fades + scales in
-// Stage 3  →  Logo image fades; AV-shaped hole punches through orange
-// Stage 4  →  AV hole scales up from center → full site revealed
-// Stage 5  →  Loader removed, scroll restored
+// Phase A  →  AV logo breathes (scale + opacity) while assets load
+// Phase B  →  Gate resolves → breathing stops → brief hold
+// Phase C  →  "2" mask reveal fires
 //
-// HOW THE MASK WORKS:
-//  - SVG <mask> with a large white rect (= orange shows) plus black AV paths (= transparent)
-//  - At scale 0  → zero-area hole → solid orange covers site
-//  - At scale 1  → logo-sized hole → site visible through AV letter shapes
-//  - At scale 50 → hole covers entire screen → full site revealed
+// ── TUNABLE VALUES ──────────────────────────────────────────────
+//   BREATHE_SCALE_MIN   0.92   ← smallest scale on each exhale
+//   BREATHE_SCALE_MAX   1.00   ← peak scale on each inhale
+//   BREATHE_OPACITY_MIN 0.28   ← dimmest opacity on exhale
+//   BREATHE_OPACITY_MAX 0.75   ← brightest opacity on inhale
+//   BREATHE_CYCLE_DUR   1.8    ← full breath in+out, seconds
+//   LOGO_IN_DUR         0.65   ← initial scale-in from 0.4 → 1
+//   READY_HOLD_MS       220    ← ms pause after gate, before reveal
+// ────────────────────────────────────────────────────────────────
 
 (function initLoader() {
 
@@ -1132,7 +1207,7 @@ magneticElements.forEach((el) => {
     const twoPath = document.getElementById('two-mask-path');
     const navEl   = document.querySelector('nav');
 
-    /* ── Geometry ──────────────────────────────────────────────────
+    /* ── Geometry ───────────────────────────────────────────────
      * "2" path lives in 0 0 139 137 coordinate space.
      * translate(cx,cy) scale(s) translate(-pw,-ph) keeps it centred.
      */
@@ -1145,127 +1220,135 @@ magneticElements.forEach((el) => {
         return `translate(${cx},${cy}) scale(${s}) translate(${-pw},${-ph})`;
     }
 
-    /* ── Initial states ──────────────────────────────────────────── */
-    const INIT_SCALE = 0.007;  // ≈ 1px wide — invisible point, zero jerk on appear
+    /* ── Initial states ─────────────────────────────────────────
+       INIT_SCALE ≈ 1px — invisible point, zero jerk on appear    */
+    const INIT_SCALE = 0.007;
     gsap.set(twoPath, { attr: { transform: twoT(INIT_SCALE) } });
-
-    /* KEY FIX — blink prevention:
-       Pre-position the SVG at full opacity so when we swap it in
-       for the div-panel there is ZERO visible difference.
-       The "2" hole is 0.12x so it's invisible to the naked eye.
-       We keep the div-panel on top momentarily via a tiny delay. */
-    gsap.set(maskSvg, { opacity: 1 });   // SVG is ready, same look as panel
-    gsap.set(panel,   { zIndex: 3 });    // div-panel sits in FRONT of SVG initially
+    gsap.set(maskSvg, { opacity: 1 });   // SVG ready, same look as panel
+    gsap.set(panel,   { zIndex: 3 });    // panel in front of SVG initially
     gsap.set(logoImg, { opacity: 0, scale: 0.4 });
 
-    /* ── Browser Chrome Color ── handled statically in HTML meta + CSS.
-       html/body start dark; the loader div covers everything in orange.
-       No JS toggling needed. ── */
-
-    /* ── Lock scroll during loader — event-based, NOT overflow:hidden ────
-       overflow:hidden on body disrupts UnicornStudio's IntersectionObserver
-       (canvas appears 'off-screen'), preventing WebGL from rendering.
-       Instead we block at event level — zero layout impact. */
+    /* ── Lock scroll ────────────────────────────────────────────
+       Event-based block — no overflow:hidden (breaks WebGL IntersectionObserver) */
     function _blockScroll(e) { e.preventDefault(); }
     window.addEventListener('wheel',     _blockScroll, { passive: false });
     window.addEventListener('touchmove', _blockScroll, { passive: false });
     if (window.__lenisInstance) window.__lenisInstance.stop();
 
-    /* ── Timeline ───────────────────────────────────────────────── */
-    const tl = gsap.timeline();
+    /* ── TUNABLE ─────────────────────────────────────────────── */
+    const BREATHE_SCALE_MIN   = 0.92;
+    const BREATHE_SCALE_MAX   = 1.00;
+    const BREATHE_OPACITY_MIN = 0.28;
+    const BREATHE_OPACITY_MAX = 0.75;
+    const BREATHE_CYCLE_DUR   = 1.8;   // seconds, full in+out
+    const LOGO_IN_DUR         = 0.65;
+    const READY_HOLD_MS       = 220;
+    /* ─────────────────────────────────────────────────────────── */
 
-    tl
-        .set({}, {}, 0.3)                          // T1 = 0.3s — hold before logo appears
+    /* ── Phase A: Entrance → breathe loop ──────────────────────
+       Logo scales in from 0.4 → 1 cleanly, then breathing begins. */
+    let _breathTween = null;
 
-        /* ━━━━ STAGE 2 — AV logo FADE IN ━━━━━━━━━━━━━━━━━━━━━━━━━
-           [T2_FADE] = 0.7s  [T2_DELAY] = 0.1s                    */
-        .to(logoImg, {
-            opacity:  1,
-            scale:    1,                           // T2_SCALE: 0.85 → 1
-            duration: 0.7,                         // T2_FADE = 0.7s
-            delay:    0.1,                         // T2_DELAY = 0.1s
-            ease:     'power3.out'
-        })
-
-        /* [T3] Logo hold — brand breathes                         */
-        .to({}, { duration: 0.45 })                // T3 = 0.45s
-
-        /* ━━━━ STAGE 3 — Swap panel → SVG (blink-free) ━━━━━━━━━━━
-           SVG already at opacity 1 behind panel. Just drop panel. */
-        .to(panel, {
-            opacity:  0,
-            zIndex:   -1,
-            duration: 0.05,                        // instant crossover
-            ease:     'none'
-        })
-        /* Previous call moved to T1 for zero-delay Safari UI */
-
-        /* ━━━━ STAGE 4 — Logo fades + "2" explodes in ONE breath ━━
-           [T4_LOGO] = 0.4s  [T4_SCALE] = 2.8s  [T4_OFFSET] = 0.2s */
-        .to(logoImg, {
-            opacity:  0,
-            duration: 0.4,                         // T4_LOGO = 0.4s
-            ease:     'power2.inOut'
-        })
-        .to(twoPath, {
-            duration: 2.8,                         // T4_SCALE = 2.8s
-            ease:     'power3.inOut',              // majestic smooth sweep instead of pure acceleration
-            attr:     { transform: twoT(2400) }
-        }, '-=0.2')                                // T4_OFFSET = 0.2s overlap
-
-        /* ━━━━ EARLY TRIGGER: 3 corners reveal simultaneously, circuit separate ━━
-           Fires 2.2s before the "2" completes — all behind the expanding mask.
-           Single gsap.to() targets all 3 at once: one tween, one frame, perfect sync. */
-        .call(() => {
-            const el = document.getElementById('site-loader');
-            if (el) el.style.pointerEvents = 'none'; 
-
-            if (window._senseNavBg) window._senseNavBg();
-
-            if (navEl) {
-                void navEl.offsetHeight;                 
-                navEl.classList.add('nav-color-ready');  
-            }
-
-            // ── Unlock scroll ──────────────────────────────────────
-            // Remove the event-based block. No overflow reset needed.
-            window.removeEventListener('wheel',     _blockScroll);
-            window.removeEventListener('touchmove', _blockScroll);
-            if (window.__lenisInstance) {
-                window.__lenisInstance.scrollTo(0, { immediate: true });
-                window.__lenisInstance.start();
-            }
-
-            // ── Single simultaneous reveal: Nav + Sound ────────────────────────
-            gsap.to([navEl, '#sound-toggle'].filter(Boolean), {
-                opacity: 1,
-                duration: 0.4,
-                ease: 'power2.out',
-                onStart: () => {
-                    const st = document.getElementById('sound-toggle');
-                    if (st) st.style.pointerEvents = 'auto';
-                    // Ensure scroll hint is interactive
-                    const sh = document.getElementById('scroll-hint');
-                    if (sh) sh.style.pointerEvents = 'auto';
-                    // Refresh ScrollTrigger once after loader finishes
-                    setTimeout(() => ScrollTrigger.refresh(), 300);
-                }
+    gsap.to(logoImg, {
+        opacity:  BREATHE_OPACITY_MAX,
+        scale:    BREATHE_SCALE_MAX,
+        duration: LOGO_IN_DUR,
+        delay:    0.25,
+        ease:     'power3.out',
+        onComplete() {
+            _breathTween = gsap.to(logoImg, {
+                scale:    BREATHE_SCALE_MIN,
+                opacity:  BREATHE_OPACITY_MIN,
+                duration: BREATHE_CYCLE_DUR / 2,
+                ease:     'sine.inOut',
+                repeat:   -1,
+                yoyo:     true,
             });
+        }
+    });
 
-            // Circuit track intro — separate, 2.0s paint animation (plays in background)
-            if (window.__circuitIntro) window.__circuitIntro();
-        }, null, '-=2.2')
+    /* ── Phase B: Gate resolves ─────────────────────────────────
+       Kill breathing, snap logo to rest, short hold, fire reveal. */
+    (window.__preloaderReady || Promise.resolve()).then(function () {
 
-        /* ━━━━ FINAL CLEANUP — Remove loader from DOM ━━━━━━━━━━━━━━━━━━ */
-        .call(() => {
-            const el = document.getElementById('site-loader');
-            if (el) el.style.display = 'none';
-            // html/body are already dark from first paint.
-            // theme-color is already dark from first paint.
-            // No band-color toggle needed — bands never went orange.
+        if (_breathTween) _breathTween.kill();
+
+        gsap.to(logoImg, {
+            scale:   1,
+            opacity: 0.82,
+            duration: 0.35,
+            ease: 'power2.out',
         });
 
+        setTimeout(startReveal, READY_HOLD_MS);
+    });
+
+    /* ── Phase C: "2" mask reveal ─────────────────────────────── */
+    function startReveal() {
+
+        const tl = gsap.timeline();
+
+        tl
+            .set({}, {}, 0.1)
+
+            /* Swap panel → SVG (blink-free) */
+            .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
+
+            /* Logo fades out + "2" explodes */
+            .to(logoImg, { opacity: 0, duration: 0.4, ease: 'power2.inOut' })
+            .to(twoPath, {
+                duration: 2.8,
+                ease:     'power3.inOut',
+                attr:     { transform: twoT(2400) }
+            }, '-=0.2')
+
+            /* Early trigger: unlock scroll, reveal nav + sound */
+            .call(() => {
+                const el = document.getElementById('site-loader');
+                if (el) el.style.pointerEvents = 'none';
+
+                if (window._senseNavBg) window._senseNavBg();
+
+                if (navEl) {
+                    void navEl.offsetHeight;
+                    navEl.classList.add('nav-color-ready');
+                }
+
+                window.removeEventListener('wheel',     _blockScroll);
+                window.removeEventListener('touchmove', _blockScroll);
+                if (window.__lenisInstance) {
+                    window.__lenisInstance.scrollTo(0, { immediate: true });
+                    window.__lenisInstance.start();
+                }
+
+                gsap.to([navEl, '#sound-toggle'].filter(Boolean), {
+                    opacity: 1,
+                    duration: 0.4,
+                    ease: 'power2.out',
+                    onStart: () => {
+                        const st = document.getElementById('sound-toggle');
+                        if (st) st.style.pointerEvents = 'auto';
+                        const sh = document.getElementById('scroll-hint');
+                        if (sh) sh.style.pointerEvents = 'auto';
+                        setTimeout(() => ScrollTrigger.refresh(), 300);
+                    }
+                });
+
+                if (window.__circuitIntro) window.__circuitIntro();
+            }, null, '-=2.2')
+
+            /* Remove loader */
+            .call(() => {
+                const el = document.getElementById('site-loader');
+                if (el) el.style.display = 'none';
+            });
+    }
+
 }());
+
+
+
+
 
 /**
  * 4b. HERO TILT — Subtle high-end mouse-tracking parallax.
@@ -1443,7 +1526,7 @@ document.querySelectorAll('.project').forEach((section) => {
     const marquee = section.querySelector('.project-bg-text');
     if (marquee) {
         const dir = marquee.classList.contains('marquee-left') ? -30 : 30;
-        gsap.to(marquee, { xPercent: dir, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: 1 } });
+        gsap.to(marquee, { xPercent: dir, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true } });
     }
 
     const parallaxImage = section.querySelector('.parallax-image');
@@ -1478,7 +1561,7 @@ document.querySelectorAll('.project').forEach((section) => {
                 trigger: section,
                 start: "top bottom",
                 end: "bottom top",
-                scrub: 1
+                scrub: true
             }}
         );
     }
@@ -1999,8 +2082,6 @@ if (emailCopyBtn) {
         // Material Design easing
         const vw = window.innerWidth;
         const isTouch = window.matchMedia('(pointer: coarse)').matches || vw < 600;
-
-        // Material Design easing
         const STD = 'cubic-bezier(0.2,0,0,1)';  // Standard — spatial motion
         const DEC = 'cubic-bezier(0,0,0.2,1)';  // Decelerate — settle to rest
 
@@ -2336,3 +2417,29 @@ if (emailCopyBtn) {
     }, { once: true });
 
 }());
+// ── About Section Cinematic Unmasking (Lando Norris Style) ───────────────────
+if (document.querySelector('.mask-text')) {
+    gsap.to('.mask-text', {
+        clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+        ease: 'power4.out',
+        duration: 1.5,
+        stagger: 0.12, 
+        scrollTrigger: {
+            trigger: '#about-me', 
+            start: 'top 85%', 
+        }
+    });
+}
+
+if (document.querySelector('.rule-anim')) {
+    gsap.to('.rule-anim', {
+        scaleX: 1, 
+        ease: 'power3.inOut',
+        duration: 1.4,
+        stagger: 0.2,
+        scrollTrigger: {
+            trigger: '#about-me',
+            start: 'top 80%',
+        }
+    });
+}
