@@ -247,57 +247,54 @@ body {
    Number: 9px monospace, floats 15px above track tip, slides with fill.
    Width (130px) matches the AV logo for clean vertical alignment.
    ─────────────────────────────────────────────────────────────────────────── */
-/* Outer wrapper — only controls width + opacity-fade-in */
+/* Outer wrapper — flex row: track fills left, number sits fixed on right */
 .loader-progress-wrap {
-    width:   130px;      /* Matches AV logo width (130px) exactly */
-    opacity: 0;          /* GSAP fades in after logo entrance */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width:   130px;
+    opacity: 0;
     will-change: opacity;
     pointer-events: none;
 }
 
-/* Ghost track — the full-width underline that shows what’s coming */
+/* Ghost track — flex:1 fills all remaining width */
 .loader-progress-track {
+    flex: 1;
     position: relative;
-    width: 100%;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.15);
-    overflow: visible;   /* number floats above, not clipped */
+    height:   1px;
+    background: rgba(0, 0, 0, 0.12);
+    overflow: visible;
 }
 
-/* Growing fill — solid black, width driven by JS */
+/* Growing fill — driven left→right by JS */
 .loader-progress-fill {
     position: absolute;
     left: 0;
-    top: 0;
+    top:  0;
     height: 100%;
-    width: 0%;
-    background: rgba(0, 0, 0, 0.80);
+    width:  0%;
+    background: rgba(0, 0, 0, 0.78);
     will-change: width;
 }
 
-/* Riding number — hovers above the fill tip, slides with it.
-   JS sets both `left` AND `transform` each tick so the number:
-     at  0% → left:0%,  translateX(0)    — flush to left edge
-     at 50% → left:50%, translateX(-50%) — centered on midpoint
-     at100% → left:100%,translateX(-100%)— flush to right edge */
+/* Static number — always right of track, only text content changes */
 .loader-progress-num {
-    position:    absolute;
-    top:  -15px;          /* distance above the 1px track */
-    left: 0%;             /* JS drives this */
-    /* JS also drives transform so we start at 0 */
-    font-family: var(--font-sf-mono);
-    font-size:   9px;
+    flex-shrink: 0;
+    font-family: var(--font-accent);
+    font-size:   12px;
     font-weight: 400;
-    letter-spacing: 0.08em;
+    font-style:  italic;
+    letter-spacing: 0.02em;
     color: rgba(0, 0, 0, 0.60);
     white-space: nowrap;
     line-height: 1;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
     pointer-events: none;
-    min-width: 16px;
-    text-align: center;
+    min-width: 22px;
+    text-align: left;
 }
+
 
 
 

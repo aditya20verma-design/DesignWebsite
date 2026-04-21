@@ -1266,14 +1266,8 @@ magneticElements.forEach((el) => {
                 const n   = Math.round(pct);
                 // Fill grows left → right
                 if (progressFillEl) progressFillEl.style.width = pct + '%';
-                // Number rides the tip — left=pct%, transform interpolates
-                // 0%→translateX(0) · 50%→translateX(-50%) · 100%→translateX(-100%)
-                // so number is always fully inside the track bounds
-                if (progressNumEl) {
-                    progressNumEl.textContent     = n;
-                    progressNumEl.style.left      = pct + '%';
-                    progressNumEl.style.transform = 'translateX(' + (-pct) + '%)';
-                }
+                // Number is a static sibling on the right — only text changes
+                if (progressNumEl) progressNumEl.textContent = n;
             }
         });
     }
@@ -1388,6 +1382,8 @@ magneticElements.forEach((el) => {
                 });
 
                 if (window.__circuitIntro) window.__circuitIntro();
+                // Kick off hero auto-pan AFTER reveal so it runs on the visible site
+                if (window.__startHeroAutoPan) window.__startHeroAutoPan();
             }, null, '-=2.2')
 
             /* Remove loader from layout, THEN refresh ScrollTrigger pin spacers */
@@ -1526,7 +1522,13 @@ magneticElements.forEach((el) => {
             proxyRaf = requestAnimationFrame(proxyLoop);
         }
 
-        setTimeout(() => { if (proxyMode === 'auto') proxyLoop(); }, 1000);
+        // Expose trigger — called by startReveal after the "2" mask fires
+        // so the auto-pan runs on the visible hero, not during loading.
+        window.__startHeroAutoPan = function () {
+            if (proxyMode === 'auto') {
+                setTimeout(() => { if (proxyMode === 'auto') proxyLoop(); }, 800);
+            }
+        };
 
         function interceptRealMouse(e) {
             if (e._isVirtual) return; // Ignore our own fake loop events
