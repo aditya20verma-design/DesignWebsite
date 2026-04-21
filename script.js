@@ -1181,38 +1181,30 @@ magneticElements.forEach((el) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// 4. LOADER — AV Breathe + Inline Progress → "2" Reveal
+// 4. LOADER — AV breathe + 220px progress bar → "2" Reveal
 // ═══════════════════════════════════════════════════════════════
 //
-// Phase A  →  AV breathes (very subtle scale only, opacity=1 always)
-//             Below AV: 1px track grows left→right, small number
-//             rides the right tip of the fill
-// Phase B  →  Gate resolves → breathing stops, fill hits 100% → hold
-// Phase C  →  AV + progress fade, "2" mask fires
-//
-// ── TUNABLE VALUES ──────────────────────────────────────────────
-//   BREATHE_SCALE_MIN    0.97   ← exhale size  (0.97 = very subtle)
-//   BREATHE_SCALE_MAX    1.00   ← inhale size
-//   BREATHE_CYCLE_DUR    2.2    ← full breath in+out, seconds
-//   LOGO_IN_DUR          0.55   ← logo entrance duration
-//   PROG_IN_DELAY        0.4    ← progress bar fade-in delay after logo
-//   PROG_IN_DUR          0.5    ← progress bar fade-in duration
-//   PROGRESS_TWEEN_DUR   1.0    ← smoothing tween for fill/number
-//   IDLE_PROGRESS        6      ← % shown immediately (alive indicator)
-//   READY_HOLD_MS        260    ← pause at 100% before reveal fires
-// ────────────────────────────────────────────────────────────────
+// TUNABLE VALUES:
+//   BREATHE_SCALE_MIN  0.97   exhale (very subtle)
+//   BREATHE_CYCLE_DUR  2.2s   full in+out breath
+//   LOGO_IN_DUR        0.55s  logo entrance
+//   PROG_IN_DELAY      0.4s   bar fade-in delay after logo
+//   IDLE_PROGRESS      6      % shown immediately (alive indicator)
+//   READY_HOLD_MS      260ms  pause at 100% before reveal
+//   TRACK_W            220    must match CSS .loader-prog-track width (px)
+// ═══════════════════════════════════════════════════════════════
 
 (function initLoader() {
 
     /* ── DOM refs ── */
-    const panel          = document.getElementById('loader-panel');
-    const logoImg        = document.getElementById('loader-logo-img');
-    const maskSvg        = document.getElementById('loader-mask-svg');
-    const twoPath        = document.getElementById('two-mask-path');
-    const navEl          = document.querySelector('nav');
-    const progressWrapEl = document.getElementById('loader-progress-wrap');
-    const progressFillEl = document.getElementById('loader-progress-fill');
-    const progressNumEl  = document.getElementById('loader-progress-num');
+    const panel      = document.getElementById('loader-panel');
+    const logoImg    = document.getElementById('loader-logo-img');
+    const maskSvg    = document.getElementById('loader-mask-svg');
+    const twoPath    = document.getElementById('two-mask-path');
+    const navEl      = document.querySelector('nav');
+    const progWrapEl = document.getElementById('loader-prog-wrap');
+    const fillEl     = document.getElementById('loader-prog-fill');
+    const numEl      = document.getElementById('loader-prog-num');
 
     /* ── Geometry — "2" path in 0 0 139 137 space ── */
     const cx = window.innerWidth  / 2;
@@ -1224,12 +1216,11 @@ magneticElements.forEach((el) => {
     }
 
     /* ── Initial states ── */
-    const INIT_SCALE = 0.007;
-    gsap.set(twoPath,       { attr: { transform: twoT(INIT_SCALE) } });
-    gsap.set(maskSvg,       { opacity: 1 });
-    gsap.set(panel,         { zIndex: 3 });
-    gsap.set(logoImg,       { opacity: 0, scale: 0.4 });
-    if (progressWrapEl) gsap.set(progressWrapEl, { opacity: 0 });
+    gsap.set(twoPath,    { attr: { transform: twoT(0.007) } });
+    gsap.set(maskSvg,    { opacity: 1 });
+    gsap.set(panel,      { zIndex: 3 });
+    gsap.set(logoImg,    { opacity: 0, scale: 0.4 });
+    if (progWrapEl) gsap.set(progWrapEl, { opacity: 0 });
 
     /* ── Lock scroll ── */
     function _blockScroll(e) { e.preventDefault(); }
@@ -1238,55 +1229,68 @@ magneticElements.forEach((el) => {
     if (window.__lenisInstance) window.__lenisInstance.stop();
 
     /* ── TUNABLE ── */
-    const BREATHE_SCALE_MIN  = 0.97;   // barely-there pulse — very refined
-    const BREATHE_SCALE_MAX  = 1.00;
-    const BREATHE_CYCLE_DUR  = 2.2;    // slow, calming
-    const LOGO_IN_DUR        = 0.55;
-    const PROG_IN_DELAY      = 0.4;
-    const PROG_IN_DUR        = 0.5;
-    const PROGRESS_TWEEN_DUR = 1.0;
-    const IDLE_PROGRESS      = 6;      // nudge to 6% immediately
-    const READY_HOLD_MS      = 260;
-    /* ────────────────────────────────────────────────────────────── */
+    const BREATHE_SCALE_MIN = 0.97;
+    const BREATHE_CYCLE_DUR = 2.2;
+    const LOGO_IN_DUR       = 0.55;
+    const PROG_IN_DELAY     = 0.4;
+    const IDLE_PROGRESS     = 6;
+    const READY_HOLD_MS     = 260;
+    const TRACK_W           = 220;   // must match CSS .loader-prog-track width
 
-    /* ── Progress system ──────────────────────────────────────────
-       Proxy object tweened by GSAP → counter text + fill width + number
-       left position all update in sync on every tick.               */
-    const _prog = { val: 0 };
+    /* ── Progress: rAF loop reads window.loaderProgress ──────────
+       _targetProgress is set by gate signals (__onLoaderProgress).
+       _smoothProgress lerps toward it — smooth counter motion.
+       DOM updates happen every frame: fill as px, num as % + transform.
+       No CSS transitions on fill — direct style writes per spec.        */
+    window.loaderProgress = 0;
+    let _targetProgress   = window.__loaderProgressNow || 0;
+    let _smoothProgress   = _targetProgress;
+    let _animRaf;
+    let _animStop = false;
 
-    function _setProgress(target, dur) {
-        if (dur === undefined) dur = PROGRESS_TWEEN_DUR;
-        gsap.to(_prog, {
-            val:       Math.min(100, target),
-            duration:  dur,
-            ease:      'power2.out',
-            overwrite: true,
-            onUpdate() {
-                const pct = Math.min(100, _prog.val);
-                const n   = Math.round(pct);
-                // Fill grows left → right
-                if (progressFillEl) progressFillEl.style.width = pct + '%';
-                // Number is a static sibling on the right — only text changes
-                if (progressNumEl) progressNumEl.textContent = n;
+    /* Register callback — gate calls this when each asset loads */
+    window.__onLoaderProgress = function(p) { _targetProgress = p; };
+
+    function _animLoop() {
+        if (_animStop) return;
+
+        // Lerp toward target for smooth motion
+        _smoothProgress += (_targetProgress - _smoothProgress) * 0.08;
+        if (Math.abs(_targetProgress - _smoothProgress) < 0.05) {
+            _smoothProgress = _targetProgress;
+        }
+
+        window.loaderProgress = _smoothProgress;
+
+        const p = Math.min(100, Math.max(0, _smoothProgress));
+        const n = Math.round(p);
+
+        // Fill width as px — no CSS transition, direct write per spec
+        if (fillEl) fillEl.style.width = (p / 100 * TRACK_W) + 'px';
+
+        // Number: left as %, transform locks edges per spec
+        if (numEl) {
+            numEl.textContent = n;
+            numEl.style.left  = p + '%';
+            if (p <= 3) {
+                numEl.style.transform = 'translate(0%, -50%)';       // lock left
+            } else if (p >= 97) {
+                numEl.style.transform = 'translate(-100%, -50%)';    // lock right
+            } else {
+                numEl.style.transform = 'translate(-50%, -50%)';     // centred on tip
             }
-        });
+        }
+
+        _animRaf = requestAnimationFrame(_animLoop);
     }
+    _animRaf = requestAnimationFrame(_animLoop);
 
-    /* Register callback (race-safe: catch-up below if gate fired early) */
-    window.__onLoaderProgress = function(p) { _setProgress(p); };
-
-    /* Catch-up: handle gate firing before initLoader registered the callback */
-    const already = window.__loaderProgressNow || 0;
-    if (already > 0) _setProgress(already, 0.4);
-
-    /* ── Phase A: entrance ─────────────────────────────────────────
-       Logo: opacity 0→1 once, stays solid. Scale breathes minimally.
-       Progress bar: fades in after logo, nudges to IDLE_PROGRESS.    */
+    /* ── Phase A: Logo entrance + progress bar fade in ── */
     let _breathTween = null;
 
     gsap.to(logoImg, {
         opacity:  1,
-        scale:    BREATHE_SCALE_MAX,
+        scale:    1.00,
         duration: LOGO_IN_DUR,
         delay:    0.2,
         ease:     'power3.out',
@@ -1301,40 +1305,40 @@ magneticElements.forEach((el) => {
         }
     });
 
-    gsap.to(progressWrapEl, {
+    gsap.to(progWrapEl, {
         opacity:  1,
-        duration: PROG_IN_DUR,
+        duration: 0.5,
         delay:    PROG_IN_DELAY,
         ease:     'power2.out',
         onComplete() {
-            if (_prog.val < IDLE_PROGRESS) _setProgress(IDLE_PROGRESS, 1.2);
+            // Nudge to idle so bar shows life immediately
+            if (_targetProgress < IDLE_PROGRESS) _targetProgress = IDLE_PROGRESS;
         }
     });
 
-    /* ── Phase B: gate resolves ────────────────────────────────────
-       Stop breathing, fill to 100, brief hold, launch reveal.        */
+    /* ── Phase B: Gate resolves — all assets ready ── */
     (window.__preloaderReady || Promise.resolve()).then(function () {
-
         if (_breathTween) _breathTween.kill();
         gsap.to(logoImg, { scale: 1, duration: 0.3, ease: 'power2.out' });
-        _setProgress(100, 0.45);
-
+        _targetProgress = 100; // will lerp to 100 in the rAF loop
         setTimeout(startReveal, READY_HOLD_MS);
     });
 
-    /* ── Phase C: "2" reveal ─────────────────────────────────────── */
+    /* ── Phase C: "2" mask reveal ── */
     function startReveal() {
+        _animStop = true;
+        cancelAnimationFrame(_animRaf);
 
         const tl = gsap.timeline();
 
         tl
             .set({}, {}, 0.1)
 
-            /* Swap solid panel → SVG (blink-free) */
+            /* Swap solid panel → SVG mask (blink-free) */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
             /* Logo + progress bar fade together */
-            .to([logoImg, progressWrapEl].filter(Boolean), {
+            .to([logoImg, progWrapEl].filter(Boolean), {
                 opacity:  0,
                 duration: 0.4,
                 ease:     'power2.inOut',
@@ -1349,7 +1353,6 @@ magneticElements.forEach((el) => {
 
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
-                // Disable pointer events on loader immediately so site is interactive
                 const el = document.getElementById('site-loader');
                 if (el) el.style.pointerEvents = 'none';
 
@@ -1360,7 +1363,6 @@ magneticElements.forEach((el) => {
                     navEl.classList.add('nav-color-ready');
                 }
 
-                // Unlock scroll
                 window.removeEventListener('wheel',     _blockScroll);
                 window.removeEventListener('touchmove', _blockScroll);
                 if (window.__lenisInstance) {
@@ -1368,7 +1370,6 @@ magneticElements.forEach((el) => {
                     window.__lenisInstance.start();
                 }
 
-                // Reveal nav + sound toggle
                 gsap.to([navEl, '#sound-toggle'].filter(Boolean), {
                     opacity:  1,
                     duration: 0.4,
@@ -1382,23 +1383,20 @@ magneticElements.forEach((el) => {
                 });
 
                 if (window.__circuitIntro) window.__circuitIntro();
-                // Kick off hero auto-pan AFTER reveal so it runs on the visible site
                 if (window.__startHeroAutoPan) window.__startHeroAutoPan();
             }, null, '-=2.2')
 
-            /* Remove loader from layout, THEN refresh ScrollTrigger pin spacers */
+            /* Remove loader from layout, refresh ST pin spacers */
             .call(() => {
                 const el = document.getElementById('site-loader');
                 if (el) el.style.display = 'none';
-
-                // Refresh NOW (loader is gone from layout — pin spacers are correct)
                 ScrollTrigger.refresh();
-                // Safety: second refresh after images/fonts settle
                 setTimeout(() => ScrollTrigger.refresh(), 500);
             });
     }
 
 }());
+
 
 
 

@@ -208,7 +208,8 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 28px;              /* space between AV logo and progress bar */
+    gap: 32px;              /* 32px below AV to progress bar */
+
     z-index: 3;
     pointer-events: none;
 }
@@ -241,61 +242,53 @@ body {
 }
 
 
-/* ── Loader: Inline progress system ────────────────────────────────────────
-   Sits directly below the AV wordmark (flex-column gap in logo-wrap).
-   Ghost track: 1px, very faint. Fill: grows left→right via width.
-   Number: 9px monospace, floats 15px above track tip, slides with fill.
-   Width (130px) matches the AV logo for clean vertical alignment.
-   ─────────────────────────────────────────────────────────────────────────── */
-/* Outer wrapper — flex row: track fills left, number sits fixed on right */
-.loader-progress-wrap {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    width:   130px;
-    opacity: 0;
-    will-change: opacity;
+/* ── Loader: Progress bar ─────────────────────────────────────────────────
+   220px wide, 1.5px tall. Two-layer: grey track + black fill.
+   Number rides the fill tip with edge-aware transform.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Fade-in wrapper — only controls visibility */
+.loader-prog-wrap {
+    opacity: 0;           /* GSAP fades in after logo enters */
     pointer-events: none;
 }
 
-/* Ghost track — flex:1 fills all remaining width */
-.loader-progress-track {
-    flex: 1;
+/* Track: 220px × 1.5px, no radius, grey bg always visible */
+.loader-prog-track {
     position: relative;
-    height:   1px;
-    background: rgba(0, 0, 0, 0.12);
-    overflow: visible;
+    width:  220px;
+    height: 1.5px;
+    background: rgba(0, 0, 0, 0.15);
+    overflow: visible;    /* number floats over the line */
 }
 
-/* Growing fill — driven left→right by JS */
-.loader-progress-fill {
+/* Fill: grows 0 → 220px, driven each rAF frame, NO transition */
+.loader-prog-fill {
     position: absolute;
     left: 0;
     top:  0;
     height: 100%;
-    width:  0%;
-    background: rgba(0, 0, 0, 0.78);
-    will-change: width;
+    width:  0px;          /* JS sets as px — no CSS transition */
+    background: #111;
 }
 
-/* Static number — always right of track, only text content changes */
-.loader-progress-num {
-    flex-shrink: 0;
-    font-family: var(--font-accent);
-    font-size:   12px;
-    font-weight: 400;
-    font-style:  italic;
-    letter-spacing: 0.02em;
-    color: rgba(0, 0, 0, 0.60);
+/* Number: vertically centred on line, left = fill %, JS drives transform */
+.loader-prog-num {
+    position:   absolute;
+    top:        50%;
+    left:       0%;       /* JS drives this */
+    transform:  translate(0%, -50%);  /* default; JS overrides per spec */
+    font-family: var(--font-sf);
+    font-size:   10px;
+    font-weight: 500;
+    color:       #111;
+    letter-spacing: 0.04em;
+    background:  #FF5509;
+    padding:  0 3px;
     white-space: nowrap;
-    line-height: 1;
+    line-height: 1.2;
     pointer-events: none;
-    min-width: 22px;
-    text-align: left;
 }
-
-
 
 
 /* ── Navigation ─────────────────────────────────────────────────── */
