@@ -1181,7 +1181,7 @@ magneticElements.forEach((el) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// 4. LOADER — AV breathe + 220px progress bar → "2" Reveal
+// 4. LOADER — AV breathe + 130px progress bar → "2" Reveal
 // ═══════════════════════════════════════════════════════════════
 //
 // TUNABLE VALUES:
@@ -1191,7 +1191,7 @@ magneticElements.forEach((el) => {
 //   PROG_IN_DELAY      0.4s   bar fade-in delay after logo
 //   IDLE_PROGRESS      6      % shown immediately (alive indicator)
 //   READY_HOLD_MS      260ms  pause at 100% before reveal
-//   TRACK_W            220    must match CSS .loader-prog-track width (px)
+//   TRACK_W            130    must match CSS .loader-prog-track width (px)
 // ═══════════════════════════════════════════════════════════════
 
 (function initLoader() {
