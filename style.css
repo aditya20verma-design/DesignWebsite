@@ -239,6 +239,53 @@ body {
 }
 
 
+/* ── Loader: Progress counter ────────────────────────────────────────────────
+   Large ultralight numeral in bottom-right. Shows 0 → 100 tied to real load.
+   SF Pro Display at weight 200 — the same system font as the site, consistent.
+   transform-origin bottom-right so it feels anchored to its corner.
+   tabular-nums: prevents layout jump as digit count changes (1→2→3 digits).
+   ─────────────────────────────────────────────────────────────────────────── */
+.loader-counter {
+    position: absolute;
+    bottom:   clamp(1.75rem, 3.5vw, 3rem);
+    right:    clamp(1.75rem, 3.5vw, 3rem);
+    z-index:  4;   /* above panel, below nothing */
+    font-family: var(--font-sf);
+    font-size:   clamp(80px, 10.5vw, 148px);
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    color: rgba(0, 0, 0, 0.82);
+    opacity: 0;                    /* GSAP fades in */
+    pointer-events: none;
+    will-change: opacity;
+    /* Anchor scaling to bottom-right so it doesn't jump */
+    transform-origin: bottom right;
+}
+
+/* ── Loader: Progress line ────────────────────────────────────────────────────
+   1.5px line at the very bottom of the loader. Grows left→right via scaleX.
+   Using transform instead of width change = GPU-composited, zero jank.
+   transform-origin: left center so it grows from the left edge.
+   ─────────────────────────────────────────────────────────────────────────── */
+.loader-line {
+    position: absolute;
+    bottom:   0;
+    left:     0;
+    width:    100%;
+    height:   1.5px;
+    z-index:  4;
+    background: rgba(0, 0, 0, 0.50);
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0;                    /* GSAP fades in */
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+
 /* ── Navigation ─────────────────────────────────────────────────── */
 nav {
     position: fixed;

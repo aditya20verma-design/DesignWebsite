@@ -95,11 +95,11 @@
          ────────────────────────────────────────────────────────── -->
     <script>
         (function () {
-            // ── TUNABLE VALUES ─────────────────────────────────────
+            // ── TUNABLE VALUES ──────────────────────────────────────
             var GATE_TIMEOUT_MS      = 12000;  // max wait — seq Tier-2 (30 frames) on slow mobile
             var UNICORN_SETTLE_MS    = 250;    // ms after canvas inject → first pixels drawn
-            var SEQ_FRAME_SETTLE_MS  = 0;      // 0: loadBatch onload already confirms decode
-            // ──────────────────────────────────────────────────────
+            var SEQ_FRAME_SETTLE_MS  = 0;      // loadBatch onload already confirms decode
+            // ───────────────────────────────────────────────────────
 
             var _resolve;
             window.__preloaderReady = new Promise(function (res) { _resolve = res; });
@@ -107,26 +107,44 @@
             var _unicornDone = false;
             var _seqDone     = false;
 
+            // Tracks latest progress (0–100); initLoader catches up on registration
+            window.__loaderProgressNow = 0;
+
+            function _emitProgress(p) {
+                window.__loaderProgressNow = p;
+                if (window.__onLoaderProgress) window.__onLoaderProgress(p);
+            }
+
             function _check() {
                 if (_unicornDone && _seqDone) _resolve();
             }
 
-            // ── SIGNAL A: UnicornStudio canvas injected ───────────────
-            // Exposed on window so the UnicornStudio init block below can call it.
+            // ── SIGNAL A: UnicornStudio canvas injected (→ 50%) ──────────
             window.__gateUnicornReady = function () {
                 if (_unicornDone) return;
-                setTimeout(function () { _unicornDone = true; _check(); }, UNICORN_SETTLE_MS);
+                setTimeout(function () {
+                    _unicornDone = true;
+                    _emitProgress(50);
+                    _check();
+                }, UNICORN_SETTLE_MS);
             };
 
-            // ── SIGNAL B: Sequence frame-0 decoded ───────────────────
-            // sequence.js calls this after frames[0].onload fires.
+            // ── SIGNAL B: Sequence frames 0–30 decoded (→ 100%) ─────────
             window.__gateSeqReady = function () {
                 if (_seqDone) return;
-                setTimeout(function () { _seqDone = true; _check(); }, SEQ_FRAME_SETTLE_MS);
+                setTimeout(function () {
+                    _seqDone = true;
+                    _emitProgress(100);
+                    _check();
+                }, SEQ_FRAME_SETTLE_MS);
             };
 
-            // ── HARD TIMEOUT — never hang on bad connection ───────────
-            setTimeout(function () { _unicornDone = true; _seqDone = true; _check(); }, GATE_TIMEOUT_MS);
+            // ── HARD TIMEOUT — never hang on bad connection ───────────────
+            setTimeout(function () {
+                _unicornDone = true; _seqDone = true;
+                _emitProgress(100);
+                _check();
+            }, GATE_TIMEOUT_MS);
         }());
     </script>
 
@@ -165,12 +183,18 @@
         <!-- ① Orange curtain panel — full screen, z sits on top -->
         <div class="loader-panel" id="loader-panel"></div>
 
-        <!-- ② AV wordmark — centered, breathes (scale + opacity) while assets load -->
+        <!-- ② AV wordmark — centered, breathes (scale only) while assets load -->
         <div class="loader-logo-wrap" id="loader-logo-wrap">
             <div class="loader-logo-mask">
                 <img id="loader-logo-img" src="sections/loader/assets/AV wordmark.svg" class="loader-logo-img" alt="AV">
             </div>
         </div>
+
+        <!-- ④ Progress counter — large numeral, bottom-right -->
+        <div class="loader-counter" id="loader-counter" aria-label="Loading progress" aria-live="polite">0</div>
+
+        <!-- ⑤ Progress line — 1px, grows left→right at very bottom -->
+        <div class="loader-line" id="loader-line" aria-hidden="true"></div>
 
         <!-- ③ "2" shape mask — expands from center revealing the site -->
         <svg class="loader-mask-svg" id="loader-mask-svg" xmlns="http://www.w3.org/2000/svg">

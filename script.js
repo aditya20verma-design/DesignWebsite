@@ -1181,34 +1181,39 @@ magneticElements.forEach((el) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// 4. LOADER — AV Breathe → "2" Mask Reveal
+// 4. LOADER — AV Breathe + Progress Counter + Line → "2" Reveal
 // ═══════════════════════════════════════════════════════════════
 //
-// Phase A  →  AV logo breathes (scale only, opacity always 1) while assets load
-// Phase B  →  Gate resolves → breathing stops → brief hold
-// Phase C  →  "2" mask reveal fires
+// Phase A  →  AV breathes (scale only), counter counts 0→100,
+//             line grows left→right — all tied to real asset load
+// Phase B  →  Gate resolves → stop breathing, counter hits 100 →
+//             brief hold
+// Phase C  →  Counter + line fade out, "2" mask reveal fires
 //
 // ── TUNABLE VALUES ──────────────────────────────────────────────
-//   BREATHE_SCALE_MIN   0.88   ← smallest scale on each exhale
-//   BREATHE_SCALE_MAX   1.00   ← peak scale on each inhale
-//   BREATHE_CYCLE_DUR   1.8    ← full breath in+out, seconds
-//   LOGO_IN_DUR         0.55   ← initial scale-in from 0.4 → 1
-//   READY_HOLD_MS       180    ← ms pause after gate, before reveal
+//   BREATHE_SCALE_MIN    0.88   ← smallest scale on exhale
+//   BREATHE_SCALE_MAX    1.00   ← peak scale on inhale
+//   BREATHE_CYCLE_DUR    1.8    ← full breath in+out, seconds
+//   LOGO_IN_DUR          0.55   ← logo initial entrance duration
+//   COUNTER_IN_DELAY     0.35   ← counter/line fade-in delay after logo
+//   COUNTER_IN_DUR       0.55   ← counter/line fade-in duration
+//   PROGRESS_TWEEN_DUR   0.9    ← GSAP tween duration for counter jump
+//   IDLE_PROGRESS        8      ← % counter shows immediately (live signal)
+//   READY_HOLD_MS        220    ← pause once counter hits 100, before reveal
 // ────────────────────────────────────────────────────────────────
 
 (function initLoader() {
 
     /* ── DOM refs ── */
-    const panel   = document.getElementById('loader-panel');
-    const logoImg = document.getElementById('loader-logo-img');
-    const maskSvg = document.getElementById('loader-mask-svg');
-    const twoPath = document.getElementById('two-mask-path');
-    const navEl   = document.querySelector('nav');
+    const panel      = document.getElementById('loader-panel');
+    const logoImg    = document.getElementById('loader-logo-img');
+    const maskSvg    = document.getElementById('loader-mask-svg');
+    const twoPath    = document.getElementById('two-mask-path');
+    const navEl      = document.querySelector('nav');
+    const counterEl  = document.getElementById('loader-counter');
+    const lineEl     = document.getElementById('loader-line');
 
-    /* ── Geometry ───────────────────────────────────────────────
-     * "2" path lives in 0 0 139 137 coordinate space.
-     * translate(cx,cy) scale(s) translate(-pw,-ph) keeps it centred.
-     */
+    /* ── Geometry — "2" path in 0 0 139 137 space ──────────────── */
     const cx = window.innerWidth  / 2;
     const cy = window.innerHeight / 2;
     const pw = 139 / 2;
@@ -1218,42 +1223,76 @@ magneticElements.forEach((el) => {
         return `translate(${cx},${cy}) scale(${s}) translate(${-pw},${-ph})`;
     }
 
-    /* ── Initial states ─────────────────────────────────────────
-       INIT_SCALE ≈ 1px — invisible point, zero jerk on appear    */
+    /* ── Initial states ─────────────────────────────────────────── */
     const INIT_SCALE = 0.007;
-    gsap.set(twoPath, { attr: { transform: twoT(INIT_SCALE) } });
-    gsap.set(maskSvg, { opacity: 1 });   // SVG ready, same look as panel
-    gsap.set(panel,   { zIndex: 3 });    // panel in front of SVG initially
-    gsap.set(logoImg, { opacity: 0, scale: 0.4 }); // hidden, will fade in once
+    gsap.set(twoPath,   { attr: { transform: twoT(INIT_SCALE) } });
+    gsap.set(maskSvg,   { opacity: 1 });
+    gsap.set(panel,     { zIndex: 3 });
+    gsap.set(logoImg,   { opacity: 0, scale: 0.4 });
+    // Counter and line start invisible — faded in by GSAP
+    if (counterEl) gsap.set(counterEl, { opacity: 0 });
+    if (lineEl)    gsap.set(lineEl,    { opacity: 0, scaleX: 0 });
 
-    /* ── Lock scroll ────────────────────────────────────────────
-       Event-based block — no overflow:hidden (breaks WebGL IntersectionObserver) */
+    /* ── Lock scroll ─────────────────────────────────────────────
+       Event-based — no overflow:hidden (breaks WebGL IntersectionObserver) */
     function _blockScroll(e) { e.preventDefault(); }
     window.addEventListener('wheel',     _blockScroll, { passive: false });
     window.addEventListener('touchmove', _blockScroll, { passive: false });
     if (window.__lenisInstance) window.__lenisInstance.stop();
 
-    /* ── TUNABLE ─────────────────────────────────────────────── */
-    const BREATHE_SCALE_MIN = 0.88;   // exhale scale (smaller = more dramatic pulse)
-    const BREATHE_SCALE_MAX = 1.00;   // inhale scale
-    const BREATHE_CYCLE_DUR = 1.8;    // seconds for full in+out breath
-    const LOGO_IN_DUR       = 0.55;   // initial entrance
-    const READY_HOLD_MS     = 180;    // pause after assets ready, before reveal
+    /* ── TUNABLE ──────────────────────────────────────────────── */
+    const BREATHE_SCALE_MIN    = 0.88;
+    const BREATHE_SCALE_MAX    = 1.00;
+    const BREATHE_CYCLE_DUR    = 1.8;
+    const LOGO_IN_DUR          = 0.55;
+    const COUNTER_IN_DELAY     = 0.35;
+    const COUNTER_IN_DUR       = 0.55;
+    const PROGRESS_TWEEN_DUR   = 0.9;
+    const IDLE_PROGRESS        = 8;     // shows immediately — proves loader is alive
+    const READY_HOLD_MS        = 220;
     /* ─────────────────────────────────────────────────────────── */
 
-    /* ── Phase A: Entrance → breathe loop ──────────────────────
-       ONE-TIME fade: logo comes in at full opacity then stays there.
-       Only SCALE breathes — opacity is always 1 after entrance.    */
+    /* ── Progress system ─────────────────────────────────────────
+       GSAP tweens a proxy object so the counter increments smoothly
+       instead of jumping. Line uses scaleX (GPU-composited).        */
+    const _prog = { val: 0 };
+
+    function _setProgress(target, dur) {
+        dur = (dur === undefined) ? PROGRESS_TWEEN_DUR : dur;
+        gsap.to(_prog, {
+            val:      target,
+            duration: dur,
+            ease:     'power2.out',
+            overwrite: true,
+            onUpdate() {
+                const n = Math.min(100, Math.round(_prog.val));
+                if (counterEl) counterEl.textContent = n;
+                if (lineEl)    gsap.set(lineEl, { scaleX: n / 100 });
+            }
+        });
+    }
+
+    /* Register callback BEFORE checking existing progress (race-safety) */
+    window.__onLoaderProgress = function(p) {
+        _setProgress(p);   // p is 0–100
+    };
+
+    /* Catch-up: if any gate already fired before initLoader ran */
+    const already = window.__loaderProgressNow || 0;
+    if (already > 0) _setProgress(already, 0.4);
+
+    /* ── Phase A: Logo entrance + counter/line appear ────────────
+       Logo fades in at full opacity. Scale breathes from then on.
+       Counter and line fade in shortly after (staggered).           */
     let _breathTween = null;
 
     gsap.to(logoImg, {
-        opacity:  1,              // full black, stays here permanently
+        opacity:  1,
         scale:    BREATHE_SCALE_MAX,
         duration: LOGO_IN_DUR,
         delay:    0.2,
         ease:     'power3.out',
         onComplete() {
-            // Scale-only breathing loop — no opacity changes
             _breathTween = gsap.to(logoImg, {
                 scale:    BREATHE_SCALE_MIN,
                 duration: BREATHE_CYCLE_DUR / 2,
@@ -1264,23 +1303,34 @@ magneticElements.forEach((el) => {
         }
     });
 
-    /* ── Phase B: Gate resolves ─────────────────────────────────
-       Kill breathing, snap scale back to 1.0, hold, fire reveal. */
+    // Counter fades in, then immediately starts counting to IDLE_PROGRESS
+    gsap.to([counterEl, lineEl].filter(Boolean), {
+        opacity:  1,
+        duration: COUNTER_IN_DUR,
+        delay:    COUNTER_IN_DELAY,
+        ease:     'power2.out',
+        onComplete() {
+            // Only nudge to idle if no real progress yet
+            if (_prog.val < IDLE_PROGRESS) _setProgress(IDLE_PROGRESS, 1.0);
+        }
+    });
+
+    /* ── Phase B: Gate resolves ──────────────────────────────────
+       Kill breathing, jump counter to 100 cleanly, hold, reveal.   */
     (window.__preloaderReady || Promise.resolve()).then(function () {
 
         if (_breathTween) _breathTween.kill();
 
-        // Snap back to full size cleanly — opacity stays 1 throughout
-        gsap.to(logoImg, {
-            scale:    1,
-            duration: 0.3,
-            ease:     'power2.out',
-        });
+        // Snap scale back to 1, keep opacity 1
+        gsap.to(logoImg, { scale: 1, duration: 0.3, ease: 'power2.out' });
+
+        // Make sure counter hits 100 (may already be there)
+        _setProgress(100, 0.5);
 
         setTimeout(startReveal, READY_HOLD_MS);
     });
 
-    /* ── Phase C: "2" mask reveal ─────────────────────────────── */
+    /* ── Phase C: "2" mask reveal ───────────────────────────────── */
     function startReveal() {
 
         const tl = gsap.timeline();
@@ -1288,18 +1338,24 @@ magneticElements.forEach((el) => {
         tl
             .set({}, {}, 0.1)
 
-            /* Swap panel → SVG (blink-free) */
+            /* Swap panel → SVG — blink-free */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
-            /* Logo fades out + "2" explodes */
-            .to(logoImg, { opacity: 0, duration: 0.4, ease: 'power2.inOut' })
+            /* Fade out logo + counter + line simultaneously */
+            .to([logoImg, counterEl, lineEl].filter(Boolean), {
+                opacity:  0,
+                duration: 0.4,
+                ease:     'power2.inOut',
+            })
+
+            /* "2" expands */
             .to(twoPath, {
                 duration: 2.8,
                 ease:     'power3.inOut',
                 attr:     { transform: twoT(2400) }
             }, '-=0.2')
 
-            /* Early trigger: unlock scroll, reveal nav + sound */
+            /* Early trigger: unlock scroll, reveal corners */
             .call(() => {
                 const el = document.getElementById('site-loader');
                 if (el) el.style.pointerEvents = 'none';
@@ -1319,9 +1375,9 @@ magneticElements.forEach((el) => {
                 }
 
                 gsap.to([navEl, '#sound-toggle'].filter(Boolean), {
-                    opacity: 1,
+                    opacity:  1,
                     duration: 0.4,
-                    ease: 'power2.out',
+                    ease:     'power2.out',
                     onStart: () => {
                         const st = document.getElementById('sound-toggle');
                         if (st) st.style.pointerEvents = 'auto';
@@ -1334,7 +1390,7 @@ magneticElements.forEach((el) => {
                 if (window.__circuitIntro) window.__circuitIntro();
             }, null, '-=2.2')
 
-            /* Remove loader */
+            /* Remove loader from DOM */
             .call(() => {
                 const el = document.getElementById('site-loader');
                 if (el) el.style.display = 'none';
