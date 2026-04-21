@@ -274,16 +274,16 @@ body {
     background: rgba(0, 0, 0, 0.62);  /* dark, clean on orange */
 }
 
-/* Number: SF Pro Italic, vertically centred on line, left = fill %, JS drives transform */
-/* Number: SF Pro Italic, sits ON the line at fill tip, JS drives left + transform */
+/* Number: Brier italic, vertically centred on line, left = fill %, JS drives transform */
+/* Number: Brier italic, sits ON the line at fill tip, JS drives left + transform */
 .loader-prog-num {
     position:   absolute;
     top:        50%;                   /* centred on the 1px line */
     left:       0%;                    /* JS drives this */
     transform:  translate(0%, -50%);   /* default; JS overrides per edge rule */
-    font-family: var(--font-sf);       /* SF Pro */
+    font-family: var(--font-accent);   /* Brier italic */
     font-size:   10px;
-    font-weight: 500;
+    font-weight: 400;
     font-style:  italic;
     color:       rgba(0, 0, 0, 0.70);
     letter-spacing: 0.03em;
