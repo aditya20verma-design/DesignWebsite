@@ -282,7 +282,7 @@ body {
     left:       0%;                    /* JS drives this */
     transform:  translate(0%, -50%);   /* default; JS overrides per edge rule */
     font-family: var(--font-accent);   /* Brier italic */
-    font-size:   10px;
+    font-size:   13px;
     font-weight: 600;
     font-style:  italic;
     color:       rgba(0, 0, 0, 0.70);
