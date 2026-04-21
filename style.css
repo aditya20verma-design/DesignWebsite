@@ -248,9 +248,13 @@ body {
    ─────────────────────────────────────────────────────────────────────── */
 
 /* Fade-in wrapper — only controls visibility */
+/* Fade-in wrapper — match track width, ensure overflow doesn't clip number at edges */
 .loader-prog-wrap {
+    width: 130px;
+    margin: 0 auto;
     opacity: 0;           /* GSAP fades in after logo enters */
     pointer-events: none;
+    overflow: visible;
 }
 
 /* Track: same 130px width as AV logo, 1.5px tall */
