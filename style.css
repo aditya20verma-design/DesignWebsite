@@ -248,22 +248,23 @@ body {
    ─────────────────────────────────────────────────────────────────────── */
 
 /* Fade-in wrapper — only controls visibility */
-/* Fade-in wrapper — match track width, ensure overflow doesn't clip number at edges */
+/* Fade-in wrapper — wider than track to provide a safe bleed area for overflow */
 .loader-prog-wrap {
-    width: 130px;
+    width: 170px;          /* 130px track + 20px bleed each side */
+    flex-shrink: 0;
     margin: 0 auto;
-    opacity: 0;           /* GSAP fades in after logo enters */
+    opacity: 0;
     pointer-events: none;
     overflow: visible;
 }
 
-/* Track: same 130px width as AV logo, 1.5px tall */
-/* Track: 130px × 1px ghost line on orange */
+/* Track: 130px × 1px ghost line, centered in the bleed wrapper */
 .loader-prog-track {
     position: relative;
     width:  130px;
-    height: 1px;                       /* 1px — refined on orange */
-    background: rgba(0, 0, 0, 0.12);  /* very faint ghost track */
+    margin: 0 auto;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.12);
     overflow: visible;
 }
 
