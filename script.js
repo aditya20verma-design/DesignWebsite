@@ -1254,6 +1254,16 @@ magneticElements.forEach((el) => {
     function _animLoop() {
         if (_animStop) return;
 
+        // ── Artificial Creep ──────────────────────────────────────
+        // Prevents the bar from feeling "stuck" between discrete signals.
+        // Capped handles: stays below 48 while waiting for signal A (50),
+        // and below 98 while waiting for signal B (100).
+        if (_targetProgress < 48) {
+            _targetProgress += 0.04;
+        } else if (_targetProgress >= 50 && _targetProgress < 98) {
+            _targetProgress += 0.03;
+        }
+
         // Lerp toward target for smooth motion
         _smoothProgress += (_targetProgress - _smoothProgress) * 0.08;
         if (Math.abs(_targetProgress - _smoothProgress) < 0.05) {
