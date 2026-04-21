@@ -81,7 +81,7 @@ body {
     position: fixed;
     top: 0; left: 0; width: 8px; height: 8px;
     background-color: var(--cursor-dot-bg);
-    border-radius: 50%; pointer-events: none; z-index: 10001;
+    border-radius: 50%; pointer-events: none; z-index: 100001;
     transform: translate(-50%, -50%);
     mix-blend-mode: difference;
     opacity: 0;
@@ -94,7 +94,7 @@ body {
     width: 40px; height: 40px;          /* original ring size */
     border: 1px solid var(--cursor-ring-border);  /* rgba(255,255,255,0.30) — original soft white */
     border-radius: 50%;
-    pointer-events: none; z-index: 10000;
+    pointer-events: none; z-index: 100000;
     transform: translate(-50%, -50%);
     display: flex; align-items: center; justify-content: center;
     overflow: visible;
@@ -253,38 +253,42 @@ body {
     pointer-events: none;
 }
 
-/* Track: 220px × 1.5px, no radius, grey bg always visible */
+/* Track: same 130px width as AV logo, 1.5px tall */
+/* Track: 130px × 1px ghost line on orange */
 .loader-prog-track {
     position: relative;
-    width:  220px;
-    height: 1.5px;
-    background: rgba(0, 0, 0, 0.15);
-    overflow: visible;    /* number floats over the line */
+    width:  130px;
+    height: 1px;                       /* 1px — refined on orange */
+    background: rgba(0, 0, 0, 0.12);  /* very faint ghost track */
+    overflow: visible;
 }
 
 /* Fill: grows 0 → 220px, driven each rAF frame, NO transition */
+/* Fill: dark ink grows left→right, no CSS transition */
 .loader-prog-fill {
     position: absolute;
     left: 0;
     top:  0;
     height: 100%;
-    width:  0px;          /* JS sets as px — no CSS transition */
-    background: #111;
+    width:  0px;
+    background: rgba(0, 0, 0, 0.62);  /* dark, clean on orange */
 }
 
-/* Number: vertically centred on line, left = fill %, JS drives transform */
+/* Number: Brier italic, vertically centred on line, left = fill %, JS drives transform */
+/* Number: Brier italic, sits ON the line at fill tip, JS drives left + transform */
 .loader-prog-num {
     position:   absolute;
-    top:        50%;
-    left:       0%;       /* JS drives this */
-    transform:  translate(0%, -50%);  /* default; JS overrides per spec */
-    font-family: var(--font-sf);
+    top:        50%;                   /* centred on the 1px line */
+    left:       0%;                    /* JS drives this */
+    transform:  translate(0%, -50%);   /* default; JS overrides per edge rule */
+    font-family: var(--font-accent);   /* Brier italic */
     font-size:   10px;
-    font-weight: 500;
-    color:       #111;
-    letter-spacing: 0.04em;
-    background:  #FF5509;
-    padding:  0 3px;
+    font-weight: 400;
+    font-style:  italic;
+    color:       rgba(0, 0, 0, 0.70);
+    letter-spacing: 0.03em;
+    background:  #FF5509;              /* masks the fill line behind the digit */
+    padding:     0 3px;
     white-space: nowrap;
     line-height: 1.2;
     pointer-events: none;

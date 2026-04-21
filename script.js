@@ -1235,7 +1235,7 @@ magneticElements.forEach((el) => {
     const PROG_IN_DELAY     = 0.4;
     const IDLE_PROGRESS     = 6;
     const READY_HOLD_MS     = 260;
-    const TRACK_W           = 220;   // must match CSS .loader-prog-track width
+    const TRACK_W           = 130;   // must match CSS .loader-prog-track width
 
     /* ── Progress: rAF loop reads window.loaderProgress ──────────
        _targetProgress is set by gate signals (__onLoaderProgress).
@@ -1268,14 +1268,14 @@ magneticElements.forEach((el) => {
         // Fill width as px — no CSS transition, direct write per spec
         if (fillEl) fillEl.style.width = (p / 100 * TRACK_W) + 'px';
 
-        // Number: left as %, transform locks edges per spec
+        // Number: left as %, transform clamps edges, always -50% vertical (centred on line)
         if (numEl) {
             numEl.textContent = n;
             numEl.style.left  = p + '%';
             if (p <= 3) {
-                numEl.style.transform = 'translate(0%, -50%)';       // lock left
+                numEl.style.transform = 'translate(0%, -50%)';       // lock left edge
             } else if (p >= 97) {
-                numEl.style.transform = 'translate(-100%, -50%)';    // lock right
+                numEl.style.transform = 'translate(-100%, -50%)';    // lock right edge
             } else {
                 numEl.style.transform = 'translate(-50%, -50%)';     // centred on tip
             }
@@ -1520,12 +1520,10 @@ magneticElements.forEach((el) => {
             proxyRaf = requestAnimationFrame(proxyLoop);
         }
 
-        // Expose trigger — called by startReveal after the "2" mask fires
-        // so the auto-pan runs on the visible hero, not during loading.
+        // Expose trigger — called by startReveal so the auto-pan runs on the visible hero.
+        // No delay needed: by the time this fires the hero is already revealed.
         window.__startHeroAutoPan = function () {
-            if (proxyMode === 'auto') {
-                setTimeout(() => { if (proxyMode === 'auto') proxyLoop(); }, 800);
-            }
+            if (proxyMode === 'auto') proxyLoop();
         };
 
         function interceptRealMouse(e) {
