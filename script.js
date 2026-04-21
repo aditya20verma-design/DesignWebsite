@@ -1184,18 +1184,16 @@ magneticElements.forEach((el) => {
 // 4. LOADER — AV Breathe → "2" Mask Reveal
 // ═══════════════════════════════════════════════════════════════
 //
-// Phase A  →  AV logo breathes (scale + opacity) while assets load
+// Phase A  →  AV logo breathes (scale only, opacity always 1) while assets load
 // Phase B  →  Gate resolves → breathing stops → brief hold
 // Phase C  →  "2" mask reveal fires
 //
 // ── TUNABLE VALUES ──────────────────────────────────────────────
-//   BREATHE_SCALE_MIN   0.92   ← smallest scale on each exhale
+//   BREATHE_SCALE_MIN   0.88   ← smallest scale on each exhale
 //   BREATHE_SCALE_MAX   1.00   ← peak scale on each inhale
-//   BREATHE_OPACITY_MIN 0.28   ← dimmest opacity on exhale
-//   BREATHE_OPACITY_MAX 0.75   ← brightest opacity on inhale
 //   BREATHE_CYCLE_DUR   1.8    ← full breath in+out, seconds
-//   LOGO_IN_DUR         0.65   ← initial scale-in from 0.4 → 1
-//   READY_HOLD_MS       220    ← ms pause after gate, before reveal
+//   LOGO_IN_DUR         0.55   ← initial scale-in from 0.4 → 1
+//   READY_HOLD_MS       180    ← ms pause after gate, before reveal
 // ────────────────────────────────────────────────────────────────
 
 (function initLoader() {
@@ -1226,7 +1224,7 @@ magneticElements.forEach((el) => {
     gsap.set(twoPath, { attr: { transform: twoT(INIT_SCALE) } });
     gsap.set(maskSvg, { opacity: 1 });   // SVG ready, same look as panel
     gsap.set(panel,   { zIndex: 3 });    // panel in front of SVG initially
-    gsap.set(logoImg, { opacity: 0, scale: 0.4 });
+    gsap.set(logoImg, { opacity: 0, scale: 0.4 }); // hidden, will fade in once
 
     /* ── Lock scroll ────────────────────────────────────────────
        Event-based block — no overflow:hidden (breaks WebGL IntersectionObserver) */
@@ -1236,29 +1234,28 @@ magneticElements.forEach((el) => {
     if (window.__lenisInstance) window.__lenisInstance.stop();
 
     /* ── TUNABLE ─────────────────────────────────────────────── */
-    const BREATHE_SCALE_MIN   = 0.92;
-    const BREATHE_SCALE_MAX   = 1.00;
-    const BREATHE_OPACITY_MIN = 0.28;
-    const BREATHE_OPACITY_MAX = 0.75;
-    const BREATHE_CYCLE_DUR   = 1.8;   // seconds, full in+out
-    const LOGO_IN_DUR         = 0.65;
-    const READY_HOLD_MS       = 220;
+    const BREATHE_SCALE_MIN = 0.88;   // exhale scale (smaller = more dramatic pulse)
+    const BREATHE_SCALE_MAX = 1.00;   // inhale scale
+    const BREATHE_CYCLE_DUR = 1.8;    // seconds for full in+out breath
+    const LOGO_IN_DUR       = 0.55;   // initial entrance
+    const READY_HOLD_MS     = 180;    // pause after assets ready, before reveal
     /* ─────────────────────────────────────────────────────────── */
 
     /* ── Phase A: Entrance → breathe loop ──────────────────────
-       Logo scales in from 0.4 → 1 cleanly, then breathing begins. */
+       ONE-TIME fade: logo comes in at full opacity then stays there.
+       Only SCALE breathes — opacity is always 1 after entrance.    */
     let _breathTween = null;
 
     gsap.to(logoImg, {
-        opacity:  BREATHE_OPACITY_MAX,
+        opacity:  1,              // full black, stays here permanently
         scale:    BREATHE_SCALE_MAX,
         duration: LOGO_IN_DUR,
-        delay:    0.25,
+        delay:    0.2,
         ease:     'power3.out',
         onComplete() {
+            // Scale-only breathing loop — no opacity changes
             _breathTween = gsap.to(logoImg, {
                 scale:    BREATHE_SCALE_MIN,
-                opacity:  BREATHE_OPACITY_MIN,
                 duration: BREATHE_CYCLE_DUR / 2,
                 ease:     'sine.inOut',
                 repeat:   -1,
@@ -1268,16 +1265,16 @@ magneticElements.forEach((el) => {
     });
 
     /* ── Phase B: Gate resolves ─────────────────────────────────
-       Kill breathing, snap logo to rest, short hold, fire reveal. */
+       Kill breathing, snap scale back to 1.0, hold, fire reveal. */
     (window.__preloaderReady || Promise.resolve()).then(function () {
 
         if (_breathTween) _breathTween.kill();
 
+        // Snap back to full size cleanly — opacity stays 1 throughout
         gsap.to(logoImg, {
-            scale:   1,
-            opacity: 0.82,
-            duration: 0.35,
-            ease: 'power2.out',
+            scale:    1,
+            duration: 0.3,
+            ease:     'power2.out',
         });
 
         setTimeout(startReveal, READY_HOLD_MS);

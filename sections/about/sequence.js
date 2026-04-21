@@ -326,18 +326,21 @@
     }
 
     function preload() {
-        // Tier 1: frame 0 → marks ready, starts scroll listening, hides loader
+        // Tier 1: frame 0 → ready to show canvas, binds scroll
         loadOne(0, function() {
-            // Signal the global preloader gate: bike frame-0 decoded
-            if (window.__gateSeqReady) window.__gateSeqReady();
             ready = true;
             if (loader) loader.style.display = 'none';
             bindScroll();
 
-            // Tier 2: frames 1–30 (covers fast first-scroll)
+            // Tier 2: frames 1–30 (covers fast first-scroll) → THEN signal gate
             var t2 = [];
             for (var i = 1; i < Math.min(31, TOTAL); i++) t2.push(i);
             loadBatch(t2, function() {
+                // Signal preloader gate only once frames 0-30 are in memory.
+                // This ensures the sequence plays smoothly right after the reveal
+                // fires — the preloader is now actually gating real readiness.
+                if (window.__gateSeqReady) window.__gateSeqReady();
+
                 // Tier 3: rest in background
                 var t3 = [];
                 for (var i = 31; i < TOTAL; i++) t3.push(i);

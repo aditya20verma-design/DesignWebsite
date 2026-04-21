@@ -96,9 +96,9 @@
     <script>
         (function () {
             // ── TUNABLE VALUES ─────────────────────────────────────
-            var GATE_TIMEOUT_MS      = 7000;   // max wait before force-reveal
+            var GATE_TIMEOUT_MS      = 12000;  // max wait — seq Tier-2 (30 frames) on slow mobile
             var UNICORN_SETTLE_MS    = 250;    // ms after canvas inject → first pixels drawn
-            var SEQ_FRAME_SETTLE_MS  = 80;     // ms after frame-0 load → decoded in RAM
+            var SEQ_FRAME_SETTLE_MS  = 0;      // 0: loadBatch onload already confirms decode
             // ──────────────────────────────────────────────────────
 
             var _resolve;
