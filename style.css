@@ -213,6 +213,10 @@ body {
 
     z-index: 3;
     pointer-events: none;
+
+    /* The same SVG mask is applied here so the expanding "2" hole cuts through the AV logo */
+    -webkit-mask: url(#two-reveal-mask);
+    mask: url(#two-reveal-mask);
 }
 
 /* Inner wrapper for the dual-layer logo */

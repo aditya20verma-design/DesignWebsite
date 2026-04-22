@@ -1363,19 +1363,12 @@ magneticElements.forEach((el) => {
             /* Swap solid panel → SVG mask (blink-free) */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
-            /* "2" explodes — logo fades in sync as hole grows */
+            /* "2" explodes — SVG mask cuts through the AV logo (no JS fade) */
             .to(twoPath, {
                 duration: 2.8,
                 ease:     'power3.inOut',
                 attr:     { transform: twoT(2400) }
             }, '-=0.2')
-
-            /* Logo fades out as the "2" hole passes over it */
-            .to(logoWrap, {
-                opacity:  0,
-                duration: 0.35,
-                ease:     'power2.in',
-            }, '<')
 
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
