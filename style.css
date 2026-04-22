@@ -261,12 +261,13 @@ body {
         var(--color-neutral-900) 100%
     );
     background-size: 300% 100%;
+    background-repeat: no-repeat;
     animation: shimmer-sweep 0.7s ease-in-out forwards;
 }
 
 @keyframes shimmer-sweep {
-    0%   { background-position: 200% 0; }
-    100% { background-position: -100% 0; }
+    0%   { background-position: 100% 0; }
+    100% { background-position: 0% 0; }
 }
 
 /* ③ SVG mask overlay — starts hidden; fades in when "2" reveal begins */
