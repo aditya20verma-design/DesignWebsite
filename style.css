@@ -213,10 +213,6 @@ body {
 
     z-index: 3;
     pointer-events: none;
-
-    /* Apply the same "2" mask so the logo is "cut" by the expanding hole */
-    -webkit-mask: url(#two-reveal-mask);
-    mask: url(#two-reveal-mask);
 }
 
 /* Inner wrapper for the dual-layer logo */

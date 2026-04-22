@@ -1363,15 +1363,19 @@ magneticElements.forEach((el) => {
             /* Swap solid panel → SVG mask (blink-free) */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
-            /* Logo stays visible and gets "cut" by the mask (applied via CSS) */
-            /* No opacity fade here — it will be masked out naturally as the "2" hole expands */
-
-            /* "2" explodes */
+            /* "2" explodes — logo fades in sync as hole grows */
             .to(twoPath, {
                 duration: 2.8,
                 ease:     'power3.inOut',
                 attr:     { transform: twoT(2400) }
             }, '-=0.2')
+
+            /* Logo fades out as the "2" hole passes over it */
+            .to(logoWrap, {
+                opacity:  0,
+                duration: 0.35,
+                ease:     'power2.in',
+            }, '<')
 
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
