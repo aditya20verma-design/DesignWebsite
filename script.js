@@ -1363,25 +1363,31 @@ magneticElements.forEach((el) => {
             /* Swap solid panel → SVG mask (blink-free) */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
-            /* "2" explodes — SVG mask cuts through the AV logo (no JS fade) */
+            /* "2" explodes — onStart/onComplete handle Safari cross-browser cleanup */
             .to(twoPath, {
-                duration: 2.8,
-                ease:     'power3.inOut',
-                attr:     { transform: twoT(2400) }
-            }, '-=0.2')
-
-            /* Safari fix: mask:url(#id) on HTML divs is ignored in Safari.
-               The SVG curtain also leaves orange blobs due to Safari repaint quirks.
-               Nuclear fix: instantly zero-out the entire loader the moment the "2" finishes.
-               Chrome: loader already invisible behind the mask — no visual change.
-               Safari: this is the only thing that kills both the logo ghost AND orange blobs. */
-            .call(() => {
-                const loaderEl = document.getElementById('site-loader');
-                if (loaderEl) {
-                    loaderEl.style.opacity    = '0';
-                    loaderEl.style.visibility = 'hidden';
+                duration:   2.8,
+                ease:       'power3.inOut',
+                attr:       { transform: twoT(2400) },
+                onStart: () => {
+                    /* Safari doesn't support CSS mask:url(#id) on HTML divs.
+                       Hide the logo instantly when the 2 starts so it doesn't
+                       float over the hero during the animation in Safari. */
+                    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                    if (isSafari && logoWrap) logoWrap.style.opacity = '0';
+                },
+                onComplete: () => {
+                    /* Kill ALL loader remnants the instant the 2 finishes expanding.
+                       This is guaranteed to run — no GSAP timeline ordering issues.
+                       Chrome: loader already hidden by mask, no visual diff.
+                       Safari: kills logo ghost + orange SVG blobs in one shot. */
+                    const loaderEl = document.getElementById('site-loader');
+                    if (loaderEl) {
+                        loaderEl.style.opacity    = '0';
+                        loaderEl.style.visibility = 'hidden';
+                        loaderEl.style.display    = 'none';
+                    }
                 }
-            })
+            }, '-=0.2')
 
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
