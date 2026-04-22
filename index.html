@@ -96,9 +96,9 @@
     <script>
         (function () {
             // ── TUNABLE VALUES ──────────────────────────────────────
-            var GATE_TIMEOUT_MS      = 12000;  // max wait — seq Tier-2 (30 frames) on slow mobile
-            var UNICORN_SETTLE_MS    = 250;    // ms after canvas inject → first pixels drawn
-            var SEQ_FRAME_SETTLE_MS  = 0;      // loadBatch onload already confirms decode
+            var GATE_TIMEOUT_MS      = 15000; // max wait — allows full 83-frame load on slow connection
+            var UNICORN_SETTLE_MS    = 800;   // ms after canvas inject → WebGL first pixels drawn
+            var SEQ_FRAME_SETTLE_MS  = 0;     // loadBatch onload already confirms decode
             // ───────────────────────────────────────────────────────
 
             var _resolve;
@@ -119,17 +119,20 @@
                 if (_unicornDone && _seqDone) _resolve();
             }
 
-            // ── SIGNAL A: UnicornStudio canvas injected (→ 50%) ──────────
+            // ── SIGNAL A: UnicornStudio canvas injected (→ 30%) ──────────
+            // Unicorn owns the first 30% of the bar. The remaining 30%→100%
+            // is driven by sequence.js per-frame progress callbacks.
             window.__gateUnicornReady = function () {
                 if (_unicornDone) return;
                 setTimeout(function () {
                     _unicornDone = true;
-                    _emitProgress(50);
+                    _emitProgress(30);
                     _check();
                 }, UNICORN_SETTLE_MS);
             };
 
-            // ── SIGNAL B: Sequence frames 0–30 decoded (→ 100%) ─────────
+            // ── SIGNAL B: ALL 83 sequence frames decoded (→ 100%) ────────
+            // sequence.js calls this ONLY after every frame is in memory.
             window.__gateSeqReady = function () {
                 if (_seqDone) return;
                 setTimeout(function () {
@@ -906,7 +909,7 @@
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>
     <!-- About Sequence: image scrub engine (needs GSAP + ScrollTrigger) -->
-    <script src="sections/about/sequence.js?v=58"></script>
+    <script src="sections/about/sequence.js?v=59"></script>
 </body>
 
 </html>

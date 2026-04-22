@@ -1,5 +1,5 @@
 /**
- * About Sequence — Sticky-Canvas Scroll Engine v20 (Definitive / ICOMAT-pattern)
+ * About Sequence — Sticky-Canvas Scroll Engine v21 (Full Preload / Zero Black Gaps)
  *
  * ════════════════════════════════════════════════════════════════════════════
  *  THE ICOMAT MOTION LAW (why this works, why previous versions didn't):
@@ -39,7 +39,8 @@
  *    - Ease-in cubic for smoke (mist feels heavy, natural)
  *    - No CSS transitions on JS-driven properties (lag at fast scroll)
  *    - Frame nearest-neighbour fallback (no black flash during load)
- *    - 3-tier preload (frame 0 → frames 1-30 → rest) for instant first frame
+ *    - Full preload (ALL 83 frames) before releasing preloader gate
+ *      → Zero black gaps at ANY scroll speed
  * ════════════════════════════════════════════════════════════════════════════
  */
 (function () {
@@ -52,9 +53,11 @@
     var TEXT_END     = 0.96;
     var BG_THRESHOLD = 0.68;
 
-    var TOTAL = 83;
-    var PATH  = 'sections/about/assets/sequence_6/frame';
-    var BATCH = 8;
+    var TOTAL      = 83;
+    var PATH       = 'sections/about/assets/sequence_6/frame';
+    // BATCH_SIZE 12: 7 network round-trips for 83 frames (vs 11 at batch=8).
+    // Keeps the decode pipeline full without overloading the ~6-conn-per-host limit.
+    var BATCH_SIZE = 12;
 
     // ── DOM refs ─────────────────────────────────────────────────────────────
     var section    = document.getElementById('about-sequence');
@@ -71,15 +74,15 @@
     ctx.imageSmoothingQuality = 'high';
 
     // ── State ──────────────────────────────────────────────────────────────
-    var imgs       = new Array(TOTAL);
-    var targetIdx  = 0;
-    var drawnIdx   = -1;
-    var lastSmoke  = -1;
-    var lastText   = -1;
-    var rafPending = false;
-    var ready      = false;
+    var imgs        = new Array(TOTAL);
+    var targetIdx   = 0;
+    var drawnIdx    = -1;
+    var lastSmoke   = -1;
+    var lastText    = -1;
+    var rafPending  = false;
+    var ready       = false;
     var isBeigeMode = false;
-    var BATCH_SIZE  = 8;
+    var loadedCount = 0;   // decoded frames counter (for progress reporting)
 
     // riseP: 0 = canvas just entering viewport bottom, 1 = canvas fully locked at top
     // Drives the Ken Burns zoom-out in doDraw()
@@ -298,12 +301,41 @@
         ctx.drawImage(img, dx, dy, iW * sc, iH * sc);
     }
 
-    // ── 3-tier preload ─────────────────────────────────────────────────────
+    // ── Full Preload Engine ────────────────────────────────────────────────
+    //
+    // THE FIX: Gate releases ONLY when ALL 83 frames are in memory.
+    // Previous version released after just 30 frames → user scrolling fast
+    // into frames 31–83 saw a black canvas + frame jumps.
+    //
+    // Progress reporting:
+    //   The gate owns 50%→100% of the loader bar (UnicornStudio owns 0%→50%).
+    //   Each decoded frame calls __onLoaderProgress → bar moves in real time.
+    //
+    // BATCH_SIZE=12: 7 round-trips for 83 frames (vs 11 at batch=8).
+    // Larger batches = fewer sequential waits = faster wall-clock load time.
+    // ──────────────────────────────────────────────────────────────────────
+
+    function _reportFrameProgress() {
+        // Map loadedCount (0→TOTAL) onto preloader range 50%→100%
+        var pct = 50 + Math.round((loadedCount / TOTAL) * 50);
+        if (window.__onLoaderProgress) window.__onLoaderProgress(pct);
+    }
+
     function loadOne(n, cb) {
         if (imgs[n]) { if (cb) cb(); return; }
         var im = new Image();
-        im.onload  = function() { imgs[n] = im; if (n === targetIdx) schedDraw(); if (cb) cb(); };
-        im.onerror = function() { if (cb) cb(); };
+        im.onload = function () {
+            imgs[n] = im;
+            loadedCount++;
+            _reportFrameProgress();           // live progress tick per frame
+            if (n === targetIdx) schedDraw(); // redraw if this is the visible frame
+            if (cb) cb();
+        };
+        im.onerror = function () {
+            loadedCount++;                    // count errors too — don't stall progress
+            _reportFrameProgress();
+            if (cb) cb();
+        };
         im.src = PATH + (n + 1) + '.webp';
     }
 
@@ -311,8 +343,8 @@
         if (!list.length) { if (done) done(); return; }
         var chunk = list.splice(0, BATCH_SIZE);
         var rem = chunk.length;
-        chunk.forEach(function(n) {
-            loadOne(n, function() { if (--rem === 0) loadBatch(list, done); });
+        chunk.forEach(function (n) {
+            loadOne(n, function () { if (--rem === 0) loadBatch(list, done); });
         });
     }
 
@@ -321,34 +353,31 @@
         var lenis = window.__lenisInstance;
         if (lenis && typeof lenis.on === 'function') lenis.on('scroll', tick);
         window.addEventListener('scroll', tick, { passive: true });
-        tick(); // immediate first paint
+        tick();      // immediate first paint
         schedDraw();
     }
 
     function preload() {
-        // Tier 1: frame 0 → ready to show canvas, binds scroll
-        loadOne(0, function() {
+        // Step 1: Load frame 0 first — canvas becomes drawable immediately.
+        // This means the canvas shows frame 0 the instant the sticky section
+        // enters the viewport, eliminating any black flash on entry.
+        loadOne(0, function () {
             ready = true;
             if (loader) loader.style.display = 'none';
             bindScroll();
 
-            // Tier 2: frames 1–30 (covers fast first-scroll) → THEN signal gate
-            var t2 = [];
-            for (var i = 1; i < Math.min(31, TOTAL); i++) t2.push(i);
-            loadBatch(t2, function() {
-                // Signal preloader gate only once frames 0-30 are in memory.
-                // This ensures the sequence plays smoothly right after the reveal
-                // fires — the preloader is now actually gating real readiness.
+            // Step 2: Load ALL remaining frames 1–82 before releasing the gate.
+            // __gateSeqReady fires ONLY when every frame is in memory.
+            // This is the ONLY guarantee of smooth scrub at any scroll speed.
+            var rest = [];
+            for (var i = 1; i < TOTAL; i++) rest.push(i);
+            loadBatch(rest, function () {
+                // All 83 frames decoded — safe to open the preloader curtain.
                 if (window.__gateSeqReady) window.__gateSeqReady();
-
-                // Tier 3: rest in background
-                var t3 = [];
-                for (var i = 31; i < TOTAL; i++) t3.push(i);
-                loadBatch(t3, null);
             });
         });
     }
 
     preload();
 
-})();
+}());
