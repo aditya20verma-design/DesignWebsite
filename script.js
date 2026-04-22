@@ -538,21 +538,33 @@ if (lenis) {
 
 
 
-// ── Cinematic Footer Reveal (Icomat / Connor Love Style) ────────────────
-// Footer is position:sticky bottom:0 — it ONLY reveals as #about section scrolls away.
-// DO NOT use blur or partial opacity here — it bleeds through as grey band during bike sequence.
-// Simple opacity 0→1 + scale is sufficient and clean.
-gsap.from('#contact', {
-    scale: 0.97,
-    opacity: 0,          // fully hidden until trigger fires
-    ease: 'power2.out',
-    scrollTrigger: {
-        trigger: '#about',   // trigger off #about section, not #contact itself
-        start: 'bottom 80%',
-        end: 'bottom 20%',
-        scrub: true,
-    }
-});
+// ── Footer Reveal (Perfect Icomat Match) ──────────────────────────────────
+// Architecture:
+//   .footer-section acts as a clipping window (overflow: hidden, normal flow).
+//   .footer-inner moves in perfect reverse-sync with the scroll (yPercent: -100 -> 0):
+//   As the container scrolls UP by 1px, the content moves DOWN by 1px inside it.
+//   Result: The footer content appears PERFECTLY STATIONARY (like position:fixed)
+//   and is unmasked perfectly as the previous section scrolls up.
+//   No text stagger, no fade — exactly matching Icomat's physical "curtain" reveal.
+(function () {
+    const footerEl = document.getElementById('contact');
+    const innerEl  = document.querySelector('.footer-inner');
+    if (!footerEl || !innerEl) return;
+
+    gsap.fromTo(innerEl, 
+        { yPercent: -70 }, // -70% creates a highly visible ~200px upward drift, making the motion more evident
+        {
+            yPercent: 0,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: footerEl,
+                start: 'top bottom',    
+                end: 'bottom bottom',   
+                scrub: true, // 1:1 scroll sync
+            }
+        }
+    );
+}());
 
 // Initial AV Logo Reveal (Single Wipe Masking)
 gsap.set('.av-shape', { clipPath: "inset(100% 0% 0% 0%)" });
@@ -1198,13 +1210,11 @@ magneticElements.forEach((el) => {
 
     /* ── DOM refs ── */
     const panel      = document.getElementById('loader-panel');
-    const logoImg    = document.getElementById('loader-logo-img');
     const maskSvg    = document.getElementById('loader-mask-svg');
     const twoPath    = document.getElementById('two-mask-path');
     const navEl      = document.querySelector('nav');
-    const progWrapEl = document.getElementById('loader-prog-wrap');
-    const fillEl     = document.getElementById('loader-prog-fill');
-    const numEl      = document.getElementById('loader-prog-num');
+    const logoWrap   = document.querySelector('.loader-logo-fill-wrap');
+    const solidLogo  = document.getElementById('loader-logo-fill');
 
     /* ── Geometry — "2" path in 0 0 139 137 space ── */
     const cx = window.innerWidth  / 2;
@@ -1219,8 +1229,7 @@ magneticElements.forEach((el) => {
     gsap.set(twoPath,    { attr: { transform: twoT(0.007) } });
     gsap.set(maskSvg,    { opacity: 1 });
     gsap.set(panel,      { zIndex: 3 });
-    gsap.set(logoImg,    { opacity: 0, scale: 0.4 });
-    if (progWrapEl) gsap.set(progWrapEl, { opacity: 0 });
+    if (logoWrap) gsap.set(logoWrap, { opacity: 0, scale: 0.4 });
 
     /* ── Lock scroll ── */
     function _blockScroll(e) { e.preventDefault(); }
@@ -1235,7 +1244,6 @@ magneticElements.forEach((el) => {
     const PROG_IN_DELAY     = 0.4;
     const IDLE_PROGRESS     = 6;
     const READY_HOLD_MS     = 260;
-    const TRACK_W           = 130;   // must match CSS .loader-prog-track width
 
     /* ── Progress: rAF loop reads window.loaderProgress ──────────
        _targetProgress is set by gate signals (__onLoaderProgress).
@@ -1273,20 +1281,16 @@ magneticElements.forEach((el) => {
         window.loaderProgress = _smoothProgress;
 
         const p = Math.min(100, Math.max(0, _smoothProgress));
-        const n = Math.round(p);
 
-        // Fill width as px — no CSS transition, direct write per spec
-        if (fillEl) fillEl.style.width = (p / 100 * TRACK_W) + 'px';
-
-        // Number: always to the RIGHT of the fill tip.
-        // Only at n=100 flips left so the wider "100" string doesn't overflow the bleed zone.
-        if (numEl) {
-            numEl.textContent = n;
-            numEl.style.left  = p + '%';
-            if (n >= 100) {
-                numEl.style.transform = 'translate(-100%, -50%)'; // anchor "100" before right edge
-            } else {
-                numEl.style.transform = 'translate(0%, -50%)';    // to the right of fill tip
+        // Update liquid fill on solid logo via clip-path
+        if (solidLogo) {
+            solidLogo.style.clipPath = `inset(${100 - p}% 0 0 0)`;
+            
+            // Trigger shimmer and reveal EXACTLY when liquid fill visually hits 100%
+            if (p >= 99.5 && !solidLogo.dataset.shimmered) {
+                solidLogo.dataset.shimmered = "true";
+                solidLogo.classList.add('is-loaded'); // triggers CSS shimmer
+                setTimeout(startReveal, 700); // Wait for the smooth 700ms shimmer to sweep across
             }
         }
 
@@ -1294,43 +1298,36 @@ magneticElements.forEach((el) => {
     }
     _animRaf = requestAnimationFrame(_animLoop);
 
-    /* ── Phase A: Logo entrance + progress bar fade in ── */
+    /* ── Phase A: Logo entrance ── */
     let _breathTween = null;
 
-    gsap.to(logoImg, {
-        opacity:  1,
-        scale:    1.00,
-        duration: LOGO_IN_DUR,
-        delay:    0.2,
-        ease:     'power3.out',
-        onComplete() {
-            _breathTween = gsap.to(logoImg, {
-                scale:    BREATHE_SCALE_MIN,
-                duration: BREATHE_CYCLE_DUR / 2,
-                ease:     'sine.inOut',
-                repeat:   -1,
-                yoyo:     true,
-            });
-        }
-    });
-
-    gsap.to(progWrapEl, {
-        opacity:  1,
-        duration: 0.5,
-        delay:    PROG_IN_DELAY,
-        ease:     'power2.out',
-        onComplete() {
-            // Nudge to idle so bar shows life immediately
-            if (_targetProgress < IDLE_PROGRESS) _targetProgress = IDLE_PROGRESS;
-        }
-    });
+    if (logoWrap) {
+        gsap.to(logoWrap, {
+            opacity:  1,
+            scale:    1.00,
+            duration: LOGO_IN_DUR,
+            delay:    0.2,
+            ease:     'power3.out',
+            onComplete() {
+                _breathTween = gsap.to(logoWrap, {
+                    scale:    BREATHE_SCALE_MIN,
+                    duration: BREATHE_CYCLE_DUR / 2,
+                    ease:     'sine.inOut',
+                    repeat:   -1,
+                    yoyo:     true,
+                });
+                
+                // Nudge to idle so fill shows life immediately
+                if (_targetProgress < IDLE_PROGRESS) _targetProgress = IDLE_PROGRESS;
+            }
+        });
+    }
 
     /* ── Phase B: Gate resolves — all assets ready ── */
     (window.__preloaderReady || Promise.resolve()).then(function () {
         if (_breathTween) _breathTween.kill();
-        gsap.to(logoImg, { scale: 1, duration: 0.3, ease: 'power2.out' });
-        _targetProgress = 100; // will lerp to 100 in the rAF loop
-        setTimeout(startReveal, READY_HOLD_MS);
+        gsap.to(logoWrap, { scale: 1, duration: 0.3, ease: 'power2.out' });
+        _targetProgress = 100; // Let the rAF loop drive it to 100, which will trigger the shimmer and startReveal
     });
 
     /* ── Phase C: "2" mask reveal ── */
@@ -1347,7 +1344,7 @@ magneticElements.forEach((el) => {
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
             /* Logo + progress bar fade together */
-            .to([logoImg, progWrapEl].filter(Boolean), {
+            .to(logoWrap, {
                 opacity:  0,
                 duration: 0.4,
                 ease:     'power2.inOut',

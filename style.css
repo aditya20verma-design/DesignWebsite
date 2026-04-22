@@ -214,21 +214,60 @@ body {
     pointer-events: none;
 }
 
-/* Inner wrapper — no longer clips, kept for layout */
-.loader-logo-mask {
-    display: flex;
-}
-
-.loader-logo-img {
+/* Inner wrapper for the dual-layer logo */
+.loader-logo-fill-wrap {
+    position: relative;
     width: 130px;
-    height: auto;
-    display: block;
+    height: 65px; /* exactly 2:1 ratio for the AV wordmark */
     opacity: 0;
-    transform: scale(0.85);   /* starts slightly smaller — JS scales up to 1 */
+    transform: scale(0.85); /* starts slightly smaller — JS scales up to 1 */
     will-change: opacity, transform;
 }
 
+/* Base White layer */
+.loader-logo-ghost {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background-color: var(--color-neutral-100); /* Premium White */
+    -webkit-mask: url('sections/loader/assets/AV wordmark.svg') no-repeat center / contain;
+    mask: url('sections/loader/assets/AV wordmark.svg') no-repeat center / contain;
+    opacity: 1; /* Fully visible white base */
+}
 
+/* Solid Black filling layer (clips up via JS) */
+.loader-logo-solid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background-color: var(--color-neutral-900); /* Deep dark #1d1d1d */
+    -webkit-mask: url('sections/loader/assets/AV wordmark.svg') no-repeat center / contain;
+    mask: url('sections/loader/assets/AV wordmark.svg') no-repeat center / contain;
+    clip-path: inset(100% 0 0 0); /* starts fully clipped at the bottom */
+    will-change: clip-path;
+}
+
+/* Minimal Smooth Shimmer Sweep (triggered via JS when 100% loaded) */
+.loader-logo-solid.is-loaded {
+    background: linear-gradient(
+        110deg,
+        var(--color-neutral-900) 0%,
+        var(--color-neutral-900) 30%,
+        #3a3a3a 50%,
+        var(--color-neutral-900) 70%,
+        var(--color-neutral-900) 100%
+    );
+    background-size: 300% 100%;
+    animation: shimmer-sweep 0.7s ease-in-out forwards;
+}
+
+@keyframes shimmer-sweep {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -100% 0; }
+}
 
 /* ③ SVG mask overlay — starts hidden; fades in when "2" reveal begins */
 .loader-mask-svg {
@@ -238,61 +277,6 @@ body {
     height: 100%;
     z-index: 2;       /* above panel, below logo wrap */
     /* Initially invisible — JS positions + scales the path then fades this in */
-    pointer-events: none;
-}
-
-
-/* ── Loader: Progress bar ─────────────────────────────────────────────────
-   130px wide, 1px tall. Two-layer: grey track + dark fill.
-   Number rides the fill tip with edge-aware transform clamping.
-   ─────────────────────────────────────────────────────────────────────── */
-
-/* Fade-in wrapper — 170px to give 20px bleed each side of the 130px track */
-.loader-prog-wrap {
-    width: 170px;
-    flex-shrink: 0;
-    margin: 0 auto;
-    opacity: 0;            /* GSAP fades in after logo enters */
-    pointer-events: none;
-    overflow: visible;
-}
-
-/* Track: 130px × 1px ghost line, centred inside the bleed wrapper */
-.loader-prog-track {
-    position: relative;
-    width:  130px;
-    margin: 0 auto;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.12);   /* faint ghost — intentionally subtle on orange */
-    overflow: visible;
-}
-
-/* Fill: dark ink grows left→right, no CSS transition — rAF writes width directly */
-.loader-prog-fill {
-    position: absolute;
-    left: 0;
-    top:  0;
-    height: 100%;
-    width:  0px;
-    background: rgba(0, 0, 0, 0.62);
-}
-
-/* Number: Brier Bold Italic, rides the fill tip, JS drives left + transform */
-.loader-prog-num {
-    position:    absolute;
-    top:         50%;                   /* centred on the 1px line */
-    left:        0%;                    /* JS drives this */
-    transform:   translate(0%, -50%);    /* number sits to the right of the fill tip */
-    font-family: var(--font-accent);    /* Brier Bold Italic */
-    font-size:   12px;
-    font-weight: 600;
-    font-style:  italic;
-    color:       rgba(0, 0, 0, 0.70);
-    letter-spacing: 0.03em;
-    background:  #FF5509;               /* same as loader bg — masks the fill line behind the digit */
-    padding:     0 3px;
-    white-space: nowrap;
-    line-height: 1;                     /* tight to digit height so badge doesn't look chunky */
     pointer-events: none;
 }
 
@@ -1041,7 +1025,7 @@ nav.nav--hero .nav-link {
    onto the overlapping #about-sequence region). Darkening via #work-scrim overlay. */
 #work {
     position: relative;
-    background: #e5e4e0;
+    background: #f5f5f7; /* Premium crisp white contrasting with dark bg */
     z-index: 1;
     overflow: hidden; /* clips #work-scrim and #work-inner transforms to section bounds */
 }
@@ -1069,12 +1053,17 @@ nav.nav--hero .nav-link {
     border-radius: 0;
 }
 
-/* rest-of-content: sits above #work in z-index so the sticky canvas-wrap
-   can visually overlap and cover the work section as user scrolls */
 #rest-of-content {
     position: relative;
     z-index: 2;
     overflow: visible;  /* allow #about-sequence sticky child to overlap above */
+}
+
+/* page-sections-stack: extra masking layer above footer */
+.page-sections-stack {
+    position: relative;
+    z-index: 1;
+    background-color: var(--bg-base);
 }
 
 /* ── Projects ───────────────────────────────────────────── */
@@ -1222,19 +1211,27 @@ nav.nav--hero .nav-link {
 }
 
 /* ── Footer ─────────────────────────────────────────────── */
+/* Sticky behind all content — the preceding sections (z:1+) act as the mask.
+   Footer only becomes visible when content scrolls past the bottom of the page. */
 .footer-section {
-    position: sticky;
-    bottom: 0;
-    height: 100svh;
-    z-index: -1; /* Always behind #about-sequence (z:1) — revealed only as content scrolls away */
-    padding: var(--fluid-xl) var(--page-margin-x);
+    position: relative; /* Normal flow, no sticky bugs */
+    z-index: 1;
     background-color: var(--footer-bg);
-    color: var(--text-primary);
+    color: var(--color-neutral-100);
     border-top: 1px solid var(--footer-divider);
+    overflow: hidden; /* Crucial for parallax reveal effect */
+}
+
+/* Inner wrapper — GSAP animates translateY(60px) → 0 as footer is revealed.
+   No opacity here — GSAP handles it to avoid partial-fade artifacts. */
+.footer-inner {
+    padding: 100px var(--page-margin-x);
+    min-height: 660px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow: hidden;
+    will-change: transform;
+    /* transform is handled by GSAP parallax */
 }
 
 .footer-grid {
@@ -1269,12 +1266,18 @@ nav.nav--hero .nav-link {
     align-items: center !important;
     justify-content: center !important;
     position: relative; /* Anchor for absolute icon */
-    padding: 0 1.6rem; 
+    padding: 0 1.6rem;
     border-radius: 50px;
+    /* Override .view-btn dark border — footer bg is dark so use light stroke */
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     font-size: clamp(0.7rem, 2vw, 1.1rem);
     vertical-align: middle;
     transform: translateY(-0.55em);
     letter-spacing: 0;
+}
+
+.footer-heading .footer-pill:hover {
+    border-color: rgba(255, 255, 255, 0.7) !important;
 }
 
 .check-icon svg {
@@ -1845,8 +1848,8 @@ nav.nav--hero .nav-link {
     }
 
     /* Footer */
-    .footer-section {
-        padding: 4rem 1.25rem;
+    .footer-inner {
+        padding: 4rem 1.25rem 5rem;
     }
 
     .footer-heading {

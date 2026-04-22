@@ -45,7 +45,7 @@
 
     /* Light neutrals (text + surface stack in light mode) */
     --color-neutral-200:  #bfbebe;   /* secondary text on dark */
-    --color-neutral-100:  #e5e4e0;   /* primary text on dark / base light bg */
+    --color-neutral-100:  #f5f5f7;   /* premium crisp white on dark / base light bg */
     --color-neutral-50:   #f1f0ec;   /* lightest surface */
 
     /* ── Brand / Accent ── */

@@ -152,7 +152,7 @@
     <link rel="stylesheet" href="shared/colors.css?v=38">
     <link rel="stylesheet" href="shared/layout.css?v=38">
     <link rel="stylesheet" href="shared/typography.css?v=38">
-    <link rel="stylesheet" href="style.css?v=53">
+    <link rel="stylesheet" href="style.css?v=80">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=97">
     <link rel="stylesheet" href="sections/about/sequence.css?v=57">
     <link rel="stylesheet" href="sections/about/about.css?v=43">
@@ -183,22 +183,14 @@
         <!-- ① Orange curtain panel — full screen -->
         <div class="loader-panel" id="loader-panel"></div>
 
-        <!-- ② AV wordmark + inline progress — centered column -->
+        <!-- ② AV wordmark Liquid Fill -->
         <div class="loader-logo-wrap" id="loader-logo-wrap">
-
-            <!-- Logo: breathes scale-only, opacity always 1 -->
-            <div class="loader-logo-mask">
-                <img id="loader-logo-img" src="sections/loader/assets/AV wordmark.svg" class="loader-logo-img" alt="AV">
+            <div class="loader-logo-fill-wrap">
+                <!-- White AV (Background) -->
+                <div class="loader-logo-ghost"></div>
+                <!-- Black AV (Foreground, clips up) -->
+                <div id="loader-logo-fill" class="loader-logo-solid"></div>
             </div>
-
-            <!-- Progress: 130px track with riding number, 32px below AV -->
-            <div class="loader-prog-wrap" id="loader-prog-wrap" aria-label="Loading progress" aria-live="polite">
-                <div class="loader-prog-track">
-                    <div class="loader-prog-fill" id="loader-prog-fill"></div>
-                    <span class="loader-prog-num" id="loader-prog-num">0</span>
-                </div>
-            </div>
-
         </div>
 
         <!-- ③ "2" shape mask — expands from center revealing the site -->
@@ -750,6 +742,7 @@
 
             <!-- Contact / Footer -->
             <footer class="footer-section" id="contact">
+                <div class="footer-inner">
                 <div class="footer-grid">
                     <div class="footer-left">
                         <h2 class="footer-heading reveal-text-scroll">
@@ -818,6 +811,7 @@
                                     class="nav-arrow">&darr;</span></a>
                         </div>
                     </div>
+                </div>
                 </div>
             </footer>
         </div> <!-- End of rest-of-content -->
@@ -907,7 +901,7 @@
     <script src="sections/about/testimonials.config.js?v=1"></script>
 
     <script src="sections/about/about.js?v=5"></script>
-    <script src="script.js?v=54"></script>
+    <script src="script.js?v=77"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
     <script src="sections/circuit/circuit.config.js?v=97"></script>
     <script src="sections/circuit/circuit.js?v=97"></script>
