@@ -1363,23 +1363,13 @@ magneticElements.forEach((el) => {
             /* Swap solid panel → SVG mask (blink-free) */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
-            /* "2" explodes — onStart/onComplete handle Safari cross-browser cleanup */
+            /* "2" explodes + AV fades gracefully — works in ALL browsers, no mask hacks */
             .to(twoPath, {
-                duration:   2.8,
-                ease:       'power3.inOut',
-                attr:       { transform: twoT(2400) },
-                onStart: () => {
-                    /* Safari doesn't support CSS mask:url(#id) on HTML divs.
-                       Hide the logo instantly when the 2 starts so it doesn't
-                       float over the hero during the animation in Safari. */
-                    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                    if (isSafari && logoWrap) logoWrap.style.opacity = '0';
-                },
+                duration: 2.8,
+                ease:     'power3.inOut',
+                attr:     { transform: twoT(2400) },
                 onComplete: () => {
-                    /* Kill ALL loader remnants the instant the 2 finishes expanding.
-                       This is guaranteed to run — no GSAP timeline ordering issues.
-                       Chrome: loader already hidden by mask, no visual diff.
-                       Safari: kills logo ghost + orange SVG blobs in one shot. */
+                    /* Clean up entire loader after expansion — kills any Safari remnants */
                     const loaderEl = document.getElementById('site-loader');
                     if (loaderEl) {
                         loaderEl.style.opacity    = '0';
@@ -1388,6 +1378,14 @@ magneticElements.forEach((el) => {
                     }
                 }
             }, '-=0.2')
+
+            /* AV logo fades out premium — starts simultaneously with the "2" expansion.
+               Works in Chrome, Safari, Firefox — no CSS mask dependency. */
+            .to(logoWrap, {
+                opacity:  0,
+                duration: 0.9,
+                ease:     'power2.inOut',
+            }, '<')
 
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
