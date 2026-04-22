@@ -1370,11 +1370,18 @@ magneticElements.forEach((el) => {
                 attr:     { transform: twoT(2400) }
             }, '-=0.2')
 
-            /* Safari fallback: mask: url(#id) on HTML divs doesn't work in Safari.
-               Instantly hide logoWrap the moment the "2" has fully expanded.
-               In Chrome the SVG mask already hides it — no visual difference.
-               In Safari this is the only thing that cleans it up. */
-            .call(() => { if (logoWrap) logoWrap.style.visibility = 'hidden'; })
+            /* Safari fix: mask:url(#id) on HTML divs is ignored in Safari.
+               The SVG curtain also leaves orange blobs due to Safari repaint quirks.
+               Nuclear fix: instantly zero-out the entire loader the moment the "2" finishes.
+               Chrome: loader already invisible behind the mask — no visual change.
+               Safari: this is the only thing that kills both the logo ghost AND orange blobs. */
+            .call(() => {
+                const loaderEl = document.getElementById('site-loader');
+                if (loaderEl) {
+                    loaderEl.style.opacity    = '0';
+                    loaderEl.style.visibility = 'hidden';
+                }
+            })
 
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
