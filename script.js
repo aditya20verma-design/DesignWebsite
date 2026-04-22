@@ -1370,6 +1370,12 @@ magneticElements.forEach((el) => {
                 attr:     { transform: twoT(2400) }
             }, '-=0.2')
 
+            /* Safari fallback: mask: url(#id) on HTML divs doesn't work in Safari.
+               Instantly hide logoWrap the moment the "2" has fully expanded.
+               In Chrome the SVG mask already hides it — no visual difference.
+               In Safari this is the only thing that cleans it up. */
+            .call(() => { if (logoWrap) logoWrap.style.visibility = 'hidden'; })
+
             /* Unlock scroll + reveal nav/sound corners */
             .call(() => {
                 const el = document.getElementById('site-loader');
