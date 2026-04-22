@@ -1244,7 +1244,7 @@ magneticElements.forEach((el) => {
     if (window.__lenisInstance) window.__lenisInstance.stop();
 
     /* ── TUNABLE ── */
-    const BREATHE_SCALE_MIN = 0.75;
+    const BREATHE_SCALE_MIN = 0.9;
     const BREATHE_CYCLE_DUR = 2.2;
     const LOGO_IN_DUR       = 0.55;
     const PROG_IN_DELAY     = 0.4;
