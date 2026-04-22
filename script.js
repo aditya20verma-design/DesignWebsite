@@ -1219,10 +1219,16 @@ magneticElements.forEach((el) => {
     /* ── Geometry — "2" path in 0 0 139 137 space ── */
     const cx = window.innerWidth  / 2;
     const cy = window.innerHeight / 2;
-    const pw = 139 / 2;
-    const ph = 137 / 2;
+    const pw = 138.06 / 2;
+    const ph = 136.72 / 2;
+    
+    // VISUAL CENTERING OFFSETS
+    // Aligned to measured logo center (864, 451) in 1728x906 viewport.
+    const MASK_OFFSET_X = 0;  // Matches logo X
+    const MASK_OFFSET_Y = -2; // Matches logo Y (453 - 451 = 2px nudge up)
+
     function twoT(s) {
-        return `translate(${cx},${cy}) scale(${s}) translate(${-pw},${-ph})`;
+        return `translate(${cx + MASK_OFFSET_X},${cy + MASK_OFFSET_Y}) scale(${s}) translate(${-pw},${-ph})`;
     }
 
     /* ── Initial states ── */
@@ -1357,7 +1363,7 @@ magneticElements.forEach((el) => {
             /* Swap solid panel → SVG mask (blink-free) */
             .to(panel, { opacity: 0, zIndex: -1, duration: 0.05, ease: 'none' })
 
-            /* Logo + progress bar fade together */
+            /* Logo fades out */
             .to(logoWrap, {
                 opacity:  0,
                 duration: 0.4,

@@ -209,6 +209,7 @@ body {
     justify-content: center;
     align-items: center;
     gap: 32px;              /* 32px below AV to progress bar */
+    margin-top: -4px;       /* Optical vertical centering */
 
     z-index: 3;
     pointer-events: none;
