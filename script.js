@@ -1379,12 +1379,11 @@ magneticElements.forEach((el) => {
                 }
             }, '-=0.2')
 
-            /* AV logo fades out premium — starts simultaneously with the "2" expansion.
-               Works in Chrome, Safari, Firefox — no CSS mask dependency. */
+            /* AV logo fades out fast — gone before hero becomes visible */
             .to(logoWrap, {
                 opacity:  0,
-                duration: 0.9,
-                ease:     'power2.inOut',
+                duration: 0.25,
+                ease:     'power3.in',
             }, '<')
 
             /* Unlock scroll + reveal nav/sound corners */
