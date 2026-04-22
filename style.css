@@ -243,59 +243,56 @@ body {
 
 
 /* ── Loader: Progress bar ─────────────────────────────────────────────────
-   220px wide, 1.5px tall. Two-layer: grey track + black fill.
-   Number rides the fill tip with edge-aware transform.
+   130px wide, 1px tall. Two-layer: grey track + dark fill.
+   Number rides the fill tip with edge-aware transform clamping.
    ─────────────────────────────────────────────────────────────────────── */
 
-/* Fade-in wrapper — only controls visibility */
-/* Fade-in wrapper — wider than track to provide a safe bleed area for overflow */
+/* Fade-in wrapper — 170px to give 20px bleed each side of the 130px track */
 .loader-prog-wrap {
-    width: 170px;          /* 130px track + 20px bleed each side */
+    width: 170px;
     flex-shrink: 0;
     margin: 0 auto;
-    opacity: 0;
+    opacity: 0;            /* GSAP fades in after logo enters */
     pointer-events: none;
     overflow: visible;
 }
 
-/* Track: 130px × 1px ghost line, centered in the bleed wrapper */
+/* Track: 130px × 1px ghost line, centred inside the bleed wrapper */
 .loader-prog-track {
     position: relative;
     width:  130px;
     margin: 0 auto;
     height: 1px;
-    background: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.12);   /* faint ghost — intentionally subtle on orange */
     overflow: visible;
 }
 
-/* Fill: grows 0 → 220px, driven each rAF frame, NO transition */
-/* Fill: dark ink grows left→right, no CSS transition */
+/* Fill: dark ink grows left→right, no CSS transition — rAF writes width directly */
 .loader-prog-fill {
     position: absolute;
     left: 0;
     top:  0;
     height: 100%;
     width:  0px;
-    background: rgba(0, 0, 0, 0.62);  /* dark, clean on orange */
+    background: rgba(0, 0, 0, 0.62);
 }
 
-/* Number: Brier italic, vertically centred on line, left = fill %, JS drives transform */
-/* Number: Brier italic, sits ON the line at fill tip, JS drives left + transform */
+/* Number: Brier Bold Italic, rides the fill tip, JS drives left + transform */
 .loader-prog-num {
-    position:   absolute;
-    top:        50%;                   /* centred on the 1px line */
-    left:       0%;                    /* JS drives this */
-    transform:  translate(0%, -50%);   /* default; JS overrides per edge rule */
-    font-family: var(--font-accent);   /* Brier italic */
+    position:    absolute;
+    top:         50%;                   /* centred on the 1px line */
+    left:        0%;                    /* JS drives this */
+    transform:   translate(0%, -50%);   /* default; JS overrides per edge-clamp rule */
+    font-family: var(--font-accent);    /* Brier Bold Italic */
     font-size:   12px;
     font-weight: 600;
     font-style:  italic;
     color:       rgba(0, 0, 0, 0.70);
     letter-spacing: 0.03em;
-    background:  #FF5509;              /* masks the fill line behind the digit */
+    background:  #FF5509;               /* same as loader bg — masks the fill line behind the digit */
     padding:     0 3px;
     white-space: nowrap;
-    line-height: 1.2;
+    line-height: 1;                     /* tight to digit height so badge doesn't look chunky */
     pointer-events: none;
 }
 
