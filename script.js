@@ -1530,14 +1530,17 @@ magneticElements.forEach((el) => {
         }
 
         // Expose trigger — called by startReveal so the auto-pan runs on the visible hero.
-        // No delay needed: by the time this fires the hero is already revealed.
+        // Always resets proxyMode to 'auto' so Case 2 (user moved during preloader) also gets
+        // the auto-pan. If user moves the real mouse, interceptRealMouse naturally exits to catchup.
         window.__startHeroAutoPan = function () {
-            if (proxyMode === 'auto') proxyLoop();
+            proxyMode = 'auto';
+            autoPanTime = 0;  // restart the sinusoidal pan from beginning
+            proxyLoop();
         };
 
         function interceptRealMouse(e) {
             if (e._isVirtual) return; // Ignore our own fake loop events
-            
+
             realTargetX = e.clientX;
             realTargetY = e.clientY;
             lastRealTarget = e.target;
@@ -1545,11 +1548,12 @@ magneticElements.forEach((el) => {
             if (proxyMode === 'auto') {
                 proxyMode = 'catchup'; // Switch from auto-pan to catch-up smoothly
             }
-            
-            if (proxyMode === 'catchup') {
-                // Completely block the violent real coordinate from hitting WebGL/parallax
-                e.stopPropagation();
-            }
+
+            // NOTE: Do NOT stopPropagation here — we must let the event reach the
+            // cursor JS listener (which runs in bubble phase on window) so the custom
+            // cursor ring stays visible and positioned correctly.
+            // The hero tilt (onMouseMove) is on hero element in bubble phase, but
+            // virtual events continue to drive it during catchup.
         }
         
         // Use capturing phase to intercept event before ANY components receive it
