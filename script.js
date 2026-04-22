@@ -1292,6 +1292,11 @@ magneticElements.forEach((el) => {
                 solidLogo.classList.add('is-loaded'); // triggers CSS shimmer
                 setTimeout(startReveal, 700); // Wait for the smooth 700ms shimmer to sweep across
             }
+        } else {
+            // Failsafe: if solidLogo DOM element is missing, still unlock site
+            if (p >= 99.5 && !_animStop) {
+                startReveal();
+            }
         }
 
         _animRaf = requestAnimationFrame(_animLoop);
@@ -1326,8 +1331,17 @@ magneticElements.forEach((el) => {
     /* ── Phase B: Gate resolves — all assets ready ── */
     (window.__preloaderReady || Promise.resolve()).then(function () {
         if (_breathTween) _breathTween.kill();
-        gsap.to(logoWrap, { scale: 1, duration: 0.3, ease: 'power2.out' });
+        if (logoWrap) gsap.to(logoWrap, { scale: 1, duration: 0.3, ease: 'power2.out' });
         _targetProgress = 100; // Let the rAF loop drive it to 100, which will trigger the shimmer and startReveal
+        
+        // Failsafe: Guarantee the curtain opens even if the rAF loop stalls
+        // or a browser tab suspension interrupts the progress counting.
+        setTimeout(function() {
+            if (!_animStop) {
+                console.warn("Preloader failsafe triggered — forcing open.");
+                startReveal();
+            }
+        }, 1500);
     });
 
     /* ── Phase C: "2" mask reveal ── */
