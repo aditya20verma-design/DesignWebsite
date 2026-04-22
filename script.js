@@ -1278,16 +1278,15 @@ magneticElements.forEach((el) => {
         // Fill width as px — no CSS transition, direct write per spec
         if (fillEl) fillEl.style.width = (p / 100 * TRACK_W) + 'px';
 
-        // Number: left as %, transform clamps edges, always -50% vertical (centred on line)
+        // Number: always to the RIGHT of the fill tip.
+        // Only at n=100 flips left so the wider "100" string doesn't overflow the bleed zone.
         if (numEl) {
             numEl.textContent = n;
             numEl.style.left  = p + '%';
-            if (p <= 3) {
-                numEl.style.transform = 'translate(0%, -50%)';       // lock left edge
-            } else if (p >= 97) {
-                numEl.style.transform = 'translate(-100%, -50%)';    // lock right edge
+            if (n >= 100) {
+                numEl.style.transform = 'translate(-100%, -50%)'; // anchor "100" before right edge
             } else {
-                numEl.style.transform = 'translate(-50%, -50%)';     // centred on tip
+                numEl.style.transform = 'translate(0%, -50%)';    // to the right of fill tip
             }
         }
 

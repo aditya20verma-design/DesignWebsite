@@ -282,7 +282,7 @@ body {
     position:    absolute;
     top:         50%;                   /* centred on the 1px line */
     left:        0%;                    /* JS drives this */
-    transform:   translate(0%, -50%);   /* default; JS overrides per edge-clamp rule */
+    transform:   translate(0%, -50%);    /* number sits to the right of the fill tip */
     font-family: var(--font-accent);    /* Brier Bold Italic */
     font-size:   12px;
     font-weight: 600;
