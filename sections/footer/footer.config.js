@@ -7,7 +7,7 @@
 
 export const FOOTER_CONFIG = {
 
-    email: 'adityaverma@example.com',   // ← used for mailto + copy-to-clipboard
+    email: 'aditya20verma@gmail.com',   // ← used for mailto + copy-to-clipboard
 
     nav: [
         { label: 'Work',    href: '#work' },
@@ -16,11 +16,12 @@ export const FOOTER_CONFIG = {
     ],
 
     social: [
-        { label: 'LinkedIn', href: 'https://linkedin.com/in/aditya-verma' },
-        { label: 'Dribbble', href: 'https://dribbble.com/' },
-        { label: 'Twitter',  href: 'https://twitter.com/' },
+        { label: 'LinkedIn', href: 'https://www.linkedin.com/in/aditya20verma/' },
+        { label: 'Behance',  href: 'https://www.behance.net/aditya20vrm' },
     ],
 
-    copyright: `© ${new Date().getFullYear()} Aditya Verma. All rights reserved.`,
+    resume: 'https://drive.google.com/file/d/1m9uWCMo32K5j0sqaknWDgNk4mHHYnSEF/view?usp=drive_link',
+
+    copyright: `© ${new Date().getFullYear()} Aditya Verma. Designed & built with care.`,
 
 };

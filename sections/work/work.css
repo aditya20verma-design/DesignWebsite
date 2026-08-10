@@ -1,0 +1,453 @@
+/* ============================================================
+   SELECTED WORK FACADE — Aditya Verma Portfolio
+   ============================================================
+   High-End Architectural & Editorial Project Cover Facades
+   ============================================================ */
+
+/* ── Work Section Container ───────────────────────────────── */
+#work {
+    background-color: var(--color-neutral-100);
+    color: var(--color-black);
+    padding: clamp(60px, 8vw, 120px) 0;
+    position: relative;
+    z-index: 2;
+    will-change: transform, border-radius;
+}
+
+#work-inner {
+    max-width: var(--container-lg, 1400px);
+    margin: 0 auto;
+    padding: 0 var(--page-margin-x, 40px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(60px, 8vw, 120px);
+}
+
+/* ── Section Intro ────────────────────────────────────────── */
+.work-section-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: clamp(40px, 5vw, 70px);
+}
+
+.work-header-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 950px;
+}
+
+.work-header-eyebrow {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-orange-600);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.work-header-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-orange-600);
+    border-radius: 50%;
+}
+
+.work-header-title {
+    font-family: var(--font-heading);
+    font-size: clamp(32px, 4.5vw, 56px);
+    line-height: 1.15;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    color: #111111;
+}
+
+/* ── Featured Projects Container ──────────────────────────── */
+.work-featured-container {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(80px, 10vw, 140px);
+}
+
+/* ── Common Work Facade Card Base ────────────────────────── */
+.work-facade {
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: clamp(50px, 6vw, 90px);
+    transition: border-color 0.4s ease;
+}
+
+.work-facade:hover {
+    border-bottom-color: rgba(0, 0, 0, 0.25);
+}
+
+.work-facade-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    cursor: pointer;
+}
+
+/* ── Featured Project Layout (01 & 02) ───────────────────── */
+.work-facade-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: clamp(40px, 6vw, 90px);
+    align-items: center;
+}
+
+/* Project 02 Layout Inversion (Asymmetrical variation) */
+.work-feat-02 .work-facade-layout {
+    grid-template-columns: 1.35fr 1fr;
+}
+
+/* ── Info Column ─────────────────────────────────────────── */
+.work-facade-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+.work-facade-header-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.work-facade-num {
+    font-family: var(--font-mono);
+    font-size: clamp(14px, 1.2vw, 18px);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--color-orange-600);
+    transition: transform 0.3s ease;
+}
+
+.work-facade:hover .work-facade-num {
+    transform: translateX(2px);
+}
+
+.work-facade-category {
+    font-family: var(--font-ui);
+    font-size: clamp(11px, 1vw, 13px);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #666666;
+}
+
+.work-facade-title {
+    font-family: var(--font-heading);
+    font-size: clamp(32px, 4vw, 54px);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: #111111;
+    margin-bottom: 1.25rem;
+    transition: color 0.3s ease;
+}
+
+.work-facade:hover .work-facade-title {
+    color: #000000;
+}
+
+.work-facade-tagline {
+    font-family: var(--font-body);
+    font-size: clamp(16px, 1.4vw, 20px);
+    line-height: 1.5;
+    font-weight: 400;
+    color: #555555;
+    max-width: 44ch;
+    margin-bottom: 2rem;
+}
+
+/* ── Hover Metadata Block ────────────────────────────────── */
+.work-facade-hover-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    opacity: 0.88;
+    transform: translateY(0);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.work-facade:hover .work-facade-hover-meta {
+    opacity: 1;
+    border-top-color: rgba(255, 85, 9, 0.35);
+}
+
+.work-meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.meta-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #888888;
+}
+
+.meta-val {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: #222222;
+}
+
+.work-meta-stats {
+    display: flex;
+    gap: 2.5rem;
+    align-items: baseline;
+}
+
+.meta-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-num {
+    font-family: var(--font-heading);
+    font-size: clamp(22px, 2.5vw, 32px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #111111;
+}
+
+.stat-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #777777;
+}
+
+.work-meta-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.meta-timeline {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #666666;
+}
+
+.work-facade-cta {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-orange-600);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.work-facade:hover .work-facade-cta {
+    transform: translateX(4px);
+}
+
+/* ── Media Frame & Placeholder System ─────────────────────── */
+.work-facade-media-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #161616;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.5s ease;
+}
+
+.work-facade:hover .work-facade-media-frame {
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+}
+
+.work-facade-placeholder-bg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 50%, #1e1e1e 0%, #121212 100%);
+    overflow: hidden;
+}
+
+.work-ph-num-bg {
+    font-family: var(--font-heading);
+    font-size: clamp(100px, 18vw, 240px);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.035);
+    user-select: none;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    will-change: transform;
+}
+
+.work-ph-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+.work-facade-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1;
+    will-change: transform;
+}
+
+.work-facade:hover .work-facade-img {
+    transform: scale(1.03);
+}
+
+/* ── Secondary / Archival Projects Section ────────────────── */
+.work-archival-section {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 5vw, 60px);
+    padding-top: 2rem;
+}
+
+.work-archival-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.archival-eyebrow {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #777777;
+    white-space: nowrap;
+}
+
+.archival-divider-line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Asymmetric Editorial Grid for 03-07 */
+.work-archival-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(30px, 4vw, 50px);
+}
+
+/* Grid Spans */
+.span-4 { grid-column: span 4; }
+.span-5 { grid-column: span 5; }
+.span-7 { grid-column: span 7; }
+.span-12 { grid-column: span 12; }
+
+/* Secondary Info Typography */
+.work-facade-title-sm {
+    font-family: var(--font-heading);
+    font-size: clamp(22px, 2.2vw, 32px);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #111111;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.work-facade:hover .work-facade-title-sm {
+    color: #000000;
+}
+
+.work-facade-tagline-sm {
+    font-family: var(--font-body);
+    font-size: clamp(14px, 1.1vw, 16px);
+    line-height: 1.45;
+    color: #555555;
+    margin-bottom: 1.25rem;
+}
+
+.work-meta-block-sm {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.4;
+    color: #444444;
+}
+
+.work-meta-block-sm .meta-label {
+    font-size: 10px;
+}
+
+.work-facade-cta-sm {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-orange-600);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* ── Responsive Mobile & Tablet Layout ───────────────────── */
+@media (max-width: 992px) {
+    .work-facade-layout,
+    .work-feat-02 .work-facade-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .work-feat-02 .work-facade-media-frame {
+        order: -1;
+    }
+
+    .work-archival-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .span-4,
+    .span-5,
+    .span-7,
+    .span-12 {
+        grid-column: span 1;
+    }
+
+    .work-facade-media-frame {
+        aspect-ratio: 16 / 10 !important;
+    }
+}
+

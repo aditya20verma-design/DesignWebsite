@@ -81,6 +81,68 @@
                 });
             }
         });
+
+        // 5. Skills Tags (Staggered fade-up reveal per category)
+        var skillsSection = document.getElementById('skills');
+        if (skillsSection) {
+            var categories = skillsSection.querySelectorAll('.skills__category');
+            categories.forEach(function(cat, catIndex) {
+                var catTitle = cat.querySelector('.skills__cat-title');
+                var tags = cat.querySelectorAll('.skills__tag');
+
+                // Category title fade in
+                if (catTitle) {
+                    gsap.fromTo(catTitle,
+                        { opacity: 0, y: 16 },
+                        {
+                            scrollTrigger: {
+                                trigger: cat,
+                                start: 'top 88%'
+                            },
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.8,
+                            ease: 'power3.out',
+                            delay: catIndex * 0.05
+                        }
+                    );
+                }
+
+                // Tags stagger in
+                if (tags.length) {
+                    gsap.to(tags, {
+                        scrollTrigger: {
+                            trigger: cat,
+                            start: 'top 85%'
+                        },
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.6,
+                        ease: 'power3.out',
+                        stagger: 0.04,
+                        delay: catIndex * 0.05 + 0.15
+                    });
+                }
+            });
+
+            // Skills headline
+            var skillsHeader = skillsSection.querySelector('.skills__header');
+            if (skillsHeader) {
+                gsap.fromTo(skillsHeader,
+                    { opacity: 0, y: 30 },
+                    {
+                        scrollTrigger: {
+                            trigger: skillsSection,
+                            start: 'top 85%'
+                        },
+                        opacity: 1,
+                        y: 0,
+                        duration: 1,
+                        ease: 'power3.out'
+                    }
+                );
+            }
+        }
     }
 
     if (document.readyState === 'loading') {

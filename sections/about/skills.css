@@ -1,0 +1,185 @@
+/* ═══════════════════════════════════════════════════════════
+   SKILLS & TOOLS SECTION
+   ═══════════════════════════════════════════════════════════
+   Placed between About Me and Testimonials.
+   Background: warm light (#e5e4e0) matching testimonials.
+   Grid: masonry-like tag clusters per category.
+   Animations: GSAP ScrollTrigger stagger (set up in skills.js).
+   ═══════════════════════════════════════════════════════════ */
+
+#skills {
+    position: relative;
+    z-index: 1;
+    background: #e5e4e0;
+    padding: 8rem var(--page-margin-x) 2rem;
+    overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.skills__header {
+    max-width: var(--container-lg);
+    margin: 0 auto 4rem;
+}
+
+.skills__label {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    line-height: var(--text-caption-lh);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(26, 26, 26, 0.5);
+    margin-bottom: 1.5rem;
+}
+
+.skills__headline {
+    font-family: var(--font-heading);
+    font-size: var(--text-h2-size);
+    line-height: var(--text-h2-lh);
+    font-weight: var(--text-h2-weight);
+    letter-spacing: -0.02em;
+    color: #1a1a1a;
+    max-width: 600px;
+}
+
+.skills__headline em {
+    font-family: var(--font-accent);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+
+/* ── Grid of Categories ───────────────────────────────────── */
+.skills__grid {
+    max-width: var(--container-lg);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem 4rem;
+}
+
+/* ── Individual Category Block ────────────────────────────── */
+.skills__category {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.skills__cat-title {
+    font-family: var(--font-ui);
+    font-size: var(--text-label-size);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(26, 26, 26, 0.12);
+}
+
+/* ── Tag Cloud ────────────────────────────────────────────── */
+.skills__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skills__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    border: 1px solid rgba(26, 26, 26, 0.12);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    font-family: var(--font-ui);
+    font-size: var(--text-body-sm-size);
+    font-weight: 400;
+    color: #1a1a1a;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+
+    /* Initial state for GSAP stagger */
+    opacity: 0;
+    transform: translateY(12px);
+
+    transition:
+        border-color 0.3s ease,
+        background 0.3s ease,
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hover: subtle elevation + accent border */
+.skills__tag:hover {
+    border-color: rgba(26, 26, 26, 0.35);
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-2px);
+}
+
+/* Icon inside tag (optional SVG or emoji) */
+.skills__tag-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* ── Proficiency Indicator (dot system) ───────────────────── */
+.skills__proficiency {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 0.25rem;
+}
+
+.skills__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(26, 26, 26, 0.18);
+    transition: background 0.3s ease;
+}
+
+.skills__dot--filled {
+    background: #1a1a1a;
+}
+
+.skills__tag:hover .skills__dot--filled {
+    background: var(--accent);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+
+/* Tablet */
+@media (max-width: 900px) {
+    #skills {
+        padding: 5rem var(--page-margin-x) 1rem;
+    }
+
+    .skills__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2.5rem 3rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    #skills {
+        padding: 3.5rem var(--page-margin-x) 0.5rem;
+    }
+
+    .skills__grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .skills__tag {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}

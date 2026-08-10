@@ -1,0 +1,236 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+ * experience.css — Premium Editorial Experience Table
+ * Philosophy: Less UI, more content. Every element has a purpose.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Section Shell ───────────────────────────────────────────────────────── */
+.exp-table-section {
+    position: relative;
+    width: 100%;
+    background: var(--footer-bg, #1d1d1d);
+    color: #ffffff;
+    padding: 100px 0 120px;
+    box-sizing: border-box;
+}
+
+/* ── Title: Premium Typography ───────────────────────────────────── */
+.exp-table-title {
+    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    margin: 0 0 56px 0;
+    padding: 0 7vw;
+    color: #ffffff;
+}
+
+.exp-table-title .font-accent {
+    font-family: var(--font-accent, 'Brier', Georgia, serif);
+    font-weight: 400;
+    color: #FF5509; /* Theme orange */
+}
+
+/* ── Column Headers ──────────────────────────────────────────────────────── */
+.exp-table-cols {
+    display: grid;
+    /* Company | Role & Built | Period | Domain */
+    grid-template-columns: 2.1fr 2.9fr 1fr 1fr;
+    gap: 24px;
+    padding: 0 7vw 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.67rem;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+}
+
+/* ── Rows Container ──────────────────────────────────────────────────────── */
+.exp-table-rows {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* ── Individual Row ──────────────────────────────────────────────────────── */
+.exp-row {
+    position: relative;
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    cursor: default;
+    overflow: hidden;
+    will-change: background-color;
+}
+
+/* Orange curtain — entrance wipe animation only, removed after intro */
+.exp-row-curtain {
+    position: absolute;
+    inset: 0;
+    background-color: #FF5509;
+    z-index: 2;
+    pointer-events: none;
+    transform-origin: left center;
+}
+
+/* Row grid layout: 4 columns — aligned to top baseline */
+.exp-row-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 2.1fr 2.9fr 1fr 1fr;
+    gap: 24px;
+    padding: 24px 7vw 22px;
+    align-items: flex-start;
+}
+
+/* ── Company Column: logo + name ── */
+.col-company {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.exp-logo {
+    max-width: 64px;
+    max-height: 24px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+    opacity: 0.65;
+    filter: grayscale(1) brightness(2);
+    transition: opacity 0.3s ease, filter 0.3s ease;
+    pointer-events: none;
+    user-select: none;
+}
+
+.company-name {
+    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, sans-serif);
+    font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: rgba(255, 255, 255, 0.95);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+/* ── Role + Projects Reveal Column ── */
+.col-role-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.exp-role-title {
+    font-size: 0.93rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.2;
+}
+
+/* Projects line — hidden until hover, revealed by GSAP opacity fade */
+.exp-projects-line {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    color: #FF5509;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    line-height: 1.2;
+}
+
+/* ── Period Column ── */
+.col-period-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.exp-period-dates {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    padding-top: 2px;
+}
+
+/* Duration line — hidden until hover, revealed by GSAP opacity fade */
+.exp-duration-line {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.02em;
+    opacity: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    line-height: 1.2;
+}
+
+/* ── Domain Column ── */
+.col-domain {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    line-height: 1.2;
+    padding-top: 2px;
+}
+
+
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .exp-table-cols {
+        grid-template-columns: 1.8fr 2.7fr 1fr;
+        padding: 0 5vw 14px;
+    }
+    .exp-table-cols span:last-child { display: none; }
+
+    .exp-row-inner {
+        grid-template-columns: 1.8fr 2.7fr 1fr;
+        gap: 16px;
+        padding: 24px 5vw;
+    }
+    .col-domain { display: none; }
+}
+
+@media (max-width: 680px) {
+    .exp-table-section {
+        padding: 72px 0 96px;
+    }
+
+    .exp-table-title {
+        font-size: clamp(2.4rem, 10vw, 3.5rem);
+        margin-bottom: 48px;
+        padding: 0 5vw;
+    }
+
+    .exp-table-cols { display: none; }
+
+    .exp-row-inner {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 6px 12px;
+        padding: 20px 5vw;
+    }
+    .col-company    { grid-column: 1; grid-row: 1; }
+    .col-role-wrap  { grid-column: 1; grid-row: 2; }
+    .col-period-wrap{ grid-column: 2; grid-row: 1; }
+    .exp-period-dates { font-size: 0.68rem; }
+    .col-domain     { display: none; }
+
+    .company-name { font-size: 0.95rem; }
+}

@@ -1,0 +1,205 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Horizontal Journey Track  — Editorial Parallax Storytelling
+   100% clean bike playback + pure right-edge horizontal entrance
+   ═══════════════════════════════════════════════════════════════════ */
+
+#horiz-journey {
+    position: relative;
+    z-index: 2;              /* Stacks cleanly after bike sequence in normal flow */
+    height: 250vh;           /* Scroll budget: fast, tight, responsive */
+    margin-top: 0;           /* ZERO overlap over bike sequence — 100% clean bike playback! */
+    background-color: #ffffff; /* Starts pure white matching bike exit frame 83 */
+    box-sizing: border-box;
+}
+
+/* Background overlay: GPU hardware-accelerated opacity fade from white to #1d1d1d */
+#horiz-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: var(--footer-bg, #1d1d1d);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+    will-change: opacity;
+}
+
+#horiz-pin-wrap {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    z-index: 2;
+}
+
+#horiz-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: max-content;      /* Expands dynamically to fit all editorial panels */
+    display: flex;
+    align-items: center;
+    gap: 6vw;
+    padding: 0 10vw 0 10vw;  /* Clean padding — right-edge offset handled by JS translate */
+    will-change: transform;
+    z-index: 3;
+}
+
+/* ── PANEL 1: Apple-Level Minimal Editorial Typography ──────────── */
+.hj-typo-panel {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 6vw;
+}
+
+.hj-typo-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+}
+
+/* Static 3+ Years Experience Label (No Pill, Clean Mono) */
+.hj-typo-exp {
+    font-family: var(--font-mono, monospace);
+    font-size: clamp(0.7rem, 0.8vw, 0.82rem);
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    color: #111111;
+    opacity: 0.5;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+}
+
+/* Static Architect Title */
+.hj-typo-architect {
+    font-family: var(--font-accent, 'Brier', Georgia, serif);
+    font-size: clamp(2.4rem, 4.2vw, 5.5rem);
+    font-weight: 400;
+    line-height: 1;
+    color: #111111;
+    opacity: 0.55;
+}
+
+/* Static Product Designer Hero Title (Dark Only) */
+.hj-typo-designer {
+    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: clamp(3.0rem, 6.2vw, 7.5rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    color: #111111;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* ── EDITORIAL CARDS (Outer Frames) ──────────────────────────────── */
+.hj-card {
+    flex: 0 0 auto;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.hj-card-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    overflow: hidden;
+    background: rgba(125, 125, 125, 0.08);
+    border: 1px solid rgba(125, 125, 125, 0.18);
+    box-sizing: border-box;
+    transition: border-color 0.4s ease, background-color 0.4s ease;
+}
+
+#about-sequence.hj-dark-mode .hj-card-frame {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.hj-card-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+/* Inner image container / placeholder — receives subtle horizontal parallax shift */
+.hj-card-placeholder {
+    position: absolute;
+    top: 0;
+    left: -10%;
+    width: 120%;
+    height: 100%;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(150, 150, 150, 0.12) 0%, rgba(150, 150, 150, 0.03) 100%);
+    z-index: 1;
+    will-change: transform;
+}
+
+.hj-card-img {
+    position: absolute;
+    top: 0;
+    left: -10%;
+    width: 120%;
+    height: 100%;
+    border-radius: 0;
+    object-fit: cover;
+    z-index: 2;
+    will-change: transform;
+}
+
+.hj-ph-num {
+    font-family: var(--font-mono, monospace);
+    font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+    letter-spacing: 0.25em;
+    opacity: 0.35;
+    color: currentColor;
+}
+
+/* ── VARIATIONS: Aspect Ratios & Scales ──────────────────────────── */
+
+/* Portrait Large */
+.hj-card-portrait-lg {
+    width: clamp(280px, 23vw, 360px);
+    height: clamp(400px, 50vh, 560px);
+}
+
+/* Landscape Standard */
+.hj-card-landscape {
+    width: clamp(380px, 32vw, 480px);
+    height: clamp(260px, 34vh, 380px);
+}
+
+/* Square */
+.hj-card-square {
+    width: clamp(280px, 22vw, 340px);
+    height: clamp(280px, 22vw, 340px);
+}
+
+/* Portrait Small */
+.hj-card-portrait-sm {
+    width: clamp(230px, 18vw, 280px);
+    height: clamp(320px, 38vh, 420px);
+}
+
+/* Landscape Wide */
+.hj-card-landscape-wide {
+    width: clamp(420px, 36vw, 540px);
+    height: clamp(300px, 38vh, 420px);
+}
+
+/* ── EDITORIAL RHYTHM & VERTICAL LAYOUT POSITIONS ────────────────── */
+.hj-pos-1 { align-self: center;     margin-top: -2vh; }
+.hj-pos-2 { align-self: flex-start; margin-top: 10vh; }
+.hj-pos-3 { align-self: flex-end;   margin-bottom: 8vh; }
+.hj-pos-4 { align-self: center;     margin-top: 4vh; }
+.hj-pos-5 { align-self: flex-start; margin-top: 6vh; }

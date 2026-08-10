@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>UniShare App - Aditya Verma</title>
+    <link rel="icon" type="image/x-icon" href="../shared/assets/favicon.ico">
+    <link rel="stylesheet" href="../shared/reset.css">
+    <link rel="stylesheet" href="../shared/typography.css">
+    <link rel="stylesheet" href="../shared/colors.css">
+    <link rel="stylesheet" href="../style.css">
+    
+    <style>
+        :root {
+            --project-bg: #f8f7f5;
+        }
+        body {
+            background: var(--project-bg);
+            color: var(--text-primary);
+        }
+        .cs-nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            padding: 24px 5%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            mix-blend-mode: difference;
+            color: white;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+            font-size: var(--text-caption-size);
+            letter-spacing: 0.04em;
+        }
+        .cs-nav a { color: inherit; text-decoration: none; }
+        
+        .cs-hero {
+            padding: 20vh 5% 10vh;
+            max-width: var(--container-lg);
+            margin: 0 auto;
+        }
+        .cs-meta {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .cs-title {
+            font-size: clamp(3rem, 6vw, 6rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+        .cs-intro {
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            max-width: 800px;
+            line-height: 1.4;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+        }
+        .cs-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            padding-top: 3rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+        .cs-detail-group h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .cs-cover {
+            width: 100%;
+            height: 70vh;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 6rem;
+        }
+        
+        .cs-section {
+            max-width: var(--container-md);
+            margin: 0 auto 6rem;
+            padding: 0 5%;
+        }
+        .cs-section h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .cs-section p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: rgba(26,26,26,0.8);
+        }
+        .cs-highlight {
+            background: rgba(255,85,9,0.1);
+            padding: 2rem;
+            border-left: 4px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            margin: 3rem 0;
+        }
+        .cs-highlight p { margin: 0; font-weight: 500; }
+        
+        .cs-placeholder {
+            width: 100%;
+            height: 400px;
+            background: #e5e4e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            margin: 2rem 0;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <nav class="cs-nav">
+        <a href="../index.html">&larr; Back to Home</a>
+        <span>UniShare</span>
+    </nav>
+
+    <main>
+        <header class="cs-hero">
+            <p class="cs-meta">Product Design · 2024</p>
+            <h1 class="cs-title">UniShare App</h1>
+            <p class="cs-intro">Designed end-to-end ride-sharing experience for 5,000+ students, reducing booking friction by 40%.</p>
+            
+            <div class="cs-details">
+                <div class="cs-detail-group">
+                    <h4>Role</h4>
+                    <p>Lead Product Designer</p>
+                </div>
+                <div class="cs-detail-group">
+                    <h4>Timeline</h4>
+                    <p>3 Months</p>
+                </div>
+                <div class="cs-detail-group">
+                    <h4>Tools</h4>
+                    <p>Figma, Principle</p>
+                </div>
+                <div class="cs-detail-group">
+                    <h4>Impact</h4>
+                    <p>40% drop in booking time, 5k+ active users</p>
+                </div>
+            </div>
+        </header>
+
+        <div style="padding: 0 5%; max-width: var(--container-lg); margin: 0 auto;">
+            <img src="../sections/work/assets/unishare/cover.jpg" alt="UniShare Cover" class="cs-cover">
+        </div>
+
+        <section class="cs-section">
+            <h3>The Problem</h3>
+            <p>University students often struggle to find safe, reliable, and affordable rides for weekend trips or daily commutes. Existing ride-sharing platforms are expensive, while informal carpooling via WhatsApp groups is chaotic and lacks trust.</p>
+            <div class="cs-placeholder">[ Add Wireframes / Research Image Here ]</div>
+        </section>
+
+        <section class="cs-section">
+            <h3>Research & Insights</h3>
+            <p>I conducted interviews with 30+ students and mapped their existing journeys. The core insight was that trust is the primary currency. Students don't just want a ride; they want to know they are traveling with a verified peer.</p>
+            <div class="cs-highlight">
+                <p>"I'd rather pay 20% more for an Uber than get into a stranger's car from a Facebook group, unless I can verify they go to my school." — Student Interview</p>
+            </div>
+        </section>
+
+        <section class="cs-section">
+            <h3>Design Process & Solution</h3>
+            <p>The solution focused on a friction-less verified onboarding system and a clear, map-based discovery interface. By integrating university SSO, we solved the trust issue immediately.</p>
+            <div class="cs-placeholder">[ Add Final UI / Flows Image Here ]</div>
+            <p>The core booking flow was reduced from an average of 14 taps (in competitor apps) to just 5 taps, significantly reducing the drop-off rate.</p>
+        </section>
+
+        <section class="cs-section">
+            <h3>Results & Takeaways</h3>
+            <p>The MVP was tested with a closed beta of 500 students, eventually scaling to 5,000+. Booking friction dropped by 40%, and the platform facilitated over 2,000 shared rides in the first semester.</p>
+            <p><strong>Key Takeaway:</strong> Designing for trust is just as important as designing for utility. The SSO integration was the most technically challenging but UX-critical feature.</p>
+        </section>
+    </main>
+</body>
+</html>

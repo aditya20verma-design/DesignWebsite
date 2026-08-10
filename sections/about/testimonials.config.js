@@ -51,7 +51,7 @@ window.TESTIMONIALS_DATA = [
     if (!stage || !window.TESTIMONIALS_DATA) return;
 
     stage.innerHTML = window.TESTIMONIALS_DATA.map((t, i) => `
-        <div class="exp-card" data-index="${i}">
+        <div class="exp-card" data-index="${i}" tabindex="0" role="article" aria-label="Testimonial from ${t.name}">
             <div class="exp-card-header">
                 <div class="exp-card-left">
                     <img src="${t.logo}" class="exp-card-logo" alt="${t.logoAlt}">

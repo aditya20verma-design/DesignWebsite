@@ -46,12 +46,14 @@
 (function () {
     'use strict';
 
-    // Premium timing — smoke starts earlier for a longer, richer atmospheric build
-    var SMOKE_START  = 0.52;
-    var SMOKE_END    = 0.90;
+    // Premium timing — smoke starts in second half of sequence for clean white exit
+    var SMOKE_START  = 0.65;
+    var SMOKE_END    = 0.88;
     var TEXT_START   = 0.80;
     var TEXT_END     = 0.96;
     var BG_THRESHOLD = 0.68;
+
+
 
     var TOTAL      = 83;
     var PATH       = 'sections/about/assets/sequence_6/frame';
@@ -60,12 +62,14 @@
     var BATCH_SIZE = 12;
 
     // ── DOM refs ─────────────────────────────────────────────────────────────
-    var section    = document.getElementById('about-sequence');
-    var wrap       = document.getElementById('sequence-canvas-wrap');
-    var canvas     = document.getElementById('sequence-canvas');
-    var smoke      = document.getElementById('sequence-smoke');
-    var loader     = document.getElementById('sequence-loader');
-    var aboutIntro = document.getElementById('seq-about-intro');
+    var section     = document.getElementById('about-sequence');
+    var wrap        = document.getElementById('sequence-canvas-wrap');
+    var canvas      = document.getElementById('sequence-canvas');
+    var smoke       = document.getElementById('sequence-smoke');
+    var loader      = document.getElementById('sequence-loader');
+    var aboutIntro  = document.getElementById('seq-about-intro');
+
+
 
     if (!section || !canvas) return;
 
@@ -114,6 +118,7 @@
     // ── Easing ────────────────────────────────────────────────────────────
     function easeIn3(t)  { return t * t * t; }
     function easeOut3(t) { return 1 - (1-t)*(1-t)*(1-t); }  // snappy spring-like settle
+    function easeInOut3(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }  // smooth S-curve
     function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
     // ── CORE: Scroll Tick ─────────────────────────────────────────────────
@@ -152,7 +157,7 @@
             section.classList.remove('seq-beige');
         }
 
-        // ── Smoke overlay ─────────────────────────────────────────────────
+        // ── Smoke overlay & Vignette exit ────────────────────────────────
         if (smoke) {
             // easeOut3: fast initial wisp, decelerates — smoke feels heavy, atmospheric
             var sOp = easeOut3(clamp((p - SMOKE_START) / (SMOKE_END - SMOKE_START), 0, 1));
@@ -160,9 +165,15 @@
                 lastSmoke = sOp;
                 smoke.style.opacity = sOp.toFixed(3);
             }
+
+            if (p >= SMOKE_END) {
+                wrap.classList.add('vignette-exit');
+            } else {
+                wrap.classList.remove('vignette-exit');
+            }
         }
 
-        // ── About-intro text ──────────────────────────────────────────────
+        // ── About-intro text (legacy — element removed, ref is null) ─────
         if (aboutIntro) {
             var tOp = easeIn3(clamp((p - TEXT_START) / (TEXT_END - TEXT_START), 0, 1));
             if (Math.abs(tOp - lastText) > 0.002) {
@@ -170,6 +181,7 @@
                 aboutIntro.style.opacity = tOp.toFixed(3);
             }
         }
+
 
         // ── Rise progress ───────────────────────────────────────────────────
         // rect.top: +VH (canvas at screen bottom) → 0 (canvas locked at top)
@@ -195,8 +207,19 @@
             velZoom += (1.0 - velZoom) * 0.15;  // decay to 1.0 during rise
         }
 
-        // ── Frame index (1:1 scroll → frame) ─────────────────────────────
-        var idx = Math.min(TOTAL - 1, Math.round(p * (TOTAL - 1)));
+        // ── Frame index (bike sequence scrubbed over p = 0.0 -> 0.50) ─────────
+        // Frame 0-77:  scrubbed over p = 0.00 -> 0.30 (rider riding & braking)
+        // Frame 78-83: scrubbed over p = 0.30 -> 0.50 (last 6 smoke frames play WHILE text glides!)
+        var bikeP;
+        if (p < 0.30) {
+            bikeP = (p / 0.30) * (77 / 83);
+        } else if (p <= 0.50) {
+            bikeP = (77 / 83) + ((p - 0.30) / 0.20) * (6 / 83);
+        } else {
+            bikeP = 1.0;
+        }
+
+        var idx = Math.min(TOTAL - 1, Math.floor(bikeP * (TOTAL - 1)));
         if (idx !== targetIdx) {
             targetIdx = idx;
             schedDraw();
@@ -359,21 +382,26 @@
 
     function preload() {
         // Step 1: Load frame 0 first — canvas becomes drawable immediately.
-        // This means the canvas shows frame 0 the instant the sticky section
-        // enters the viewport, eliminating any black flash on entry.
         loadOne(0, function () {
             ready = true;
             if (loader) loader.style.display = 'none';
             bindScroll();
 
-            // Step 2: Load ALL remaining frames 1–82 before releasing the gate.
-            // __gateSeqReady fires ONLY when every frame is in memory.
-            // This is the ONLY guarantee of smooth scrub at any scroll speed.
-            var rest = [];
-            for (var i = 1; i < TOTAL; i++) rest.push(i);
-            loadBatch(rest, function () {
-                // All 83 frames decoded — safe to open the preloader curtain.
+            // Step 2: Load priority frames (every 10th frame) to ensure rough scrub is ready
+            var priority = [];
+            var background = [];
+            for (var i = 1; i < TOTAL; i++) {
+                if (i % 10 === 0 || i === TOTAL - 1) priority.push(i);
+                else background.push(i);
+            }
+
+            loadBatch(priority, function () {
+                // Priority frames decoded — safe to open the preloader curtain!
+                // This drastically reduces time-to-interactive.
                 if (window.__gateSeqReady) window.__gateSeqReady();
+
+                // Step 3: Lazy load the remaining frames in the background
+                loadBatch(background);
             });
         });
     }

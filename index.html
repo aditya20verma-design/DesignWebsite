@@ -158,7 +158,11 @@
     <link rel="stylesheet" href="style.css?v=81">
     <link rel="stylesheet" href="sections/circuit/circuit.css?v=97">
     <link rel="stylesheet" href="sections/about/sequence.css?v=57">
+    <link rel="stylesheet" href="sections/about/horiz-journey.css?v=1">
     <link rel="stylesheet" href="sections/about/about.css?v=43">
+    <link rel="stylesheet" href="sections/about/skills.css?v=1">
+    <link rel="stylesheet" href="sections/about/experience.css?v=1">
+    <link rel="stylesheet" href="sections/work/work.css?v=1">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -174,6 +178,9 @@
 </head>
 
 <body>
+    <!-- Accessibility: Skip to Content -->
+    <a href="#work" class="skip-link">Skip to content</a>
+
     <!-- Magnetic Custom Cursor -->
     <div class="cursor-dot"></div>
     <div class="cursor-outline">
@@ -347,7 +354,7 @@
             <!-- Hero subtitle: cycles below ADITYA VERMA, visible only on hero section -->
             <div id="hero-subtitle" aria-live="polite" aria-label="Aditya Verma, Product Designer">
                 <span class="subtitle-line" id="subtitle-line-1">Product Designer · 3+ yrs</span>
-                <span class="subtitle-line" id="subtitle-line-2">Blueprints → Wireframes</span>
+                <span class="subtitle-line" id="subtitle-line-2">Architect → Product designer</span>
             </div>
 
         </div>
@@ -404,94 +411,281 @@
                 </div>
 
             </div> <!-- End Sticky Container -->
+
         </div> <!-- End Hero Track -->
 
         <!-- ── Work Section (normal scroll) ─────────────────────────── -->
         <div class="content-wrapper" id="work">
             <div id="work-inner">
-
-            <!-- Project 1: UniShare -->
-            <section class="project hover-trigger" id="project-1" data-cursor="pill" data-cursor-label="View project">
-                <div class="project-bg-text marquee-left">UNISHARE APP</div>
-                <div class="project-content">
-                    <div class="project-info">
-                        <p class="project-meta reveal-text-scroll">App Design</p>
-                        <h2 class="project-title reveal-text-scroll">UniShare <span class="font-accent">App</span></h2>
-                        <p class="project-desc reveal-text-scroll">A comprehensive platform for university students to
-                            share resources and connect.</p>
-                        <a href="https://www.behance.net/gallery/173110489/UniShare" target="_blank"
-                            class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
-                                class="cta-arrow">&rarr;</span></a>
+                <!-- ── Section Intro ────────────────────────────────────────── -->
+                <header class="work-section-header">
+                    <div class="work-header-inner">
+                        <p class="work-header-eyebrow">SELECTED WORK</p>
+                        <h2 class="work-header-title">Products, systems and experiences shaped across <span class="font-accent">healthcare, fintech, mobility</span> and beyond.</h2>
                     </div>
-                    <div class="project-image-wrapper">
-                        <div class="parallax-image"
-                            style="background-image: url('sections/work/assets/unishare/cover.jpg');"></div>
+                </header>
+
+                <!-- ── Featured Projects Container (01 & 02) ────────────────── -->
+                <div class="work-featured-container">
+                    
+                    <!-- FEATURED PROJECT 01: Narayana Health -->
+                    <article class="work-facade work-featured work-feat-01 hover-trigger" id="project-01" data-cursor="pill" data-cursor-label="Explore project">
+                        <a href="projects/narayana.html" class="work-facade-link" aria-label="Narayana Health - Health Records 2.0 Case Study">
+                            <div class="work-facade-layout">
+                                <!-- Left Editorial Copy Column -->
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">01</span>
+                                        <span class="work-facade-category">HEALTHCARE · PRODUCT DESIGN</span>
+                                    </div>
+                                    <h3 class="work-facade-title">Health Records <span class="font-accent">2.0</span></h3>
+                                    <p class="work-facade-tagline">“Making a patient’s health history easier to understand, track and act on.”</p>
+                                    
+                                    <!-- Revealable Metadata Grid on Hover / Touch -->
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block">
+                                            <span class="meta-label">BUILT</span>
+                                            <span class="meta-val">Research · UX Strategy · Product Design · UI · Design Systems</span>
+                                        </div>
+                                        <div class="work-meta-stats">
+                                            <div class="meta-stat">
+                                                <span class="stat-num">1M+</span>
+                                                <span class="stat-label">USERS</span>
+                                            </div>
+                                            <div class="meta-stat">
+                                                <span class="stat-num" data-placeholder-metric="true">+30%*</span>
+                                                <span class="stat-label">IMPACT</span>
+                                            </div>
+                                        </div>
+                                        <div class="work-meta-footer">
+                                            <span class="meta-timeline">2026 · 4 MONTHS</span>
+                                            <span class="work-facade-cta">EXPLORE CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Asymmetric Media Frame -->
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">01</span>
+                                        <div class="work-ph-grid-lines"></div>
+                                    </div>
+                                    <img src="sections/work/assets/narayana/cover.jpg" alt="Narayana Health - Health Records 2.0" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+                            </div>
+                        </a>
+                    </article>
+
+                    <!-- FEATURED PROJECT 02: BranchX -->
+                    <article class="work-facade work-featured work-feat-02 hover-trigger" id="project-02" data-cursor="pill" data-cursor-label="Explore project">
+                        <a href="projects/branchx.html" class="work-facade-link" aria-label="BranchX - Spend Categorisation Case Study">
+                            <div class="work-facade-layout">
+                                <!-- Left Media Frame (Asymmetrical Inversion) -->
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">02</span>
+                                        <div class="work-ph-grid-lines"></div>
+                                    </div>
+                                    <img src="sections/work/assets/branchx/cover.jpg" alt="BranchX - Spend Categorisation" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+
+                                <!-- Right Editorial Copy Column -->
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">02</span>
+                                        <span class="work-facade-category">FINTECH · PRODUCT DESIGN</span>
+                                    </div>
+                                    <h3 class="work-facade-title">Spend <span class="font-accent">Categorisation</span></h3>
+                                    <p class="work-facade-tagline">“Making everyday spending easier to understand and manage.”</p>
+
+                                    <!-- Revealable Metadata Grid on Hover / Touch -->
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block">
+                                            <span class="meta-label">BUILT</span>
+                                            <span class="meta-val">UX · UI · Interaction Design · Product Design</span>
+                                        </div>
+                                        <div class="work-meta-stats">
+                                            <div class="meta-stat">
+                                                <span class="stat-num">50K</span>
+                                                <span class="stat-label">USERS</span>
+                                            </div>
+                                            <div class="meta-stat">
+                                                <span class="stat-num" data-placeholder-metric="true">+10%*</span>
+                                                <span class="stat-label">IMPACT</span>
+                                            </div>
+                                        </div>
+                                        <div class="work-meta-footer">
+                                            <span class="meta-timeline">2024 · 2 MONTHS</span>
+                                            <span class="work-facade-cta">EXPLORE CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </article>
+
+                </div>
+
+                <!-- ── Secondary / Archival Projects Section (03 - 07) ────── -->
+                <div class="work-archival-section">
+                    <div class="work-archival-header">
+                        <span class="archival-eyebrow">ARCHIVAL SELECTION</span>
+                        <span class="archival-divider-line"></span>
+                    </div>
+
+                    <div class="work-archival-grid">
+                        
+                        <!-- PROJECT 03: Book Appointment -->
+                        <article class="work-facade work-secondary work-sec-portrait hover-trigger" id="project-03" data-cursor="pill" data-cursor-label="Explore project">
+                            <a href="projects/book-appointment.html" class="work-facade-link">
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">03</span>
+                                    </div>
+                                    <img src="sections/work/assets/book-appointment/cover.jpg" alt="Book Appointment" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">03</span>
+                                        <span class="work-facade-category">HEALTHCARE · PRODUCT DESIGN</span>
+                                    </div>
+                                    <h4 class="work-facade-title-sm">Book <span class="font-accent">Appointment</span></h4>
+                                    <p class="work-facade-tagline-sm">“A simpler path from finding a doctor to booking an appointment.”</p>
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">BUILT:</span> <span class="meta-val-sm">Product Design · UX · UI</span>
+                                        </div>
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">IMPACT:</span> <span class="meta-val-sm" data-placeholder-metric="true">+24% bookings*</span>
+                                        </div>
+                                        <div class="work-meta-footer-sm">
+                                            <span class="meta-timeline">2024 · 3 MONTHS</span>
+                                            <span class="work-facade-cta-sm">EXPLORE CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+
+                        <!-- PROJECT 04: Group Health Checkup -->
+                        <article class="work-facade work-secondary work-sec-landscape hover-trigger" id="project-04" data-cursor="pill" data-cursor-label="Explore project">
+                            <a href="projects/group-checkup.html" class="work-facade-link">
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">04</span>
+                                    </div>
+                                    <img src="sections/work/assets/group-checkup/cover.jpg" alt="Group Health Checkup" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">04</span>
+                                        <span class="work-facade-category">HEALTHCARE · PRODUCT DESIGN</span>
+                                    </div>
+                                    <h4 class="work-facade-title-sm">Group Health <span class="font-accent">Checkup</span></h4>
+                                    <p class="work-facade-tagline-sm">“A group booking experience designed around families and shared healthcare needs.”</p>
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">BUILT:</span> <span class="meta-val-sm">Product Design · UX · UI</span>
+                                        </div>
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">IMPACT:</span> <span class="meta-val-sm" data-placeholder-metric="true">+15% bookings*</span>
+                                        </div>
+                                        <div class="work-meta-footer-sm">
+                                            <span class="meta-timeline">2024 · 3 MONTHS</span>
+                                            <span class="work-facade-cta-sm">EXPLORE CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+
+                        <!-- PROJECT 05: Delhi Metro Companion -->
+                        <article class="work-facade work-secondary work-sec-square hover-trigger" id="project-05" data-cursor="pill" data-cursor-label="View project">
+                            <a href="projects/dmrc.html" class="work-facade-link">
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">05</span>
+                                    </div>
+                                    <img src="sections/work/assets/dmrc/cover.png" alt="Delhi Metro Companion" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">05</span>
+                                        <span class="work-facade-category">MOBILITY · UI/UX</span>
+                                    </div>
+                                    <h4 class="work-facade-title-sm">Delhi Metro <span class="font-accent">Companion</span></h4>
+                                    <p class="work-facade-tagline-sm">“Finding a better route through Delhi’s metro network.”</p>
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">BUILT:</span> <span class="meta-val-sm">UX · UI · Interaction Design</span>
+                                        </div>
+                                        <div class="work-meta-footer-sm">
+                                            <span class="work-facade-cta-sm">VIEW CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+
+                        <!-- PROJECT 06: UniShare -->
+                        <article class="work-facade work-secondary work-sec-wide hover-trigger" id="project-06" data-cursor="pill" data-cursor-label="View project">
+                            <a href="projects/unishare.html" class="work-facade-link">
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">06</span>
+                                    </div>
+                                    <img src="sections/work/assets/unishare/cover.jpg" alt="UniShare" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">06</span>
+                                        <span class="work-facade-category">PRODUCT · UX/UI</span>
+                                    </div>
+                                    <h4 class="work-facade-title-sm">UniShare <span class="font-accent">Platform</span></h4>
+                                    <p class="work-facade-tagline-sm">“End-to-end ride-sharing experience for campus commuters.”</p>
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">BUILT:</span> <span class="meta-val-sm">UX · UI · Product Design</span>
+                                        </div>
+                                        <div class="work-meta-footer-sm">
+                                            <span class="work-facade-cta-sm">VIEW CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+
+                        <!-- PROJECT 07: EVY -->
+                        <article class="work-facade work-secondary work-sec-full hover-trigger" id="project-07" data-cursor="pill" data-cursor-label="View project">
+                            <a href="projects/evy.html" class="work-facade-link">
+                                <div class="work-facade-media-frame">
+                                    <div class="work-facade-placeholder-bg">
+                                        <span class="work-ph-num-bg">07</span>
+                                    </div>
+                                    <img src="sections/work/assets/evy/cover.jpg" alt="EVY Multimodal" class="work-facade-img parallax-image" loading="lazy" onerror="this.style.display='none'">
+                                </div>
+                                <div class="work-facade-info">
+                                    <div class="work-facade-header-meta">
+                                        <span class="work-facade-num">07</span>
+                                        <span class="work-facade-category">VUI · MULTIMODAL</span>
+                                    </div>
+                                    <h4 class="work-facade-title-sm">EVY <span class="font-accent">In-Car Assistant</span></h4>
+                                    <p class="work-facade-tagline-sm">“A multimodal in-car experience combining voice assistance with visual interaction.”</p>
+                                    <div class="work-facade-hover-meta">
+                                        <div class="work-meta-block-sm">
+                                            <span class="meta-label">BUILT:</span> <span class="meta-val-sm">VUI · Interaction Design · Multimodal</span>
+                                        </div>
+                                        <div class="work-meta-footer-sm">
+                                            <span class="work-facade-cta-sm">VIEW CASE STUDY <span class="cta-arrow">&nearr;</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+
                     </div>
                 </div>
-            </section>
 
-            <!-- Project 2: Delhi Metro -->
-            <section class="project reverse hover-trigger" id="project-2" data-cursor="pill" data-cursor-label="View project">
-                <div class="project-bg-text marquee-right">DELHI METRO</div>
-                <div class="project-content">
-                    <div class="project-info">
-                        <p class="project-meta reveal-text-scroll">UI/UX Redesign</p>
-                        <h2 class="project-title reveal-text-scroll">Metro Route <span class="font-accent">Finder</span>
-                        </h2>
-                        <p class="project-desc reveal-text-scroll">Redesigning the transit companion app for better
-                            route clarity and ticketing.</p>
-                        <a href="https://www.behance.net/gallery/192019961/Delhi-Metro-Companion-Route-Finding-App"
-                            target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
-                                class="cta-arrow">&rarr;</span></a>
-                    </div>
-                    <div class="project-image-wrapper">
-                        <div class="parallax-image"
-                            style="background-image: url('sections/work/assets/dmrc/cover.png');"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Project 3: NutriBuddy -->
-            <section class="project hover-trigger" id="project-3" data-cursor="pill" data-cursor-label="View project">
-                <div class="project-bg-text marquee-left">NUTRIBUDDY</div>
-                <div class="project-content">
-                    <div class="project-info">
-                        <p class="project-meta reveal-text-scroll">Health & Wellness</p>
-                        <h2 class="project-title reveal-text-scroll">Healthier food <span
-                                class="font-accent">choices</span></h2>
-                        <p class="project-desc reveal-text-scroll">Personalized diet tracking and macro management
-                            tailored for Indian demographics.</p>
-                        <a href="https://www.behance.net/gallery/159157943/NutriBuddy-Healthier-food-choices"
-                            target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
-                                class="cta-arrow">&rarr;</span></a>
-                    </div>
-                    <div class="project-image-wrapper">
-                        <div class="parallax-image"
-                            style="background-image: url('sections/work/assets/nutribuddy/cover.png');"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Project 4: mFine -->
-            <section class="project reverse hover-trigger" id="project-4" data-cursor="pill" data-cursor-label="View project">
-                <div class="project-bg-text marquee-right">MFINE REDESIGN</div>
-                <div class="project-content">
-                    <div class="project-info">
-                        <p class="project-meta reveal-text-scroll">Competitive Analysis</p>
-                        <h2 class="project-title reveal-text-scroll">mFine App <span class="font-accent">Redesign</span>
-                        </h2>
-                        <p class="project-desc reveal-text-scroll">A complete competitive teardown and UX optimization
-                            of a prominent health platform.</p>
-                        <a href="https://www.behance.net/gallery/216643991/mfine-App-Competitive-Analysis-Redesign"
-                            target="_blank" class="view-btn"><span class="hover-stagger">VIEW PROJECT</span> <span
-                                class="cta-arrow">&rarr;</span></a>
-                    </div>
-                    <div class="project-image-wrapper">
-                        <div class="parallax-image"
-                            style="background-image: url('sections/work/assets/mfine/cover.jpg');"></div>
-                    </div>
-                </div>
-            </section>
             </div> <!-- End of #work-inner -->
             <!-- Dark scrim overlay: JS drives opacity 0→1 as bike canvas rises.
                  Lives INSIDE #work — clipped to its bounds. No filter = no compositing bleed. -->
@@ -527,209 +721,120 @@
                     <!-- Inner wrapper: receives the scale transform (NOT the sticky el) -->
                     <div id="sequence-canvas-inner">
                         <canvas id="sequence-canvas"></canvas>
-                        <!-- Phase 2: smoke + about-intro text emerges from mist -->
+                        <!-- sequence-smoke: just a minimal smoke fade over canvas, no horizontal track -->
                         <div id="sequence-smoke">
-                            <!-- About-intro: positioned in the smoke layer.
-                                 Opacity driven by sequence.js (0→1 at 80-95% scroll).
-                                 NO transform/translate — text materialises in place, like rising from smoke. -->
-                            <div id="seq-about-intro" aria-hidden="true">
-                                <p class="seq-about-label">About Me</p>
-                                <h2 class="seq-about-headline">Product Designer<br><em>&amp; Systems Thinker.</em></h2>
-                                <p class="seq-about-sub">3+ years &middot; Healthcare &middot; Fintech</p>
-                            </div>
                         </div>
-                    </div>
 
-                    <!-- Overlay text -->
+                    </div><!-- /#sequence-canvas-inner -->
+
+                    <!-- Overlay text (hidden, kept for JS compatibility) -->
                     <div class="seq-overlay" style="display: none;">
                         <h2 class="seq-title"></h2>
                         <p class="seq-subtitle"></p>
                     </div>
 
+                    <!-- GPU Background Overlay for smooth transition to dark #1d1d1d on the same viewport -->
+                    <div id="horiz-bg-overlay"></div>
+
+                    <!-- Horizontal Journey Track (Layered directly inside sticky container) -->
+                    <div id="horiz-pin-wrap">
+                        <div id="horiz-track">
+
+                            <!-- Panel 1: Hero Typography (Architect -> Product Designer) -->
+                            <div class="hj-panel hj-typo-panel">
+                                <div class="hj-typo-wrapper">
+                                    <span class="hj-typo-exp">3+ YEARS EXPERIENCE</span>
+                                    <span class="hj-typo-architect">Architect</span>
+                                    <h2 class="hj-typo-designer">Product Designer</h2>
+                                </div>
+                            </div>
+
+                            <!-- Panel 2: Large Portrait Card -->
+                            <div class="hj-card hj-card-portrait-lg hj-pos-1">
+                                <div class="hj-card-frame">
+                                    <div class="hj-card-img-wrap">
+                                        <img src="assets/images/journey/01.jpg" alt="Journey 01" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <div class="hj-card-placeholder">
+                                            <span class="hj-ph-num">01</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel 3: Landscape Card -->
+                            <div class="hj-card hj-card-landscape hj-pos-2">
+                                <div class="hj-card-frame">
+                                    <div class="hj-card-img-wrap">
+                                        <img src="assets/images/journey/02.jpg" alt="Journey 02" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <div class="hj-card-placeholder">
+                                            <span class="hj-ph-num">02</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel 4: Square Card -->
+                            <div class="hj-card hj-card-square hj-pos-3">
+                                <div class="hj-card-frame">
+                                    <div class="hj-card-img-wrap">
+                                        <img src="assets/images/journey/03.jpg" alt="Journey 03" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <div class="hj-card-placeholder">
+                                            <span class="hj-ph-num">03</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel 5: Small Portrait Card -->
+                            <div class="hj-card hj-card-portrait-sm hj-pos-4">
+                                <div class="hj-card-frame">
+                                    <div class="hj-card-img-wrap">
+                                        <img src="assets/images/journey/04.jpg" alt="Journey 04" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <div class="hj-card-placeholder">
+                                            <span class="hj-ph-num">04</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel 6: Wide Landscape Card -->
+                            <div class="hj-card hj-card-landscape-wide hj-pos-5">
+                                <div class="hj-card-frame">
+                                    <div class="hj-card-img-wrap">
+                                        <img src="assets/images/journey/05.jpg" alt="Journey 05" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <div class="hj-card-placeholder">
+                                            <span class="hj-ph-num">05</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div><!-- /#horiz-track -->
+                    </div><!-- /#horiz-pin-wrap -->
+
+                </div><!-- /#sequence-canvas-wrap -->
+            </section><!-- /#about-sequence -->
+
+            <!-- ── Experience Highlights ────────────────────────────────────────────── -->
+            <section id="experience-highlights" class="exp-table-section" aria-label="Experience">
+                <div class="exp-table-container">
+
+                    <h2 class="exp-table-title">My <span class="font-accent">JOURNEY</span></h2>
+
+                    <!-- Column headers — 4 columns -->
+                    <div class="exp-table-cols" aria-hidden="true">
+                        <span class="col-head">Company</span>
+                        <span class="col-head">Role &amp; Built</span>
+                        <span class="col-head">Period</span>
+                        <span class="col-head">Domain</span>
+                    </div>
+
+                    <!-- Rows injected by sections/about/experience.config.js -->
+                    <div class="exp-table-rows" id="exp-rows-list" role="list">
+                    </div>
+
                 </div>
             </section>
-
-            <!-- ── About Me Section ──────────────────────────────────────────
-                 Fades in on top of the white smoke frame. No background cut.
-                 F1 Timing Board × Apple Minimalism aesthetic.
-                 We use margin-top: -100vh to overlap the sequence pin seamlessly.
-            ──────────────────────────────────────────────────────────────── -->
-            <section id="about" aria-label="About Me">
-
-                <div id="about-me" aria-label="About Aditya Verma">
-                    <div class="about-me__inner">
-
-                        <!-- 1. IDENTITY BLOCK -->
-                        <div class="about-me__identity" id="identity-parent">
-                            <p class="about-me__identity-line1">
-                                <span class="mask-line"><span class="mask-text">Product Designer&thinsp;&middot;&thinsp;3Y</span></span>
-                            </p>
-                            <p class="about-me__identity-line2">
-                                <span class="mask-line"><span class="mask-text">Architect <span class="about-me__arrow">&#8594;</span> UX&thinsp;/&thinsp;Product</span></span>
-                            </p>
-                        </div>
-
-                        <div class="about-me__rule rule-anim"></div>
-
-                        <!-- 2. CAREER PROGRESSION -->
-                        <div class="about-me__career">
-                            <p class="about-me__section-label">Career Progression</p>
-
-                            <div class="about-me__board" role="list">
-
-                                <!-- P1 — Narayana Health (current) -->
-                                <div class="about-me__row about-me__row--p1" role="listitem">
-                                    <span class="about-me__pos">
-                                        <span class="mask-line"><span class="mask-text">P1</span></span>
-                                    </span>
-
-                                    <div class="about-me__company-block">
-                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
-                                            <img
-                                                src="sections/about/assets/Company logos/narayana.svg"
-                                                alt="Narayana Health"
-                                                class="about-me__logo"
-                                                width="56" height="18">
-                                            <div class="about-me__company-info">
-                                                <span class="about-me__company-name">Narayana Health</span>
-                                                <span class="about-me__role">Assoc. Product Designer</span>
-                                            </div>
-                                        </div></div>
-                                    </div>
-
-                                    <div class="about-me__duration-col">
-                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
-                                            <span class="about-me__duration">2024 — Present</span>
-                                            <div class="about-me__live" aria-label="Currently active">
-                                                <span class="about-me__live-dot" aria-hidden="true"></span>
-                                                <span class="about-me__live-text">Live</span>
-                                            </div>
-                                        </div></div>
-                                    </div>
-                                </div>
-
-                                <!-- P2 — BranchX -->
-                                <div class="about-me__row about-me__row--secondary" role="listitem">
-                                    <span class="about-me__pos">
-                                        <span class="mask-line"><span class="mask-text">P2</span></span>
-                                    </span>
-
-                                    <div class="about-me__company-block">
-                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
-                                            <img
-                                                src="sections/about/assets/Company logos/branchx.svg"
-                                                alt="BranchX"
-                                                class="about-me__logo"
-                                                width="60" height="18">
-                                            <div class="about-me__company-info">
-                                                <span class="about-me__company-name">BranchX</span>
-                                                <span class="about-me__role">UX Designer</span>
-                                            </div>
-                                        </div></div>
-                                    </div>
-
-                                    <div class="about-me__duration-col">
-                                        <div class="mask-line"><div class="mask-text">
-                                            <span class="about-me__duration">2023 — 2024</span>
-                                        </div></div>
-                                    </div>
-                                </div>
-
-                                <!-- P3 — Avanatri -->
-                                <div class="about-me__row about-me__row--secondary" role="listitem">
-                                    <span class="about-me__pos">
-                                        <span class="mask-line"><span class="mask-text">P3</span></span>
-                                    </span>
-
-                                    <div class="about-me__company-block">
-                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
-                                            <img
-                                                src="sections/about/assets/Company logos/avanatri.svg"
-                                                alt="Avanatri Technologies"
-                                                class="about-me__logo"
-                                                width="60" height="18">
-                                            <div class="about-me__company-info">
-                                                <span class="about-me__company-name">Avanatri Technologies</span>
-                                                <span class="about-me__role">Product Design Intern</span>
-                                            </div>
-                                        </div></div>
-                                    </div>
-
-                                    <div class="about-me__duration-col">
-                                        <div class="mask-line"><div class="mask-text">
-                                            <span class="about-me__duration">2022</span>
-                                        </div></div>
-                                    </div>
-                                </div>
-
-                                <!-- P0 — Architect -->
-                                <div class="about-me__row about-me__row--secondary" role="listitem">
-                                    <span class="about-me__pos">
-                                        <span class="mask-line"><span class="mask-text">P0</span></span>
-                                    </span>
-
-                                    <div class="about-me__company-block">
-                                        <div class="mask-line"><div class="mask-text" style="display:flex;align-items:center;">
-                                            <img
-                                                src="sections/about/assets/Company logos/architecture.svg"
-                                                alt="Architecture"
-                                                class="about-me__logo"
-                                                width="48" height="18">
-                                            <div class="about-me__company-info">
-                                                <span class="about-me__company-name">Architect</span>
-                                                <span class="about-me__role">Prior experience</span>
-                                            </div>
-                                        </div></div>
-                                    </div>
-
-                                    <div class="about-me__duration-col">
-                                        <div class="mask-line"><div class="mask-text">
-                                            <span class="about-me__duration">~1.5 yrs</span>
-                                        </div></div>
-                                    </div>
-                                </div>
-
-                            </div><!-- /.about-me__board -->
-                        </div><!-- /.about-me__career -->
-
-                        <div class="about-me__rule rule-anim"></div>
-
-                        <!-- 3. THINKING STATEMENTS -->
-                        <div class="about-me__thinking" aria-label="Design philosophy">
-                            <span class="about-me__statement">
-                                <span class="mask-line"><span class="mask-text">Systems Over Screens</span></span>
-                            </span>
-                            <span class="about-me__statement">
-                                <span class="mask-line"><span class="mask-text">Clarity Over Complexity</span></span>
-                            </span>
-                            <span class="about-me__statement">
-                                <span class="mask-line"><span class="mask-text">Real Users Over Assumptions</span></span>
-                            </span>
-                        </div>
-
-                        <div class="about-me__rule rule-anim"></div>
-
-                        <!-- 4. TRANSITION LINE -->
-                        <div class="about-me__transition-line">
-                            <p class="about-me__transition-text">
-                                <span class="mask-line">
-                                    <span class="mask-text">Architecture <span class="about-me__arrow">&#8594;</span> Product Design</span>
-                                </span>
-                            </p>
-                        </div>
-
-                        <!-- 5. CLOSING LINE -->
-                        <div class="about-me__closing">
-                            <p class="about-me__closing-text">
-                                <span class="mask-line"><span class="mask-text">Good Design Feels Inevitable</span></span>
-                            </p>
-                        </div>
-
-                    </div><!-- /.about-me__inner -->
-                </div><!-- /#about-me -->
-
-            </section>
-
 
             <!-- ── Testimonials Deck Section ──────────────────────────── -->
             <!-- Content rendered by sections/about/testimonials.config.js -->
@@ -807,13 +912,21 @@
                                     class="nav-arrow">&nearr;</span></a>
                         </div>
                         <div class="footer-links-col">
-                            <a href="https://drive.google.com/file/d/1m9uWCMo32K5j0sqaknWDgNk4mHHYnSEF/view?usp=drive_link"
+                            <a href="assets/resume.pdf"
                                 target="_blank" rel="noopener noreferrer" class="nav-link"
                                 style="justify-content: space-between;"><span class="hover-stagger"
                                     style="display:inline-block; line-height: 1;">DOWNLOAD RESUME</span> <span
                                     class="nav-arrow">&darr;</span></a>
                         </div>
                     </div>
+                </div>
+                <!-- Footer Bottom Bar -->
+                <div class="footer-bottom" style="max-width:var(--container-lg); margin:4rem auto 0; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+                    <p style="font-family:var(--font-ui); font-size:var(--text-caption-size); color:rgba(255,255,255,0.3); letter-spacing:0.04em;">© 2025 Aditya Verma. Designed & built with care.</p>
+                    <a href="#hero" class="nav-link" id="back-to-top" style="font-size:var(--text-caption-size); color:rgba(255,255,255,0.4);">
+                        <span class="hover-stagger">BACK TO TOP</span>
+                        <span class="nav-arrow" style="transform:rotate(-90deg); display:inline-block;">↗</span>
+                    </a>
                 </div>
                 </div>
             </footer>
@@ -901,15 +1014,19 @@
     </button>
 
     <!-- Section config scripts: inject dynamic content BEFORE script.js measures DOM -->
-    <script src="sections/about/testimonials.config.js?v=1"></script>
+    <script src="sections/about/skills.config.js?v=1" defer></script>
+    <script src="sections/about/experience.config.js?v=1" defer></script>
+    <script src="sections/about/testimonials.config.js?v=1" defer></script>
 
-    <script src="sections/about/about.js?v=5"></script>
-    <script src="script.js?v=78"></script>
+    <script src="sections/about/about.js?v=5" defer></script>
+    <script src="script.js?v=551" type="module"></script>
     <!-- Circuit Nav Component (after GSAP + ScrollTrigger are registered) -->
-    <script src="sections/circuit/circuit.config.js?v=97"></script>
-    <script src="sections/circuit/circuit.js?v=97"></script>
+    <script src="sections/circuit/circuit.config.js?v=97" defer></script>
+    <script src="sections/circuit/circuit.js?v=97" defer></script>
     <!-- About Sequence: image scrub engine (needs GSAP + ScrollTrigger) -->
-    <script src="sections/about/sequence.js?v=59"></script>
+    <script src="sections/about/sequence.js?v=59" defer></script>
+    <!-- Horizontal Journey Track: Lando Norris-style horizontal scroll -->
+    <script src="sections/about/horiz-journey.js?v=1" defer></script>
 </body>
 
 </html>

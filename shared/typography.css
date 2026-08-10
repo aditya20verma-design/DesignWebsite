@@ -220,9 +220,8 @@ h3 { font-size: var(--text-h3-size); line-height: var(--text-h3-lh); letter-spac
 /* Use as: <span class="font-accent">Word</span> inside headings  */
 /* Creates editorial contrast: heavy SF Pro ≠ elegant Brier italic   */
 .font-accent {
-    font-family: var(--font-accent); /* Brier */
+    font-family: var(--font-accent);
     font-weight: 400;
-    font-style: italic;
     letter-spacing: -0.01em;
     text-transform: none; /* preserve natural Brier letterforms */
 }

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>404 - Page Not Found | Aditya Verma</title>
+    <link rel="icon" type="image/x-icon" href="/shared/assets/favicon.ico">
+    <link rel="stylesheet" href="/shared/reset.css">
+    <link rel="stylesheet" href="/shared/typography.css">
+    <link rel="stylesheet" href="/shared/colors.css">
+    
+    <style>
+        :root {
+            --bg-404: #0a0a0a;
+            --text-404: #f8f7f5;
+        }
+        body {
+            background-color: var(--bg-404);
+            color: var(--text-404);
+            font-family: var(--font-body);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+        .container-404 {
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+        .code-404 {
+            font-family: var(--font-heading);
+            font-size: clamp(8rem, 20vw, 16rem);
+            line-height: 1;
+            margin: 0;
+            letter-spacing: -0.05em;
+            color: var(--text-404);
+            opacity: 0.9;
+        }
+        .msg-404 {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            margin-top: 1rem;
+            margin-bottom: 3rem;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            color: rgba(248, 247, 245, 0.7);
+        }
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 100px;
+            background: var(--text-404);
+            color: var(--bg-404);
+            text-decoration: none;
+            font-family: var(--font-ui);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.9rem;
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            background: var(--accent);
+            color: white;
+        }
+        
+        /* Subtle glow background */
+        .glow-404 {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50vw;
+            height: 50vw;
+            max-width: 600px;
+            max-height: 600px;
+            background: radial-gradient(circle, rgba(255,85,9,0.15) 0%, rgba(0,0,0,0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-404"></div>
+    <div class="container-404">
+        <h1 class="code-404">404</h1>
+        <p class="msg-404">The page you're looking for seems to have drifted away.</p>
+        <a href="/" class="btn-home">Return Home</a>
+    </div>
+</body>
+</html>
