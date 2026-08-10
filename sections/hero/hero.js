@@ -400,4 +400,39 @@ export function initHero() {
             }
         });
     }());
+
+    // ── Lando Norris-Style Manifesto Scroll Scrub Sequence ──
+    (function initManifestoScroll() {
+        const manifesto = document.getElementById('hero-manifesto');
+        const introStage = document.getElementById('manifesto-intro-stage');
+        const line1 = document.getElementById('manifesto-line-1');
+        const line2 = document.getElementById('manifesto-line-2');
+        if (!manifesto || !introStage || !line1 || !line2) return;
+
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: manifesto,
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: 0.5
+            }
+        });
+
+        // 0.20 - 0.35: Fade out Intro Name & Role
+        tl.to(introStage, { opacity: 0, y: -40, duration: 0.25, ease: 'power2.in' }, 0.18);
+
+        // 0.35 - 0.60: Reveal Line 1 (“BLENDING CREATIVITY AND CRAFT”)
+        tl.fromTo(line1, 
+            { opacity: 0, y: 40 }, 
+            { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' }, 
+            0.35
+        );
+
+        // 0.65 - 0.90: Reveal Line 2 (“TO SHAPE SYSTEMS & DIGITAL EXPERIENCES”)
+        tl.fromTo(line2, 
+            { opacity: 0, y: 40 }, 
+            { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' }, 
+            0.65
+        );
+    }());
 }
