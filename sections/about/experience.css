@@ -477,6 +477,11 @@
     font-size: 0.92rem;
     font-weight: 400;
     color: rgba(255, 255, 255, 0.75);
+    transition: color 0.25s ease;
+}
+
+.exp-row:hover .role-title {
+    color: #ffffff;
 }
 
 /* Brand Orange Accent Built Subtext revealed on row hover */
@@ -508,6 +513,11 @@
     font-size: 0.76rem;
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.02em;
+    transition: color 0.25s ease;
+}
+
+.exp-row:hover .period-range {
+    color: #ffffff;
 }
 
 .period-duration {
@@ -519,13 +529,14 @@
     max-height: 0;
     overflow: hidden;
     margin-top: 0;
-    transition: opacity 0.25s ease, max-height 0.25s ease, margin-top 0.25s ease;
+    transition: opacity 0.25s ease, max-height 0.25s ease, margin-top 0.25s ease, color 0.25s ease;
 }
 
 .exp-row:hover .period-duration {
     opacity: 1;
     max-height: 30px;
     margin-top: 3px;
+    color: #ffffff;
 }
 
 .col-domain {
@@ -538,6 +549,11 @@
     font-size: 0.76rem;
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.02em;
+    transition: color 0.25s ease;
+}
+
+.exp-row:hover .col-domain span {
+    color: #ffffff;
 }
 
 /* ── Responsive Adaptation ── */
