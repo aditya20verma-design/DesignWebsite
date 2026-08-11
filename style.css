@@ -105,59 +105,36 @@ body {
     transform: translate(-50%, -50%);
     mix-blend-mode: difference;
     opacity: 0;
-    transition: opacity 0.4s ease;
 }
 
 .cursor-outline {
     position: fixed;
     top: 0; left: 0;
-    width: 40px; height: 40px;          /* original ring size */
-    border: 1px solid var(--cursor-ring-border);  /* rgba(255,255,255,0.30) — original soft white */
+    width: 36px; height: 36px;          /* Exactly 36px size */
+    border: 1px solid var(--accent-orange, #FF5509);  /* Crisp 1px stroke thickness */
     border-radius: 50%;
     pointer-events: none; z-index: 100000;
     transform: translate(-50%, -50%);
     display: flex; align-items: center; justify-content: center;
     overflow: visible;
-    transition:
-        width            0.5s  cubic-bezier(0.16, 1, 0.3, 1),
-        height           0.5s  cubic-bezier(0.16, 1, 0.3, 1),
-        border-radius    0.5s  cubic-bezier(0.16, 1, 0.3, 1),
-        border-color     0.15s ease,   /* fast — no lag on section change  */
-        background       0.3s  ease,
-        transform        0.45s cubic-bezier(0.16, 1, 0.3, 1),
-        opacity          0.4s  ease;
     opacity: 0;
+    box-shadow: 0 0 10px rgba(255, 85, 9, 0.25);
 }
 
-/* Make cursor visible instantly on first physical mouse input */
-.cursor-dot.visible,
-.cursor-outline.visible {
-    opacity: 1;
-}
-
-/* Light background: ring darkens for accessibility (JS adds this class) */
+/* Light background: ring darkens to obsidian for contrast */
 .cursor-outline.cursor-on-light {
-    border-color: rgba(80, 80, 80, 0.38);  /* darker than white-a30 but not too dense */
+    border-color: rgba(17, 17, 17, 0.75);
+    box-shadow: none;
 }
 
-/* hover-state: scale only. No color change — ring stays grey throughout */
-.cursor-outline.hover-state {
-    transform: translate(-50%, -50%) scale(1.85);
-}
-
-/* pill-state: extends rightward from dot.
-   - Grey stroke (inherits from base or cursor-on-light — no override needed)
-   - Background: semi-transparent dark tint + backdrop blur for text legibility
-   - Width driven by --pill-w (set in JS from measured text width + 14px H-pad)     */
+/* pill-state: Outer ring morphs to pill on pill elements */
 .cursor-outline.pill-state {
     width: var(--pill-w, 130px);
     height: 40px;                  /* matches ring height exactly */
     border-radius: 100px;
-    /* No border-color override — inherits grey from base or cursor-on-light       */
     background: rgba(18, 18, 18, 0.28);   /* dark tint — white text readable       */
     backdrop-filter: blur(8px) saturate(1.4);
     -webkit-backdrop-filter: blur(8px) saturate(1.4);
-    transform: translate(-50%, -50%);
 }
 
 /* Light bg pill: invert to light tint so dark text reads well */

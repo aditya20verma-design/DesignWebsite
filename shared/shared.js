@@ -3,10 +3,15 @@
 // Includes: Safari Viewport Fix, Lenis Smooth Scroll, Custom Cursor, and Smart Nav
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { initMouseTrail } from './mouse-trail.js';
+
 export function initShared() {
     // ── Detect touch/mobile for disabling heavy effects ───────────────────────
     const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
     window.isTouchDevice = isTouchDevice; // Expose globally for other modules
+
+    // ── F1 / MotoGP Inspired Mouse Telemetry Trail ───────────────────────────
+    initMouseTrail();
 
     // ── Safari Viewport Bands Fix ────────────────────────────────────────────
     (function setSafariViewportFix() {
@@ -272,6 +277,9 @@ export function initShared() {
         }
 
         let _firstMoveCursor = true;
+        // Ensure outline is hidden at start
+        gsap.set(cursorOutline, { scale: 0, opacity: 0 });
+
         window.addEventListener('mousemove', (e) => {
             if (e._isAutoPan) return;
             window.mouseX = e.clientX;
@@ -285,10 +293,16 @@ export function initShared() {
         });
 
         gsap.ticker.add(() => {
-            const dt = 1.0 - Math.pow(1.0 - 0.15, gsap.ticker.deltaRatio());
             const targetX = activePill ? window.mouseX + currentPillOffset : window.mouseX;
-            outlineX += (targetX - outlineX) * dt;
-            outlineY += (window.mouseY - outlineY) * dt;
+            const targetY = window.mouseY;
+            if (activePill) {
+                const dt = 1.0 - Math.pow(1.0 - 0.20, gsap.ticker.deltaRatio());
+                outlineX += (targetX - outlineX) * dt;
+                outlineY += (targetY - outlineY) * dt;
+            } else {
+                outlineX = targetX;
+                outlineY = targetY;
+            }
             gsap.set(cursorOutline, { x: outlineX, y: outlineY });
         });
 
@@ -300,6 +314,8 @@ export function initShared() {
             cursorLabel.textContent = label;
             cursorOutline.classList.remove('hover-state');
             cursorOutline.classList.add('pill-state');
+            gsap.to(cursorDot, { scale: 0, opacity: 0, duration: 0.22, ease: 'power2.out', overwrite: 'auto' });
+            gsap.to(cursorOutline, { scale: 1, opacity: 1, duration: 0.32, ease: 'back.out(1.2)', overwrite: 'auto' });
         };
         window._cursorLeavePill = () => {
             activePill = false;
@@ -307,15 +323,44 @@ export function initShared() {
             cursorOutline.style.removeProperty('--pill-w');
             cursorLabel.textContent = '';
             currentPillOffset = 72;
+            gsap.to(cursorDot, { scale: 1, opacity: 1, duration: 0.22, ease: 'power2.out', overwrite: 'auto' });
+            gsap.to(cursorOutline, { scale: 0, opacity: 0, duration: 0.22, ease: 'power2.in', overwrite: 'auto' });
         };
 
-        const enterHover = () => { if (!activePill) cursorOutline.classList.add('hover-state'); };
-        const leaveHover = () => { if (!activePill) cursorOutline.classList.remove('hover-state'); };
+        let isHoveringInteractive = false;
 
-        document.querySelectorAll('.hover-trigger, .view-btn, a, .magnetic').forEach(el => {
-            el.addEventListener('mouseenter', enterHover);
-            el.addEventListener('mouseleave', leaveHover);
-        });
+        const enterHover = () => {
+            if (activePill) return;
+            cursorOutline.classList.add('hover-state');
+            gsap.to(cursorDot, { scale: 0, opacity: 0, duration: 0.2, ease: 'power2.out', overwrite: 'auto' });
+            gsap.to(cursorOutline, { scale: 1.08, opacity: 1, duration: 0.25, ease: 'back.out(1.4)', overwrite: 'auto' });
+        };
+
+        const leaveHover = () => {
+            if (activePill) return;
+            cursorOutline.classList.remove('hover-state');
+            gsap.to(cursorDot, { scale: 1, opacity: 1, duration: 0.2, ease: 'power2.out', overwrite: 'auto' });
+            gsap.to(cursorOutline, { scale: 0, opacity: 0, duration: 0.2, ease: 'power2.in', overwrite: 'auto' });
+        };
+
+        const INTERACTIVE_SELECTOR = 'a, button, .hover-trigger, .view-btn, .magnetic, .exp-row, .timeline-card, .timeline-node, .work-card, .work-item, .project-card, .case-study-card, .cta-button, .btn, .nav-link, input, textarea, select, label, [role="button"], [data-cursor], [onclick]';
+
+        document.addEventListener('mouseover', (e) => {
+            if (activePill) return;
+            const target = e.target.closest(INTERACTIVE_SELECTOR) ||
+                           (e.target && getComputedStyle(e.target).cursor === 'pointer' ? e.target : null);
+            if (target) {
+                if (!isHoveringInteractive) {
+                    isHoveringInteractive = true;
+                    enterHover();
+                }
+            } else {
+                if (isHoveringInteractive) {
+                    isHoveringInteractive = false;
+                    leaveHover();
+                }
+            }
+        }, { passive: true });
 
         document.querySelectorAll('[data-cursor="pill"]').forEach(el => {
             const label = el.dataset.cursorLabel || '';
