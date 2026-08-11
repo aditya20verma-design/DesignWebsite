@@ -536,7 +536,7 @@
     opacity: 1;
     max-height: 30px;
     margin-top: 3px;
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .col-domain {
