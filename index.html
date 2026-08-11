@@ -414,21 +414,22 @@
 
         </div> <!-- End Hero Track -->
 
-        <!-- ── Lando Norris-Style Kinetic Manifesto Statement Section ── -->
-        <section id="hero-manifesto" class="manifesto-section" aria-label="Statement">
+        <!-- ── Apple-Level Editorial Typographic Manifesto Section ────── -->
+        <section id="hero-manifesto" class="manifesto-section" aria-label="Manifesto Statement">
             <div class="manifesto-sticky-wrapper">
-                <div class="manifesto-content-box">
+                <div class="manifesto-container">
 
-                    <!-- Stage 1: Intro Name & Role -->
-                    <div class="manifesto-stage stage-intro" id="manifesto-intro-stage">
-                        <h2 class="manifesto-intro-name">Hi, I am <span class="manifesto-name-highlight">Aditya Verma</span></h2>
-                        <p class="manifesto-intro-role font-accent">Product Designer</p>
+                    <!-- Four-Line Scroll-Scrubbed Editorial Typography -->
+                    <div class="manifesto-typography" id="manifesto-typography">
+                        <div class="manifesto-line" data-line="1">BLENDING CREATIVITY AND CRAFT</div>
+                        <div class="manifesto-line" data-line="2">TO SHAPE SYSTEMS &amp; DIGITAL</div>
+                        <div class="manifesto-line" data-line="3">EXPERIENCES</div>
+                        <div class="manifesto-line" data-line="4">THAT RESONATE.</div>
                     </div>
 
-                    <!-- Stage 2: Vision Lines Reveal -->
-                    <div class="manifesto-stage stage-vision" id="manifesto-vision-stage">
-                        <h2 class="manifesto-vision-line line-1" id="manifesto-line-1">“BLENDING CREATIVITY AND CRAFT”</h2>
-                        <h2 class="manifesto-vision-line line-2" id="manifesto-line-2">TO SHAPE SYSTEMS &amp; DIGITAL EXPERIENCES</h2>
+                    <!-- Personal Philosophy Quote -->
+                    <div class="manifesto-quote" id="manifesto-quote">
+                        <p class="quote-text">“I like finding the <span class="quote-accent">simple</span> thing hiding inside the complicated thing.”</p>
                     </div>
 
                 </div>
@@ -836,22 +837,75 @@
                 </div><!-- /#sequence-canvas-wrap -->
             </section><!-- /#about-sequence -->
 
-            <!-- ── Experience Highlights ────────────────────────────────────────────── -->
-            <section id="experience-highlights" class="exp-table-section" aria-label="Experience">
-                <div class="exp-table-container">
+            <!-- ── My Journey: Premium Interactive Timeline & List Views ───────────── -->
+            <section id="my-journey" class="journey-section" aria-label="My Journey">
+                <div class="journey-wrapper">
 
-                    <h2 class="exp-table-title">My <span class="font-accent">JOURNEY</span></h2>
+                    <!-- Upper Section Header with Editorial Text View Switcher Below Heading -->
+                    <header class="journey-header">
+                        <h2 class="journey-title">My <span class="font-accent">JOURNEY</span></h2>
 
-                    <!-- Column headers — 4 columns -->
-                    <div class="exp-table-cols" aria-hidden="true">
-                        <span class="col-head">Company</span>
-                        <span class="col-head">Role &amp; Built</span>
-                        <span class="col-head">Period</span>
-                        <span class="col-head">Domain</span>
+                        <!-- Minimal Text-Only View Switcher (TIMELINE · LIST) Below Heading -->
+                        <div class="journey-view-toggle" id="journey-view-toggle" role="tablist" aria-label="View Mode Switcher">
+                            <button class="view-toggle-btn active font-mono" data-view="timeline" role="tab" aria-selected="true" aria-label="Timeline View">
+                                TIMELINE
+                            </button>
+                            <span class="toggle-dot" aria-hidden="true">·</span>
+                            <button class="view-toggle-btn font-mono" data-view="list" role="tab" aria-selected="false" aria-label="List View">
+                                LIST
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- VIEW 1: Interactive Timeline Stage -->
+                    <div class="journey-stage-timeline" id="journey-stage">
+                        <div class="journey-timeline-track" id="journey-timeline-track">
+
+                            <!-- Reusable Floating Experience Card (Positioned ABOVE line) -->
+                            <div class="journey-card" id="journey-card" aria-hidden="true">
+                                <div class="journey-card-inner">
+                                    <div class="journey-card-logo-wrap">
+                                        <img id="j-card-logo" src="" alt="Company logo" class="journey-card-logo">
+                                    </div>
+                                    <div class="journey-card-details">
+                                        <h3 id="j-card-company" class="j-card-company">Company Name</h3>
+                                        <span id="j-card-role" class="j-card-role">Role</span>
+                                        <p id="j-card-desc" class="j-card-desc">Description</p>
+                                        <div class="j-card-meta font-mono">
+                                            <span id="j-card-period" class="j-card-period">PERIOD</span>
+                                            <span class="j-card-meta-sep">·</span>
+                                            <span id="j-card-domain" class="j-card-domain">DOMAIN</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Downward Pointer Stem -->
+                                <div class="journey-card-pointer" id="journey-card-pointer"></div>
+                            </div>
+
+                            <div class="journey-line-base"></div>
+                            <div class="journey-line-fill" id="journey-line-fill"></div>
+
+                            <div class="journey-nodes-wrap" id="journey-nodes-wrap">
+                                <!-- Rendered dynamically by experience.config.js -->
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Rows injected by sections/about/experience.config.js -->
-                    <div class="exp-table-rows" id="exp-rows-list" role="list">
+                    <!-- VIEW 2: Glowing Row List Stage -->
+                    <div class="journey-stage-list" id="journey-stage-list" style="display: none; opacity: 0;">
+                        <div class="exp-table">
+                            <div class="exp-table-header-wrap">
+                                <div class="exp-table-header font-mono">
+                                    <span>COMPANY</span>
+                                    <span>ROLE</span>
+                                    <span>PERIOD</span>
+                                    <span>DOMAIN</span>
+                                </div>
+                            </div>
+                            <div class="exp-table-body" id="exp-table-body">
+                                <!-- Rendered dynamically by experience.config.js -->
+                            </div>
+                        </div>
                     </div>
 
                 </div>

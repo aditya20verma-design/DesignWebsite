@@ -401,14 +401,67 @@ export function initHero() {
         });
     }());
 
-    // ── Lando Norris-Style Manifesto Scroll Scrub Sequence ──
+    // ── Apple-Level Editorial Typographic Manifesto Scrub Engine ──
     (function initManifestoScroll() {
         const manifesto = document.getElementById('hero-manifesto');
-        const introStage = document.getElementById('manifesto-intro-stage');
-        const line1 = document.getElementById('manifesto-line-1');
-        const line2 = document.getElementById('manifesto-line-2');
-        if (!manifesto || !introStage || !line1 || !line2) return;
+        const typography = document.getElementById('manifesto-typography');
+        const quote = document.getElementById('manifesto-quote');
+        if (!manifesto || !typography) return;
 
+        // Respect prefers-reduced-motion
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            const chars = typography.querySelectorAll('.manifesto-char');
+            chars.forEach(c => {
+                c.style.opacity = '1';
+                c.style.transform = 'translate3d(0,0,0)';
+                c.style.color = c.dataset.accent === 'true' ? '#FF5509' : '#ffffff';
+            });
+            if (quote) {
+                quote.style.opacity = '1';
+                quote.style.transform = 'translateY(0)';
+            }
+            return;
+        }
+
+        const ACCENT_WORDS = ['CREATIVITY', 'SYSTEMS', 'RESONATE.'];
+
+        // 1. Process lines into words & character spans
+        const lines = typography.querySelectorAll('.manifesto-line');
+        const allLineChars = [];
+
+        lines.forEach((line) => {
+            const text = line.textContent.trim();
+            line.innerHTML = ''; // Clear raw text
+
+            const words = text.split(/\s+/);
+            const lineChars = [];
+
+            words.forEach((wordText) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'manifesto-word';
+
+                const isAccentWord = ACCENT_WORDS.includes(wordText);
+
+                for (let i = 0; i < wordText.length; i++) {
+                    const char = wordText[i];
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'manifesto-char';
+                    charSpan.textContent = char;
+
+                    const isDot = char === '.' && wordText.startsWith('RESONATE');
+                    charSpan.dataset.accent = (isAccentWord || isDot) ? 'true' : 'false';
+
+                    wordSpan.appendChild(charSpan);
+                    lineChars.push(charSpan);
+                }
+
+                line.appendChild(wordSpan);
+            });
+
+            allLineChars.push(lineChars);
+        });
+
+        // 2. Build GSAP ScrollTrigger timeline
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: manifesto,
@@ -418,21 +471,89 @@ export function initHero() {
             }
         });
 
-        // 0.20 - 0.35: Fade out Intro Name & Role
-        tl.to(introStage, { opacity: 0, y: -40, duration: 0.25, ease: 'power2.in' }, 0.18);
+        // Apple Pro Scroll-Driven Background Color Transition:
+        // Starts at #1D1D1D (100% exact match with #hero section — zero boundary seam!)
+        // Smoothly deepens into #0D0D0D over the first 25% of scroll runway.
+        tl.to(manifesto, {
+            backgroundColor: '#0d0d0d',
+            duration: 0.25,
+            ease: 'none'
+        }, 0);
 
-        // 0.35 - 0.60: Reveal Line 1 (“BLENDING CREATIVITY AND CRAFT”)
-        tl.fromTo(line1, 
-            { opacity: 0, y: 40 }, 
-            { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' }, 
-            0.35
-        );
+        // Line timing windows across total timeline length (0.0 to 1.0):
+        // 01: 0.00 -> 0.24
+        // 02: 0.20 -> 0.44 (starts when Line 1 is ~85% revealed)
+        // 03: 0.40 -> 0.54 (starts when Line 2 is ~88% revealed)
+        // 04: 0.56 -> 0.72 (receives slightly more breathing room for conclusion)
+        // Quote: 0.82 -> 0.98 (300-500ms pause, then intimate quote reveal)
 
-        // 0.65 - 0.90: Reveal Line 2 (“TO SHAPE SYSTEMS & DIGITAL EXPERIENCES”)
-        tl.fromTo(line2, 
-            { opacity: 0, y: 40 }, 
-            { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' }, 
-            0.65
-        );
+        const lineWindows = [
+            { start: 0.00, duration: 0.24 },
+            { start: 0.20, duration: 0.24 },
+            { start: 0.40, duration: 0.14 },
+            { start: 0.56, duration: 0.16 }
+        ];
+
+        allLineChars.forEach((chars, lineIdx) => {
+            const win = lineWindows[lineIdx] || { start: 0.60, duration: 0.15 };
+            const charCount = chars.length;
+            if (!charCount) return;
+
+            const charStep = win.duration / charCount;
+
+            chars.forEach((char, cIdx) => {
+                const charStart = win.start + (cIdx * charStep);
+                const isAccent = char.dataset.accent === 'true';
+
+                // Phase 1: Precision Orange Reveal Edge Sweep + 1-2px Horizontal Settle
+                tl.to(char, {
+                    color: '#FF5509',
+                    textShadow: '0 0 14px rgba(255, 85, 9, 0.85)',
+                    x: 0,
+                    opacity: 1,
+                    duration: 0.06,
+                    ease: 'none'
+                }, charStart);
+
+                // Phase 2: Settle into final resolved color (white or orange accent)
+                tl.to(char, {
+                    color: isAccent ? '#FF5509' : '#ffffff',
+                    textShadow: isAccent ? '0 0 8px rgba(255, 85, 9, 0.35)' : 'none',
+                    duration: 0.08,
+                    ease: 'power1.out'
+                }, charStart + 0.05);
+            });
+        });
+
+        // Final completion cue on period "." of "RESONATE."
+        const lastLineChars = allLineChars[3];
+        if (lastLineChars && lastLineChars.length) {
+            const periodChar = lastLineChars[lastLineChars.length - 1];
+            if (periodChar && periodChar.textContent === '.') {
+                tl.to(periodChar, {
+                    color: '#FF5509',
+                    textShadow: '0 0 16px rgba(255, 85, 9, 0.9)',
+                    scale: 1.15,
+                    duration: 0.04,
+                    ease: 'power2.out'
+                }, 0.72);
+                tl.to(periodChar, {
+                    scale: 1,
+                    textShadow: '0 0 8px rgba(255, 85, 9, 0.4)',
+                    duration: 0.05,
+                    ease: 'power2.in'
+                }, 0.76);
+            }
+        }
+
+        // Quote reveal (after ~400ms pause equivalent)
+        if (quote) {
+            tl.to(quote, {
+                opacity: 1,
+                y: 0,
+                duration: 0.18,
+                ease: 'power2.out'
+            }, 0.82);
+        }
     }());
 }

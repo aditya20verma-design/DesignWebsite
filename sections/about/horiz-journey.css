@@ -16,7 +16,7 @@
 #horiz-bg-overlay {
     position: absolute;
     inset: 0;
-    background-color: var(--footer-bg, #1d1d1d);
+    background-color: #141414;
     opacity: 0;
     pointer-events: none;
     z-index: 1;

@@ -1919,15 +1919,16 @@ nav.nav--hero .nav-link {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Lando Norris-Style Manifesto Statement Section
+ * Apple-Level Editorial Typographic Manifesto Section
  * ───────────────────────────────────────────────────────────────────────────── */
 .manifesto-section {
     position: relative;
     width: 100%;
-    height: 220vh; /* Scroll runway for GSAP scrubbing */
-    background: #0a0a0a;
+    height: 350vh; /* Generous runway for scroll scrubbing choreography */
+    background-color: #1d1d1d; /* Matches #hero background seamlessly at entry */
     color: #ffffff;
     z-index: 4;
+    will-change: background-color;
 }
 
 .manifesto-sticky-wrapper {
@@ -1943,80 +1944,102 @@ nav.nav--hero .nav-link {
     overflow: hidden;
 }
 
-.manifesto-content-box {
+.manifesto-container {
     position: relative;
     width: 100%;
-    max-width: 1200px;
-    height: 320px;
+    max-width: 1240px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
 }
 
-.manifesto-stage {
-    position: absolute;
-    width: 100%;
+.manifesto-typography {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
 }
 
-/* Stage 1: Intro Name & Role */
-.manifesto-intro-name {
-    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, sans-serif);
-    font-size: clamp(2.4rem, 5vw, 4.8rem);
+.manifesto-line {
+    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif);
+    font-size: clamp(1.4rem, 4.3vw, 4.4rem);
     font-weight: 500;
     letter-spacing: -0.02em;
-    line-height: 1.15;
-    color: #ffffff;
-    margin: 0 0 1rem 0;
-}
-
-.manifesto-intro-role {
-    font-family: var(--font-accent, 'Brier', Georgia, serif);
-    font-size: clamp(2.2rem, 4.5vw, 4.2rem);
-    font-weight: 400;
-    color: #FF5509; /* Brier theme orange */
-    margin: 0;
-    line-height: 1.1;
-}
-
-/* Stage 2: Vision Lines */
-.stage-vision {
-    gap: 1.75rem;
-}
-
-.manifesto-vision-line {
-    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, sans-serif);
-    font-size: clamp(2rem, 4.2vw, 4.2rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    line-height: 1.12;
     text-transform: uppercase;
     margin: 0;
+    display: flex;
+    flex-wrap: nowrap; /* Strictly prevents word wrapping / orphans inside lines */
+    justify-content: center;
+    column-gap: 0.32em;
+    white-space: nowrap;
+}
+
+/* Individual character wrappers */
+.manifesto-word {
+    display: inline-flex;
+    white-space: nowrap;
+}
+
+.manifesto-char {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.2); /* Muted unrevealed grey */
+    transform: translate3d(2px, 0, 0);
+    will-change: transform, color, text-shadow, opacity;
+    transition: none;
+}
+
+/* Highlighted words use Brier serif font */
+.manifesto-char[data-accent="true"] {
+    font-family: var(--font-accent, 'Brier', Georgia, serif);
+    font-weight: 400;
+    letter-spacing: 0em;
+}
+
+/* Slogan Quote styling */
+.manifesto-quote {
+    margin-top: 3.5rem;
     opacity: 0;
-    transform: translateY(35px);
+    transform: translateY(22px);
     will-change: transform, opacity;
 }
 
-.manifesto-vision-line.line-1 {
-    color: #ffffff;
+.quote-text {
+    font-family: var(--font-accent, 'Brier', Georgia, serif);
+    font-style: italic;
+    font-size: clamp(1rem, 1.6vw, 1.45rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.65); /* Soft muted grey */
+    margin: 0;
+    max-width: 760px;
+    text-wrap: balance; /* Native browser orphan prevention */
 }
 
-.manifesto-vision-line.line-2 {
-    color: rgba(255, 255, 255, 0.45);
+.quote-accent {
+    color: #FF5509;
+    font-family: var(--font-accent, 'Brier', Georgia, serif);
+    font-style: italic;
+    font-weight: 400;
 }
 
 @media (max-width: 680px) {
     .manifesto-section {
-        height: 200vh;
+        height: 320vh;
     }
-    .manifesto-content-box {
-        height: 280px;
+    .manifesto-line {
+        font-size: clamp(1.1rem, 5.4vw, 2.1rem);
+        column-gap: 0.24em;
     }
-    .manifesto-vision-line {
-        font-size: clamp(1.6rem, 6.5vw, 2.5rem);
+    .manifesto-quote {
+        margin-top: 2.2rem;
+    }
+    .quote-text {
+        font-size: clamp(0.95rem, 3.8vw, 1.2rem);
     }
 }
