@@ -156,16 +156,23 @@ export function initHero() {
         });
 
         gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)" });
-        tl.to('.hero', { scale: 0.42, clipPath: "inset(12vh calc(50vw - 44vh) 0vh calc(50vw - 44vh) round 0px)", opacity: 0.55, ease: "power2.inOut" }, 0);
+        gsap.set('#hero-bg-typography', { opacity: 0, y: 40, scale: 1.04 });
+
+        tl.to('.hero', { scale: 0.42, clipPath: "inset(12vh calc(50vw - 44vh) 0vh calc(50vw - 44vh) round 0px)", opacity: 0.45, ease: "power2.inOut" }, 0);
         tl.fromTo('#scroll-hint', { opacity: 1, pointerEvents: 'auto' }, { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power1.out' }, 0);
         tl.to('.unicorn-canvas', { scale: 1.19, ease: "power2.inOut" }, 0);
+        
+        // Scroll-driven gradual reveal of oversized background typography layer
+        tl.to('#hero-bg-typography', { opacity: 0.28, y: -20, scale: 1, ease: "power1.out" }, 0);
     });
 
     mm.add("(max-width: 600px)", () => {
         const tl = gsap.timeline({ scrollTrigger: { trigger: ".hero-track", start: "top top", end: () => "+=" + Math.round(window.innerHeight * 0.7), scrub: true } });
-        tl.to('.hero', { scale: 0.70, opacity: 0.55, ease: "power2.inOut" }, 0);
+        gsap.set('#hero-bg-typography', { opacity: 0, y: 30, scale: 1.03 });
+        tl.to('.hero', { scale: 0.70, opacity: 0.45, ease: "power2.inOut" }, 0);
         tl.fromTo('#scroll-hint', { opacity: 1, pointerEvents: 'auto' }, { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power1.out' }, 0);
         tl.to('.unicorn-canvas', { scale: 1.08, ease: "power2.inOut" }, 0);
+        tl.to('#hero-bg-typography', { opacity: 0.26, y: -15, scale: 1, ease: "power1.out" }, 0);
     });
 
     // ── Lottie Signature ──
