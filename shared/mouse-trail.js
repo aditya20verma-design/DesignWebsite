@@ -8,8 +8,9 @@
  */
 
 export function initMouseTrail() {
-    // Disable on touch / mobile
-    if (window.isTouchDevice || window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+    // Disable on touch / mobile or when user prefers reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion || window.isTouchDevice || window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
         return;
     }
 

@@ -48,7 +48,7 @@ html {
     /* Dark from first paint — the loader div provides all the orange.
        html/body being orange caused Safari's bands to lag orange 
        2-3s after the loader disappeared. */
-    background-color: #1d1d1d;
+    background-color: #141414;
     scrollbar-width: none;
     transition: none;
     /* Safari Fix 1: prevent rubber-band over-scroll revealing raw
@@ -64,7 +64,7 @@ html::-webkit-scrollbar {
 }
 
 body {
-    background-color: #1d1d1d; /* Dark from first paint — loader covers it */
+    background-color: #141414; /* Dark from first paint — loader covers it */
     color: var(--text-primary);
     font-family: var(--font);
     font-size: var(--text-body-size);
@@ -241,7 +241,7 @@ body {
     width: 100%;
     height: 100%;
     display: block;
-    background-color: var(--color-neutral-900); /* Deep dark #1d1d1d */
+    background-color: var(--color-neutral-900); /* Deep dark #141414 */
     -webkit-mask: url('sections/loader/assets/AV wordmark.svg') no-repeat center / contain;
     mask: url('sections/loader/assets/AV wordmark.svg') no-repeat center / contain;
     clip-path: inset(100% 0 0 0); /* starts fully clipped at the bottom */
@@ -865,9 +865,8 @@ nav.nav--hero .nav-link {
 
 /* ── Hero Track & Sticky Hero ───────────────────────────── */
 .hero-track {
-    /* 170vh = sticky (100vh) + exact animation range (70vh = 0.7×vh).
-       Sticky releases the instant animation ends — zero dead scroll zone. */
-    height: 170vh;
+    /* 380vh = unified master sticky runway for Hero collapse -> Video atmosphere -> Manifesto scrub */
+    height: 380vh;
     position: relative;
     z-index: 1;
 }
@@ -888,44 +887,36 @@ nav.nav--hero .nav-link {
     overflow: visible;
 }
 
-/* ── Oversized Editorial Background Typography Layer (Hero-to-Philosophy Transition) ── */
-.hero-bg-typography {
+/* ── Cinematic Video Background Layer (Hero Collapse Atmosphere) ── */
+.hero-video-wrap {
+    display: none !important;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 92vw;
-    max-width: 1400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 0.8rem;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
     z-index: 1;
+    overflow: hidden;
     pointer-events: none;
     opacity: 0;
-    will-change: transform, opacity;
+    will-change: opacity;
 }
 
-.hero-bg-typo-line {
-    font-family: var(--font-heading, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif);
-    font-size: clamp(1.6rem, 4.8vw, 4.8rem);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1.12;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.85);
-    white-space: nowrap;
-    margin: 0;
+.hero-video-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    pointer-events: none;
 }
 
-.hero-bg-typo-line .accent-orange {
-    color: #FF5509;
-    font-family: var(--font-accent, 'Brier', Georgia, serif);
-    font-weight: 400;
-    font-style: italic;
-    letter-spacing: 0em;
+.hero-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 25%, rgba(10, 10, 10, 0.65) 100%),
+                linear-gradient(to bottom, rgba(10, 10, 10, 0.4) 0%, transparent 20%, transparent 80%, rgba(10, 10, 10, 0.8) 100%);
+    pointer-events: none;
 }
 
 .hero {
@@ -1936,29 +1927,25 @@ nav.nav--hero .nav-link {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Apple-Level Editorial Typographic Manifesto Section
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Apple-Level Editorial Typographic Manifesto Stage (Overlayed on Video Background)
  * ───────────────────────────────────────────────────────────────────────────── */
-.manifesto-section {
-    position: relative;
-    width: 100%;
-    height: 350vh; /* Generous runway for scroll scrubbing choreography */
-    background-color: #1d1d1d; /* Matches #hero background seamlessly at entry */
-    color: #ffffff;
-    z-index: 4;
-    will-change: background-color;
-}
-
-.manifesto-sticky-wrapper {
-    position: sticky;
-    top: 0;
+.manifesto-stage {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100vh;
+    height: var(--app-height, 100dvh);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 7vw;
     box-sizing: border-box;
     overflow: hidden;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
 }
 
 .manifesto-container {
@@ -2046,8 +2033,8 @@ nav.nav--hero .nav-link {
 }
 
 @media (max-width: 680px) {
-    .manifesto-section {
-        height: 320vh;
+    .hero-track {
+        height: 350vh;
     }
     .manifesto-line {
         font-size: clamp(1.1rem, 5.4vw, 2.1rem);
@@ -2058,5 +2045,228 @@ nav.nav--hero .nav-link {
     }
     .quote-text {
         font-size: clamp(0.95rem, 3.8vw, 1.2rem);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * BMW S1000RR Headlight Interaction Assembly & High Beam System
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* Light System Container — Scaled down by 20% hero object positioned above manifesto */
+.bmw-light-system {
+    position: relative;
+    width: clamp(88px, 11.2vw, 168px); /* Reduced by 20% (~11.2vw wide desktop) */
+    aspect-ratio: 616 / 128;
+    margin-top: 0.8rem;
+    margin-bottom: clamp(2rem, 5vh, 3.8rem); /* Proportional breathing space above manifesto */
+    z-index: 2;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: opacity, transform;
+}
+
+.bmw-assembly {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Layer Alignment — Shared 616x128 ViewBox alignment guarantees ground-truth geometry */
+.bmw-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    will-change: opacity, filter;
+}
+
+/* Initial Dormant State Styling */
+.bmw-fairing {
+    opacity: 0.22;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
+}
+
+.bmw-drl {
+    opacity: 0.25; /* Dormant muted state */
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.1));
+}
+
+.bmw-drl path {
+    fill: #4A4A4A; /* Muted grey initially before ignition */
+    transition: fill 0.3s ease;
+}
+
+.bmw-projector {
+    opacity: 0; /* 0% initial intensity */
+    filter: brightness(1) drop-shadow(0 0 0px transparent);
+}
+
+/* Volumetric High Beams emitted directly from projector SVG focal points (Left: 24.5%, Right: 75.5%) */
+.beam-stream {
+    position: absolute;
+    top: 48%;
+    height: 220vh;
+    width: 90px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transform-origin: top center;
+    background: radial-gradient(ellipse at top, 
+        rgba(255, 255, 255, 1) 0%, 
+        rgba(255, 252, 245, 0.85) 20%, 
+        rgba(255, 240, 220, 0.35) 50%, 
+        transparent 85%);
+    filter: blur(12px);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+}
+
+.beam-left {
+    left: 24.5%;
+    transform: translate(-50%, 0) scaleX(0.1) scaleY(0);
+}
+
+.beam-right {
+    left: 75.5%;
+    transform: translate(-50%, 0) scaleX(0.1) scaleY(0);
+}
+
+/* Cinematic Atmospheric Light Bloom */
+.beam-bloom {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.2);
+    width: 120vw;
+    height: 120vw;
+    max-width: 1600px;
+    max-height: 1600px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 12;
+    opacity: 0;
+    background: radial-gradient(circle at center, 
+        rgba(255, 255, 255, 1) 0%, 
+        rgba(255, 250, 240, 0.9) 30%, 
+        rgba(255, 85, 9, 0.2) 60%, 
+        transparent 85%);
+    filter: blur(50px);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+}
+
+/* Global Fixed Viewport White Takeover Layer — Ensures 100% full screen wash without cuts */
+.white-takeover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    will-change: opacity;
+}
+
+/* Ensure manifesto container sits above stage background with relative hierarchy */
+.manifesto-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.manifesto-typography {
+    position: relative;
+    z-index: 3;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Phase 1 Scope Enhancements: Accessibility & Selective Press Feedback
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* 1. Clear Focus-Visible Outlines */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible,
+.work-facade-link:focus-visible,
+.cs-back-link:focus-visible {
+    outline: 2px solid #FF5509 !important;
+    outline-offset: 4px !important;
+    border-radius: 4px;
+}
+
+/* 2. Selective Immediate Press Feedback (Primary Controls & Cards Only) */
+.work-facade-link:active,
+.work-facade:active {
+    transform: scale(0.988) !important;
+    transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+.cta-button:active,
+.btn:active,
+.cs-back-link:active,
+.view-btn:active {
+    transform: scale(0.96) !important;
+    transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+/* 3. Global Prefers-Reduced-Motion Strategy */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    #mouse-trail-canvas,
+    #dotsCanvas,
+    .beam-stream,
+    #beam-bloom {
+        display: none !important;
+        opacity: 0 !important;
+    }
+
+    .signature-container,
+    #sig-lottie {
+        opacity: 1 !important;
+    }
+
+    #bmw-drl path {
+        fill: #FF5509 !important;
+    }
+
+    #bmw-drl {
+        opacity: 1 !important;
+        filter: drop-shadow(0 0 16px rgba(255, 85, 9, 0.8)) !important;
+    }
+
+    .manifesto-line,
+    .manifesto-char {
+        opacity: 1 !important;
+        transform: none !important;
+        color: #ffffff !important;
+    }
+
+    .manifesto-char[data-accent="true"] {
+        color: #FF5509 !important;
     }
 }

@@ -12,7 +12,7 @@
     box-sizing: border-box;
 }
 
-/* Background overlay: GPU hardware-accelerated opacity fade from white to #1d1d1d */
+/* Background overlay: GPU hardware-accelerated opacity fade from white to #141414 */
 #horiz-bg-overlay {
     position: absolute;
     inset: 0;

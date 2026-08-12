@@ -3,6 +3,8 @@
 // Includes: Lottie Signature, Hero Collapse (Lando Norris style), Subtitle, Preloader
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { HERO_CONFIG } from './hero.config.js';
+
 export function initHero() {
     // ── Preloader & Logo Logic ──
     const panel = document.getElementById('loader-panel');
@@ -129,59 +131,25 @@ export function initHero() {
         onLeaveBack: () => gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" })
     });
 
-    // ── Hero Scale & Signature Reveal ──
+    // ── Master Scroll-Driven Unified Hero & Manifesto Experience ──
     gsap.set('.unicorn-canvas', { transformOrigin: '58% 0%' });
     gsap.set('.hero', { transformOrigin: 'center center' });
-    const mm = gsap.matchMedia();
 
-    mm.add("(min-width: 601px)", () => {
-        let isLogoHidden = false;
-        if (navEl) navEl.classList.add('nav--hero');
-
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: ".hero-track",
-                start: "top top",
-                end: () => "+=" + Math.round(window.innerHeight * 0.7),
-                scrub: true,
-                onUpdate: (self) => {
-                    const p = self.progress;
-                    if (p > 0.05 && p < 0.95) {
-                        if (!isLogoHidden) { gsap.to('.av-shape', { clipPath: "inset(0% 0% 100% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" }); isLogoHidden = true; }
-                    } else {
-                        if (isLogoHidden) { gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut", overwrite: "auto" }); isLogoHidden = false; }
-                    }
-                }
-            }
+    // Video Lifecycle Handler
+    const bgVideo = document.getElementById('hero-video-bg');
+    if (bgVideo) {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { bgVideo.pause(); } else { bgVideo.play().catch(() => {}); }
         });
-
-        gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)" });
-        gsap.set('#hero-bg-typography', { opacity: 0, y: 40, scale: 1.04 });
-
-        tl.to('.hero', { scale: 0.42, clipPath: "inset(12vh calc(50vw - 44vh) 0vh calc(50vw - 44vh) round 0px)", opacity: 0.45, ease: "power2.inOut" }, 0);
-        tl.fromTo('#scroll-hint', { opacity: 1, pointerEvents: 'auto' }, { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power1.out' }, 0);
-        tl.to('.unicorn-canvas', { scale: 1.19, ease: "power2.inOut" }, 0);
-        
-        // Scroll-driven gradual reveal of oversized background typography layer
-        tl.to('#hero-bg-typography', { opacity: 0.28, y: -20, scale: 1, ease: "power1.out" }, 0);
-    });
-
-    mm.add("(max-width: 600px)", () => {
-        const tl = gsap.timeline({ scrollTrigger: { trigger: ".hero-track", start: "top top", end: () => "+=" + Math.round(window.innerHeight * 0.7), scrub: true } });
-        gsap.set('#hero-bg-typography', { opacity: 0, y: 30, scale: 1.03 });
-        tl.to('.hero', { scale: 0.70, opacity: 0.45, ease: "power2.inOut" }, 0);
-        tl.fromTo('#scroll-hint', { opacity: 1, pointerEvents: 'auto' }, { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power1.out' }, 0);
-        tl.to('.unicorn-canvas', { scale: 1.08, ease: "power2.inOut" }, 0);
-        tl.to('#hero-bg-typography', { opacity: 0.26, y: -15, scale: 1, ease: "power1.out" }, 0);
-    });
+    }
 
     // ── Lottie Signature ──
     (function initLottieSignature() {
         const container = document.getElementById('sig-lottie');
         if (!container || typeof lottie === 'undefined') return;
-        const SIG_CONFIG = { file: 'sections/hero/assets/AV sign Lotie v4.json', strokeColor: '#FF5509', revealDelay: 0.46, tailFrames: 50, tailPx: 150 };
+        const SIG_CONFIG = HERO_CONFIG.signature;
         document.documentElement.style.setProperty('--sig-stroke-color', SIG_CONFIG.strokeColor);
-        const anim = lottie.loadAnimation({ container, renderer: 'svg', loop: false, autoplay: false, path: SIG_CONFIG.file });
+        const anim = lottie.loadAnimation({ container, renderer: 'svg', loop: SIG_CONFIG.loop, autoplay: false, path: SIG_CONFIG.file });
         
         anim.addEventListener('DOMLoaded', () => {
             const totalFrames = anim.totalFrames, tailFrames = SIG_CONFIG.tailFrames, mainFrames = totalFrames - 1 - tailFrames, tailPx = SIG_CONFIG.tailPx;
@@ -409,10 +377,12 @@ export function initHero() {
     }());
 
     // ── Apple-Level Editorial Typographic Manifesto Scrub Engine ──
-    (function initManifestoScroll() {
+    // ── Master Scroll-Driven Unified Hero & Manifesto Experience ──
+    (function initMasterHeroScroll() {
         const manifesto = document.getElementById('hero-manifesto');
         const typography = document.getElementById('manifesto-typography');
         const quote = document.getElementById('manifesto-quote');
+        const navEl = document.querySelector('.nav');
         if (!manifesto || !typography) return;
 
         // Respect prefers-reduced-motion
@@ -427,6 +397,12 @@ export function initHero() {
                 quote.style.opacity = '1';
                 quote.style.transform = 'translateY(0)';
             }
+            gsap.set('#hero-manifesto', { opacity: 1, y: 0 });
+            gsap.set('.bmw-light-system', { opacity: 1, y: 0, scale: 1 });
+            gsap.set('#bmw-drl path', { fill: '#FF5509' });
+            gsap.set('#bmw-drl', { opacity: 1, filter: 'drop-shadow(0 0 16px rgba(255, 85, 9, 0.8))' });
+            gsap.set('.beam-stream, #beam-bloom, #white-takeover', { display: 'none', opacity: 0 });
+            gsap.set('.manifesto-line', { opacity: 1, y: 0 });
             return;
         }
 
@@ -468,41 +444,80 @@ export function initHero() {
             allLineChars.push(lineChars);
         });
 
-        // 2. Build GSAP ScrollTrigger timeline
-        const tl = gsap.timeline({
+        // 2. Build Single Master GSAP ScrollTrigger Timeline on .hero-track
+        let isLogoHidden = false;
+        if (navEl) navEl.classList.add('nav--hero');
+
+        const masterTl = gsap.timeline({
             scrollTrigger: {
-                trigger: manifesto,
+                trigger: '.hero-track',
                 start: 'top top',
                 end: 'bottom bottom',
-                scrub: 0.5
+                scrub: 0.5,
+                onUpdate: (self) => {
+                    const p = self.progress;
+                    // AV logo clip-path hiding during scroll
+                    if (p > 0.03 && p < 0.88) {
+                        if (!isLogoHidden) { gsap.to('.av-shape', { clipPath: "inset(0% 0% 100% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" }); isLogoHidden = true; }
+                    } else {
+                        if (isLogoHidden) { gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut", overwrite: "auto" }); isLogoHidden = false; }
+                    }
+                }
             }
         });
 
-        // Apple Pro Scroll-Driven Background Color Transition:
-        // Starts at #1D1D1D (100% exact match with #hero section — zero boundary seam!)
-        // Smoothly deepens into #0D0D0D over the first 25% of scroll runway.
-        tl.to(manifesto, {
-            backgroundColor: '#0d0d0d',
-            duration: 0.25,
-            ease: 'none'
-        }, 0);
+        // Initial positions for Hero Portrait/AV Sign & Manifesto stage
+        gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)", opacity: 1, y: 0, scale: 1 });
+        gsap.set('.signature-container', { opacity: 1, y: 0, scale: 1 });
+        gsap.set('#hero-video-wrap', { opacity: 0 });
+        gsap.set('#hero-manifesto', { opacity: 1, y: '105vh' });
+        gsap.set('.manifesto-line', { y: 50, opacity: 0 });
 
-        // Line timing windows across total timeline length (0.0 to 1.0):
-        // 01: 0.00 -> 0.24
-        // 02: 0.20 -> 0.44 (starts when Line 1 is ~85% revealed)
-        // 03: 0.40 -> 0.54 (starts when Line 2 is ~88% revealed)
-        // 04: 0.56 -> 0.72 (receives slightly more breathing room for conclusion)
-        // Quote: 0.82 -> 0.98 (300-500ms pause, then intimate quote reveal)
+        // BMW Assembly initial dormant state (Muted grey DRL, dormant dark fairing)
+        gsap.set('.bmw-light-system', { opacity: 1, y: 0 });
+        gsap.set('#bmw-fairing', { opacity: 0.22, filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8))' });
+        gsap.set('#bmw-drl', { opacity: 0.25, filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.1))' });
+        gsap.set('#bmw-drl path', { fill: '#4A4A4A' });
+        gsap.set('#bmw-projector', { opacity: 0, filter: 'brightness(1) drop-shadow(0 0 0px transparent)' });
+        gsap.set('.beam-stream', { opacity: 0, scaleX: 0.1, scaleY: 0 });
+        gsap.set('#beam-bloom', { opacity: 0, scale: 0.2 });
+        gsap.set('#white-takeover', { opacity: 0, pointerEvents: 'none' });
+
+        const isVideoEnabled = HERO_CONFIG.video && HERO_CONFIG.video.enabled !== false;
+        const maxVideoOpacity = isVideoEnabled ? (HERO_CONFIG.video.maxOpacity || 0.85) : 0;
+
+        // ── Phase 1: Unicorn Studio Canvas Scale Down (0.00 -> 0.22) ──
+        masterTl.to('.hero', { scale: 0.42, clipPath: "inset(12vh calc(50vw - 44vh) 0vh calc(50vw - 44vh) round 0px)", opacity: 1, ease: "power2.inOut", duration: 0.22 }, 0);
+        masterTl.fromTo('#scroll-hint', { opacity: 1, pointerEvents: 'auto' }, { opacity: 0, pointerEvents: 'none', duration: 0.12, ease: 'power1.out' }, 0);
+        masterTl.to('.unicorn-canvas', { scale: 1.19, ease: "power2.inOut", duration: 0.22 }, 0);
+        masterTl.to('#hero-video-wrap', { opacity: maxVideoOpacity, ease: "power1.inOut", duration: 0.22 }, 0);
+
+        // ── Phase 2: Scaled Hero Card + AV Signature Scroll UP & Manifesto + BMW Light Scroll UP (0.22 -> 0.44) ──
+        masterTl.to('.hero', { y: '-105vh', pointerEvents: 'none', ease: "power2.inOut", duration: 0.22 }, 0.22);
+        masterTl.to('.signature-container', { y: '-105vh', pointerEvents: 'none', ease: "power2.inOut", duration: 0.22 }, 0.22);
+        masterTl.to('#hero-manifesto', { y: '0vh', pointerEvents: 'auto', ease: "power2.inOut", duration: 0.22 }, 0.22);
+        masterTl.to('#bmw-fairing', { opacity: 0.45, duration: 0.15, ease: "power1.out" }, 0.30);
 
         const lineWindows = [
-            { start: 0.00, duration: 0.24 },
-            { start: 0.20, duration: 0.24 },
-            { start: 0.40, duration: 0.14 },
-            { start: 0.56, duration: 0.16 }
+            { start: 0.44, duration: 0.12 }, // Line 1: BLENDING CREATIVITY AND CRAFT
+            { start: 0.52, duration: 0.12 }, // Line 2: TO SHAPE SYSTEMS & DIGITAL
+            { start: 0.58, duration: 0.08 }, // Line 3: EXPERIENCES
+            { start: 0.63, duration: 0.08 }  // Line 4: THAT RESONATE.
         ];
 
+        // Animate each manifesto line upward as scroll progresses
+        lines.forEach((line, idx) => {
+            const win = lineWindows[idx] || { start: 0.68, duration: 0.10 };
+            masterTl.to(line, {
+                y: 0,
+                opacity: 1,
+                duration: win.duration * 0.8,
+                ease: 'power2.out'
+            }, win.start);
+        });
+
         allLineChars.forEach((chars, lineIdx) => {
-            const win = lineWindows[lineIdx] || { start: 0.60, duration: 0.15 };
+            const win = lineWindows[lineIdx] || { start: 0.68, duration: 0.10 };
             const charCount = chars.length;
             if (!charCount) return;
 
@@ -512,55 +527,152 @@ export function initHero() {
                 const charStart = win.start + (cIdx * charStep);
                 const isAccent = char.dataset.accent === 'true';
 
-                // Phase 1: Precision Orange Reveal Edge Sweep + 1-2px Horizontal Settle
-                tl.to(char, {
+                // Precision Orange Reveal Edge Sweep
+                masterTl.to(char, {
                     color: '#FF5509',
-                    textShadow: '0 0 14px rgba(255, 85, 9, 0.85)',
-                    x: 0,
+                    textShadow: '0 0 18px rgba(255, 85, 9, 0.95), 0 4px 30px rgba(0, 0, 0, 0.9)',
                     opacity: 1,
-                    duration: 0.06,
+                    duration: 0.02,
                     ease: 'none'
                 }, charStart);
 
-                // Phase 2: Settle into final resolved color (white or orange accent)
-                tl.to(char, {
+                // Settle into final resolved color (white or orange accent)
+                masterTl.to(char, {
                     color: isAccent ? '#FF5509' : '#ffffff',
-                    textShadow: isAccent ? '0 0 8px rgba(255, 85, 9, 0.35)' : 'none',
-                    duration: 0.08,
+                    textShadow: isAccent ? '0 0 12px rgba(255, 85, 9, 0.45), 0 4px 30px rgba(0, 0, 0, 0.9)' : '0 4px 30px rgba(0, 0, 0, 0.9)',
+                    duration: 0.03,
                     ease: 'power1.out'
-                }, charStart + 0.05);
+                }, charStart + 0.02);
             });
         });
 
-        // Final completion cue on period "." of "RESONATE."
+        // ── Phase 4: DRL Ignition Sequence (Pure White Flash -> Brand Orange #FF5509) ──
+        // 1. Initial Scroll Wake-Up: Brief Pure White DRL flash (0.45 -> 0.49)
+        masterTl.to('#bmw-drl path', { fill: '#ffffff', duration: 0.04, ease: 'sine.out' }, 0.45);
+        masterTl.to('#bmw-drl', { 
+            opacity: 1.0, 
+            filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 35px rgba(255, 255, 255, 0.6))', 
+            duration: 0.04, 
+            ease: 'sine.out' 
+        }, 0.45);
+
+        // 2. Fast & Smooth Shift: Pure White -> Brand Orange (#FF5509) (0.49 -> 0.54)
+        masterTl.to('#bmw-drl path', { fill: '#FF5509', duration: 0.05, ease: 'sine.inOut' }, 0.49);
+        masterTl.to('#bmw-drl', { 
+            filter: 'drop-shadow(0 0 24px rgba(255, 85, 9, 1)) drop-shadow(0 0 45px rgba(255, 85, 9, 0.9))', 
+            duration: 0.05, 
+            ease: 'sine.inOut' 
+        }, 0.49);
+
+        // Period completion cue on RESONATE.
         const lastLineChars = allLineChars[3];
         if (lastLineChars && lastLineChars.length) {
             const periodChar = lastLineChars[lastLineChars.length - 1];
             if (periodChar && periodChar.textContent === '.') {
-                tl.to(periodChar, {
+                masterTl.to(periodChar, {
                     color: '#FF5509',
-                    textShadow: '0 0 16px rgba(255, 85, 9, 0.9)',
-                    scale: 1.15,
-                    duration: 0.04,
+                    textShadow: '0 0 22px rgba(255, 85, 9, 1), 0 4px 30px rgba(0, 0, 0, 0.9)',
+                    scale: 1.18,
+                    duration: 0.02,
                     ease: 'power2.out'
-                }, 0.72);
-                tl.to(periodChar, {
-                    scale: 1,
-                    textShadow: '0 0 8px rgba(255, 85, 9, 0.4)',
-                    duration: 0.05,
-                    ease: 'power2.in'
                 }, 0.76);
+                masterTl.to(periodChar, {
+                    scale: 1,
+                    textShadow: '0 0 10px rgba(255, 85, 9, 0.5), 0 4px 30px rgba(0, 0, 0, 0.9)',
+                    duration: 0.03,
+                    ease: 'power2.in'
+                }, 0.78);
             }
         }
 
-        // Quote reveal (after ~400ms pause equivalent)
+        // ── Phase 5: FINAL MANIFESTO HOLD & ANTICIPATION MOMENT (0.78 -> 0.85) ──
         if (quote) {
-            tl.to(quote, {
+            gsap.set(quote, { y: 40, opacity: 0 });
+            masterTl.to(quote, {
                 opacity: 1,
                 y: 0,
-                duration: 0.18,
+                duration: 0.06,
                 ease: 'power2.out'
-            }, 0.82);
+            }, 0.78);
         }
+
+        // Projector subtle awakening during hold moment (anticipation tension before firing)
+        masterTl.to('#bmw-projector', {
+            opacity: 0.35,
+            filter: 'brightness(1.3) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))',
+            duration: 0.07,
+            ease: 'power1.inOut'
+        }, 0.78);
+
+        // ── Phase 6: PROJECTOR IGNITION (0.85 -> 0.89) ──
+        masterTl.to('#bmw-projector', {
+            opacity: 1.0,
+            filter: 'brightness(2.5) drop-shadow(0 0 25px rgba(255, 255, 255, 1))',
+            duration: 0.04,
+            ease: 'power2.out'
+        }, 0.85);
+
+        // ── Phase 7: HIGH BEAM EXPANSION & ATMOSPHERIC BLOOM (0.89 -> 0.95) ──
+        masterTl.to('#beam-left', {
+            opacity: 1.0,
+            scaleX: 14.0,
+            scaleY: 5.0,
+            duration: 0.07,
+            ease: 'power2.inOut'
+        }, 0.89);
+
+        masterTl.to('#beam-right', {
+            opacity: 1.0,
+            scaleX: 14.0,
+            scaleY: 5.0,
+            duration: 0.07,
+            ease: 'power2.inOut'
+        }, 0.89);
+
+        masterTl.to('#beam-bloom', {
+            opacity: 1.0,
+            scale: 6.0,
+            duration: 0.07,
+            ease: 'power2.inOut'
+        }, 0.89);
+
+        // Manifesto typography and light assembly dissolve seamlessly into the white beam wash
+        masterTl.to('#manifesto-typography', {
+            opacity: 0,
+            y: -15,
+            duration: 0.05,
+            ease: 'power1.in'
+        }, 0.90);
+
+        masterTl.to('.bmw-light-system', {
+            opacity: 0,
+            scale: 1.1,
+            duration: 0.05,
+            ease: 'power1.in'
+        }, 0.90);
+
+        masterTl.to(quote, {
+            opacity: 0,
+            y: -10,
+            duration: 0.04,
+            ease: 'power1.in'
+        }, 0.90);
+
+        // ── Phase 8: PURE VIEWPORT WHITE WASH & IN-PLACE SEAMLESS HANDOFF TO WORK (0.92 -> 1.00) ──
+        masterTl.to('#white-takeover', {
+            opacity: 1.0,
+            duration: 0.04,
+            ease: 'power2.in'
+        }, 0.92);
+
+        // Pre-position #work section directly inside the viewport behind the 100% white takeover layer
+        masterTl.fromTo('#work', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.05, ease: 'power2.out' }, 0.93);
+
+        // Dissolve white takeover overlay to reveal Selected Work ALREADY in-place at the exact manifesto position
+        masterTl.to('#white-takeover', {
+            opacity: 0,
+            duration: 0.05,
+            ease: 'power1.out'
+        }, 0.95);
     }());
 }

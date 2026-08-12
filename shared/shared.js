@@ -226,18 +226,21 @@ export function initShared() {
     }
 
     // ── Magnetic UI Elements ──
-    document.querySelectorAll('.magnetic').forEach(el => {
-        el.addEventListener('mousemove', (e) => {
-            const bounds = el.getBoundingClientRect();
-            const x = e.clientX - bounds.left - bounds.width / 2;
-            const y = e.clientY - bounds.top - bounds.height / 2;
-            const strength = el.dataset.strength || 20;
-            gsap.to(el, { x: (x / bounds.width) * strength, y: (y / bounds.height) * strength, duration: 0.2, ease: "power2.out" });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!prefersReducedMotion) {
+        document.querySelectorAll('.magnetic').forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const bounds = el.getBoundingClientRect();
+                const x = e.clientX - bounds.left - bounds.width / 2;
+                const y = e.clientY - bounds.top - bounds.height / 2;
+                const strength = el.dataset.strength || 20;
+                gsap.to(el, { x: (x / bounds.width) * strength, y: (y / bounds.height) * strength, duration: 0.2, ease: "power2.out" });
+            });
+            el.addEventListener('mouseleave', () => {
+                gsap.to(el, { x: 0, y: 0, duration: 0.4, ease: "power2.out" });
+            });
         });
-        el.addEventListener('mouseleave', () => {
-            gsap.to(el, { x: 0, y: 0, duration: 0.4, ease: "power2.out" });
-        });
-    });
+    }
 
     // ── Navigation Smooth Scrolling ──
     document.querySelectorAll('nav a[href^="#"]').forEach(link => {

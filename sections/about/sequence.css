@@ -55,11 +55,11 @@
     object-fit: cover;
 }
 
-/* Layer 2: GPU Background Overlay for smooth transition to dark #1d1d1d */
+/* Layer 2: GPU Background Overlay for smooth transition to dark #141414 */
 #horiz-bg-overlay {
     position: absolute;
     inset: 0;
-    background-color: var(--footer-bg, #1d1d1d);
+    background-color: var(--footer-bg, #141414);
     opacity: 0;
     pointer-events: none;
     z-index: 3;

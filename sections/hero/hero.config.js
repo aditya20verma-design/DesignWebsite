@@ -24,19 +24,30 @@ export const HERO_CONFIG = {
         fps: 60,
     },
 
+    // ── Video Background ──────────────────────────────────────────────────────
+    video: {
+        enabled: false,
+        file: 'sections/hero/assets/stage2_background_video-desktop.mp4',
+        maxOpacity: 0.85,
+    },
+
     // ── Assets ─────────────────────────────────────────────────────────────────
     assets: {
-        signature: 'sections/hero/assets/av-signature.json',  // ← swap file to replace signature
+        signature: 'sections/hero/assets/AV sign Lotie v4.json',
+        video:     'sections/hero/assets/stage2_background_video-desktop.mp4',
     },
 
     // ── Signature (Lottie draw-on animation) ──────────────────────────────────
     // Change these without touching any animation or JS code.
     signature: {
-        file:          'sections/hero/assets/av-signature.json', // ← swap to replace signature
+        file:          'sections/hero/assets/AV sign Lotie v4.json', // ← swap to replace signature
         strokeColor:   '#FF5509',   // ← change to retheme stroke colour (any hex)
         strokeWidth:   null,        // ← set e.g. 3 to override width, null = use Lottie default
         speedMultiplier: 1.0,       // ← 1.0 = normal, 0.5 = slower, 2.0 = faster draw
         loop:          false,       // ← true = signature loops after drawing
+        revealDelay:   0.46,
+        tailFrames:    50,
+        tailPx:        150,
     },
 
     // ── Animation Settings ────────────────────────────────────────────────────

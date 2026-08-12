@@ -154,6 +154,31 @@ export function initWork() {
         renderSelectedWorks(workInner);
     }
 
+    // ── Case-Study Navigation Position Preservation ──
+    document.querySelectorAll('.work-facade-link, .work-facade').forEach((cardLink) => {
+        cardLink.addEventListener('click', () => {
+            const cardEl = cardLink.closest('.work-facade') || cardLink;
+            if (cardEl && cardEl.id) {
+                sessionStorage.setItem('last_clicked_project_card', cardEl.id);
+            }
+        });
+    });
+
+    const savedCardId = sessionStorage.getItem('last_clicked_project_card');
+    if (savedCardId) {
+        sessionStorage.removeItem('last_clicked_project_card');
+        const targetCard = document.getElementById(savedCardId);
+        if (targetCard) {
+            setTimeout(() => {
+                if (window.__lenisInstance) {
+                    window.__lenisInstance.scrollTo(targetCard, { immediate: false, duration: 0.8, offset: -90 });
+                } else {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        }
+    }
+
     // ── 1. Hero Background Scroll Scrub ──
     const heroBg = document.getElementById('hero-bg-text');
     if (heroBg && typeof gsap !== 'undefined') {
