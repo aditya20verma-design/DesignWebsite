@@ -1,6 +1,6 @@
 {
   "name": "aditya-verma-portfolio",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Aditya Verma — Product Design Portfolio",
   "private": true,
@@ -9,7 +9,8 @@
     "format:check": "prettier --check \"**/*.{html,css,js}\" --ignore-path .prettierignore",
     "lint": "eslint script.js",
     "lint:fix": "eslint script.js --fix",
-    "serve": "python3 -m http.server 8080"
+    "serve": "python3 -m http.server 8080",
+    "design:check": "python3 tools/generate-design-guide.py --check"
   },
   "dependencies": {
     "@studio-freight/lenis": "1.0.42",
