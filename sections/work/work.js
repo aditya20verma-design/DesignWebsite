@@ -86,6 +86,7 @@ function renderFeaturedStage(featured) {
     const panelsMarkup = featured.map((p, i) => renderFeaturedPanel(p, i)).join('');
 
     return `
+        <div class="fw-pin-outer" id="fw-pin-outer">
         <div class="fw-stage-wrap" id="fw-stage-wrap">
             <div class="fw-heading-bg" id="fw-heading-bg">
                 <h2 class="fw-brier-title">
@@ -98,6 +99,7 @@ function renderFeaturedStage(featured) {
                 <div class="fw-fade-bottom"></div>
                 ${panelsMarkup}
             </div>
+        </div>
         </div>
     `;
 }
@@ -386,7 +388,14 @@ function initScrollProgression() {
             start: 'top top',
             end: '+=280%',
             pin: true,
-            pinType: 'fixed',     // Force fixed to avoid transform fallback issues
+            // ScrollTrigger's auto pin-spacing computed 0 reserved space for this
+            // element (a quirk of its container context), which let the More Work
+            // grid scroll up into view while Featured Work was still pinned and
+            // mid-animation. Instead we manage the reserved scroll distance
+            // ourselves: pinSpacing:false + a fixed-height `.fw-pin-outer` wrapper
+            // (see work.css) that reserves 100vh (stage) + 280vh (pin) = 380vh, so
+            // More Work only reaches the viewport after Featured has scrolled away.
+            pinSpacing: false,
             anticipatePin: 1,
             scrub: 0.5,           // Responsive scrub
             onUpdate: (self) => {
@@ -434,6 +443,10 @@ function initScrollProgression() {
     tl.to({}, { duration: 0.30 }, 0.70); // empty tween to extend timeline to 1.0
 
     scrollTriggerInstance = tl.scrollTrigger;
+
+    // Activate the reserved scroll height only now that the pin is live.
+    const pinOuter = document.getElementById('fw-pin-outer');
+    if (pinOuter) pinOuter.classList.add('is-pinned');
 }
 
 
@@ -552,6 +565,8 @@ function initResizeHandler() {
             } else if (scrollTriggerInstance) {
                 scrollTriggerInstance.kill();
                 scrollTriggerInstance = null;
+                const pinOuter = document.getElementById('fw-pin-outer');
+                if (pinOuter) pinOuter.classList.remove('is-pinned');
                 panels.forEach(panel => {
                     panel.style.flex = '';
                 });
