@@ -99,7 +99,19 @@ Because `main` triggers production deployment via GitHub Actions, the release pu
 Confirm that production is running the newly released version.
 
 **STEP 14 — FINAL RESPONSE**
-Report clearly:
+A `PUSH LIVE` operation is only "SUCCESSFUL" when ALL of the following are complete:
+- version created
+- changelog updated
+- release commit created
+- tag created
+- tag pushed
+- GitHub Release created
+- deployment completed
+- production verified
+
+Report clearly based on the outcome:
+
+If ALL steps succeeded:
 *   RELEASED SUCCESSFULLY
 *   Version: vX.Y.Z
 *   Previous version: vA.B.C
@@ -107,6 +119,17 @@ Report clearly:
 *   GitHub Release: Created
 *   Production: Deployed / Verified
 *   Short summary of what changed.
+
+If GitHub Release creation fails (e.g. no CLI):
+*   Report: "RELEASE INCOMPLETE — Git tag exists, but GitHub Release is pending."
+
+If deployment cannot be verified:
+*   Report: "DEPLOYMENT UNVERIFIED." (Never claim production is live merely because git push triggered GitHub Actions).
+
+If ANY step fails, the final status MUST be:
+*   "PUSH LIVE INCOMPLETE"
+
+**AI MUST NOT say "RELEASED SUCCESSFULLY" unless every single required stage is actually complete and verified.**
 
 ---
 
