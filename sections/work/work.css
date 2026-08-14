@@ -32,6 +32,18 @@
    FEATURED WORK — CINEMATIC STORY STRIP WITH CENTRED BRIER HEADING
    ══════════════════════════════════════════════════════════════ */
 
+/* Reserves the scroll distance for the pinned featured stage. Height is applied
+   only while the pin is active (`.is-pinned`, toggled from work.js) so mobile /
+   reduced-motion — where there is no pin — collapse to natural height.
+   380vh = 100vh stage + 280vh pin travel (ScrollTrigger end: '+=280%'). */
+.fw-pin-outer {
+    position: relative;
+    width: 100%;
+}
+.fw-pin-outer.is-pinned {
+    height: 380vh;
+}
+
 .fw-stage-wrap {
     position: relative;
     width: 100%;
