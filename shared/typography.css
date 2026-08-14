@@ -35,20 +35,18 @@
 /* ── Font Stacks ───────────────────────────────────────────── */
 :root {
     /* Raw stacks — prefer semantic aliases below */
-    --font-sf:       -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-                     "Helvetica Neue", Arial, sans-serif;
-    --font-sf-text:  -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                     "Helvetica Neue", Arial, sans-serif;
-    --font-sf-mono:  ui-monospace, "SF Mono", "Menlo", "Courier New", monospace;
-    --font-brier:    'Brier', Georgia, serif;
+    --font-family-primary:    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                              "Helvetica Neue", Arial, sans-serif;
+    --font-family-mono:       ui-monospace, "SF Mono", "Menlo", "Courier New", monospace;
+    --font-family-editorial:  'Brier', Georgia, serif;
 
     /* ── Semantic Aliases (always use these) ───────────── */
-    --font-heading:  var(--font-sf);      /* ALL headings h1–h6 — SF Pro */
-    --font-body:     var(--font-sf-text); /* Paragraphs, descriptions */
-    --font-ui:       var(--font-sf);      /* Nav, labels, buttons, meta */
-    --font-mono:     var(--font-sf-mono); /* Dates, timestamps, code */
-    --font-accent:   var(--font-brier);   /* Brier decoration: .font-accent spans only */
-    --font:          var(--font-body);    /* <body> default */
+    --font-heading:  var(--font-family-primary);  /* ALL headings h1–h6 */
+    --font-body:     var(--font-family-primary);  /* Paragraphs, descriptions */
+    --font-ui:       var(--font-family-primary);  /* Nav, labels, buttons, meta */
+    --font-mono:     var(--font-family-mono);     /* Dates, timestamps, code */
+    --font-accent:   var(--font-family-editorial);/* Brier decoration: .font-accent spans only */
+    --font:          var(--font-body);            /* <body> default */
 
 
     /* ── Type Scale ────────────────────────────────────────

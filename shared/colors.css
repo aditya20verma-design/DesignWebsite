@@ -49,9 +49,9 @@
     --color-neutral-50:   #f1f0ec;   /* lightest surface */
 
     /* ── Brand / Accent ── */
-    --color-orange-600:   #FF5509;   /* Primary brand — used for CTAs, progress, icons */
-    --color-orange-500:   #ff642f;   /* Hover / warmer variant */
-    --color-orange-400:   #ff7a50;   /* Glow / soft tint */
+    --color-primary-600:  #FF5509;   /* Primary brand — used for CTAs, progress, icons */
+    --color-primary-500:  #ff642f;   /* Hover / warmer variant */
+    --color-primary-400:  #ff7a50;   /* Glow / soft tint */
 
     /* ── Alpha / Overlay ── */
     /* Whites — for borders and overlays on dark backgrounds */
@@ -82,11 +82,11 @@
     --color-dark-a60:     rgba(111, 111, 111, 0.60);
 
     /* Accent tints — for glows and shadow bloom */
-    --color-orange-a20:   rgba(255, 85, 9, 0.20);
-    --color-orange-a50:   rgba(255, 85, 9, 0.50);
-    --color-orange-a65:   rgba(255, 85, 9, 0.65);
-    --color-orange-a90:   rgba(255, 85, 9, 0.90);
-    --color-orange-a95:   rgba(255, 85, 9, 0.95);
+    --color-primary-a20:  rgba(255, 85, 9, 0.20);
+    --color-primary-a50:  rgba(255, 85, 9, 0.50);
+    --color-primary-a65:  rgba(255, 85, 9, 0.65);
+    --color-primary-a90:  rgba(255, 85, 9, 0.90);
+    --color-primary-a95:  rgba(255, 85, 9, 0.95);
 
 
 /* ──────────────────────────────────────────────────────────
@@ -117,10 +117,10 @@
     --border-on-light:  var(--color-dark-a20);     /* Borders when page is light */
 
     /* ── Accent / Brand ── */
-    --accent:           var(--color-orange-600);   /* Primary accent — buttons, links, progress */
-    --accent-hover:     var(--color-orange-500);   /* Hover state */
-    --accent-glow:      var(--color-orange-a65);   /* Drop-shadow / bloom behind accent elements */
-    --accent-subtle:    var(--color-orange-a20);   /* Tinted backgrounds */
+    --accent:           var(--color-primary-600);   /* Primary accent — buttons, links, progress */
+    --accent-hover:     var(--color-primary-500);   /* Hover state */
+    --accent-glow:      var(--color-primary-a65);   /* Drop-shadow / bloom behind accent elements */
+    --accent-subtle:    var(--color-primary-a20);   /* Tinted backgrounds */
 
     /* ── Interactive States ── */
     --interactive-hover-border: var(--color-white-a50);    /* Pill / btn hover border */
@@ -156,11 +156,15 @@
     --circuit-dot-accent:   var(--accent);             /* Orange dot in label */
 
     /* ── Project Cards ── */
+    --card-bg:              var(--bg-elevated);
+    --card-border:          var(--border-default);
+    --card-radius:          var(--radius-md);
     --project-divider:      var(--color-white-a05);    /* Section border-bottom */
     --project-bg-text:      transparent;               /* Ghost watermark text fill */
     --project-bg-stroke:    var(--color-white-a05);    /* Ghost watermark stroke */
 
     /* ── Buttons / Pills ── */
+    --btn-bg:               transparent;
     --btn-border:           var(--interactive-default-border);
     --btn-border-hover:     var(--interactive-hover-border);
     --btn-text:             var(--text-primary);

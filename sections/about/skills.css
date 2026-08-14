@@ -38,7 +38,7 @@
     line-height: var(--text-h2-lh);
     font-weight: var(--text-h2-weight);
     letter-spacing: -0.02em;
-    color: #1a1a1a;
+    color: var(--text-inverted);
     max-width: 600px;
 }
 
@@ -70,7 +70,7 @@
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #1a1a1a;
+    color: var(--text-inverted);
     padding-bottom: 0.75rem;
     border-bottom: 1px solid rgba(26, 26, 26, 0.12);
 }
@@ -96,7 +96,7 @@
     font-family: var(--font-ui);
     font-size: var(--text-body-sm-size);
     font-weight: 400;
-    color: #1a1a1a;
+    color: var(--text-inverted);
     letter-spacing: 0.01em;
     white-space: nowrap;
 
@@ -146,7 +146,7 @@
 }
 
 .skills__dot--filled {
-    background: #1a1a1a;
+    background: var(--bg-base);
 }
 
 .skills__tag:hover .skills__dot--filled {

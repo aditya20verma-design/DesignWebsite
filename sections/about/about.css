@@ -17,7 +17,7 @@
 
 /* ── Content Container ───────────────────────────────────────────────────── */
 #about-me {
-    color: #111111;
+    color: var(--text-inverted);
     padding: 0 var(--page-margin-x, 6vw) 8rem;
     position: relative;
     z-index: 10;
@@ -68,18 +68,18 @@
 }
 
 .about-me__identity-line1 {
-    font-family: var(--font-heading, -apple-system, sans-serif);
+    font-family: var(--font-heading);
     font-size: clamp(2.4rem, 5.5vw, 5rem);
     font-weight: 600;
     letter-spacing: -0.04em;
     line-height: 1.0;
     text-transform: uppercase;
-    color: #111111;
+    color: var(--text-inverted);
     margin: 0;
 }
 
 .about-me__identity-line2 {
-    font-family: var(--font-heading, -apple-system, sans-serif);
+    font-family: var(--font-heading);
     font-size: clamp(1.8rem, 4vw, 3.6rem);
     font-weight: 500;
     letter-spacing: -0.035em;
@@ -90,7 +90,7 @@
 }
 
 .about-me__identity-line2 .about-me__arrow {
-    color: var(--color-orange-600, #FF5509);
+    color: var(--accent);
     font-style: normal;
 }
 
@@ -103,7 +103,7 @@
 }
 
 .about-me__section-label {
-    font-family: var(--font-ui, -apple-system, sans-serif);
+    font-family: var(--font-ui);
     font-size: 0.68rem;
     font-weight: 500;
     letter-spacing: 0.22em;
@@ -183,7 +183,7 @@
 
 /* ── Column 1: Position ──────────────────────────────────────────────────── */
 .about-me__pos {
-    font-family: var(--font-ui, -apple-system, sans-serif);
+    font-family: var(--font-ui);
     font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -193,7 +193,7 @@
 }
 
 .about-me__row--p1 .about-me__pos {
-    color: var(--color-orange-600, #FF5509);
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -226,11 +226,11 @@
 }
 
 .about-me__company-name {
-    font-family: var(--font-heading, -apple-system, sans-serif);
+    font-family: var(--font-heading);
     font-size: clamp(0.9rem, 1.4vw, 1rem);
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: #111111;
+    color: var(--text-inverted);
     line-height: 1.2;
 }
 
@@ -240,7 +240,7 @@
 }
 
 .about-me__role {
-    font-family: var(--font-body, -apple-system, sans-serif);
+    font-family: var(--font-body);
     font-size: clamp(0.72rem, 1.1vw, 0.8rem);
     font-weight: 400;
     letter-spacing: 0.01em;
@@ -250,7 +250,7 @@
 
 /* ── Column 3: Duration (right aligned) ─────────────────────────────────── */
 .about-me__duration {
-    font-family: var(--font-ui, -apple-system, sans-serif);
+    font-family: var(--font-ui);
     font-size: 0.72rem;
     font-weight: 400;
     color: rgba(17, 17, 17, 0.4);
@@ -276,7 +276,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--color-orange-600, #FF5509);
+    background: var(--accent);
     flex-shrink: 0;
     animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -287,12 +287,12 @@
 }
 
 .about-me__live-text {
-    font-family: var(--font-ui, -apple-system, sans-serif);
+    font-family: var(--font-ui);
     font-size: 0.62rem;
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--color-orange-600, #FF5509);
+    color: var(--accent);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -305,7 +305,7 @@
 
 .about-me__statement {
     display: block;
-    font-family: var(--font-heading, -apple-system, sans-serif);
+    font-family: var(--font-heading);
     font-size: clamp(1.9rem, 4.5vw, 4rem);
     font-weight: 600;
     letter-spacing: -0.04em;
@@ -323,7 +323,7 @@
 }
 
 .about-me__transition-text {
-    font-family: var(--font-ui, -apple-system, sans-serif);
+    font-family: var(--font-ui);
     font-size: 0.72rem;
     font-weight: 500;
     letter-spacing: 0.22em;
@@ -333,7 +333,7 @@
 }
 
 .about-me__transition-text .about-me__arrow {
-    color: var(--color-orange-600, #FF5509);
+    color: var(--accent);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -345,7 +345,7 @@
 }
 
 .about-me__closing-text {
-    font-family: var(--font-heading, -apple-system, sans-serif);
+    font-family: var(--font-heading);
     font-size: clamp(1.1rem, 2.2vw, 1.65rem);
     font-weight: 500;
     letter-spacing: -0.02em;

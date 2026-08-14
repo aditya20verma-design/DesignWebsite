@@ -1,5 +1,6 @@
 # Typography Kit — Aditya Verma Portfolio
-> **Two fonts only. No exceptions.**
+> **LEGACY / REFERENCE DOCUMENT.**
+> **DESIGN_SYSTEM.md is the current typography source of truth.**
 
 ---
 

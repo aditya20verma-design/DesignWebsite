@@ -110,12 +110,12 @@
 
 /* Progress fill — scroll-synced orange, vivid */
 #track-progress {
-    stroke: #FF5509;
+    stroke: var(--accent);
     stroke-width: 17;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
-    filter: drop-shadow(0 0 8px rgba(255, 85, 9, 0.65));
+    filter: drop-shadow(0 0 8px var(--accent-glow));
     will-change: stroke-dashoffset;
 }
 
@@ -154,7 +154,7 @@
 /* JS sets this per scroll tick based on luminance of bg behind rider dot.   */
 #rider-ring-1,
 #rider-ring-2 {
-    stroke: var(--rider-ring-color, #FF5509);
+    stroke: var(--rider-ring-color, var(--accent));
     transition: stroke 0.3s ease, opacity 0.3s ease;
 }
 
@@ -271,10 +271,10 @@
     color: var(--text-primary);
     /* Dark pill — works on both light + dark page sections */
     /* Changed from robust 0.92 opacity to a more transparent 0.82 glass */
-    background: rgba(20, 20, 20, 0.82);
+    background: var(--bg-overlay);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 2px solid rgba(255, 255, 255, 0.12);
+    border: 2px solid var(--border-default);
     padding: 18px 30px;
     border-radius: 100px;
     white-space: nowrap;
@@ -301,7 +301,7 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #FF5509;
+    background: var(--accent);
     flex-shrink: 0;
 }
 

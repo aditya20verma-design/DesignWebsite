@@ -240,7 +240,7 @@
     //   scale:  1.0 → 0.82   (content shrinks toward center)
     //   scrim:  0   → 0.88   (black overlay opacity — near-black at peak)
     //   radius: 0   → 24px
-    var workEl    = document.getElementById('work-inner'); // scale target
+    var workEl    = document.getElementById('more-work'); // Target more-work instead of work-inner to avoid breaking GSAP pin!
     var workScrim = document.getElementById('work-scrim'); // dark overlay opacity target
     var curScale  = 1.0, curScrim = 0.0, curRadius = 0.0;
     var lastDim   = -1;
@@ -250,18 +250,18 @@
         if (Math.abs(p - lastDim) < 0.001) return;
         lastDim = p;
 
-        var tScale  = 1 - p * 0.18;   // 1.0 → 0.82  (content scales down)
-        var tScrim  = p * 0.88;        // 0   → 0.88  (black overlay covers section)
-        var tRadius = p * 24;          // 0   → 24px
+        var curScale  = 1 - p * 0.18;   // 1.0 → 0.82  (content scales down)
+        var curScrim  = p * 0.88;        // 0   → 0.88  (black overlay covers section)
+        var curRadius = p * 24;          // 0   → 24px
 
-        var L = 0.18;
-        curScale  += (tScale  - curScale)  * L;
-        curScrim  += (tScrim  - curScrim)  * L;
-        curRadius += (tRadius - curRadius) * L;
-
-        // Scale + corner rounding on content only
-        workEl.style.transform    = 'scale(' + curScale.toFixed(4) + ')';
-        workEl.style.borderRadius = curRadius.toFixed(1) + 'px';
+        // Scale + corner rounding on content only (clear transform when 1.0 so position:fixed works for children)
+        if (curScale > 0.999) {
+            workEl.style.transform = 'none';
+            workEl.style.borderRadius = '0px';
+        } else {
+            workEl.style.transform = 'scale(' + curScale.toFixed(4) + ')';
+            workEl.style.borderRadius = curRadius.toFixed(1) + 'px';
+        }
 
         // Black scrim covers full #work (content + beige background) — clipped by overflow:hidden
         workScrim.style.opacity = curScrim.toFixed(3);

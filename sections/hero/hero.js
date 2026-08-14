@@ -381,72 +381,75 @@ export function initHero() {
     (function initMasterHeroScroll() {
         const manifesto = document.getElementById('hero-manifesto');
         const typography = document.getElementById('manifesto-typography');
-        const quote = document.getElementById('manifesto-quote');
         const navEl = document.querySelector('.nav');
         if (!manifesto || !typography) return;
 
         // Respect prefers-reduced-motion
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            const chars = typography.querySelectorAll('.manifesto-char');
-            chars.forEach(c => {
-                c.style.opacity = '1';
-                c.style.transform = 'translate3d(0,0,0)';
-                c.style.color = c.dataset.accent === 'true' ? '#FF5509' : '#ffffff';
+            gsap.set(typography, {
+                color: '#ffffff',
+                WebkitTextFillColor: '#ffffff',
+                opacity: 1
             });
-            if (quote) {
-                quote.style.opacity = '1';
-                quote.style.transform = 'translateY(0)';
-            }
             gsap.set('#hero-manifesto', { opacity: 1, y: 0 });
             gsap.set('.bmw-light-system', { opacity: 1, y: 0, scale: 1 });
-            gsap.set('#bmw-drl path', { fill: '#FF5509' });
-            gsap.set('#bmw-drl', { opacity: 1, filter: 'drop-shadow(0 0 16px rgba(255, 85, 9, 0.8))' });
+            gsap.set('#bmw-drl path', { fill: '#ffffff' });
+            gsap.set('#bmw-drl', { opacity: 1, filter: 'drop-shadow(0 0 16px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.5))' });
             gsap.set('.beam-stream, #beam-bloom, #white-takeover', { display: 'none', opacity: 0 });
             gsap.set('.manifesto-line', { opacity: 1, y: 0 });
             return;
         }
 
+        // Parse manifesto lines into character spans while preserving accent words
         const ACCENT_WORDS = ['CREATIVITY', 'SYSTEMS', 'RESONATE.'];
-
-        // 1. Process lines into words & character spans
         const lines = typography.querySelectorAll('.manifesto-line');
-        const allLineChars = [];
+        const allChars = [];
 
         lines.forEach((line) => {
-            const text = line.textContent.trim();
-            line.innerHTML = ''; // Clear raw text
-
-            const words = text.split(/\s+/);
-            const lineChars = [];
+            const lineText = line.textContent.trim();
+            const words = lineText.split(/\s+/);
+            line.innerHTML = '';
 
             words.forEach((wordText) => {
                 const wordSpan = document.createElement('span');
                 wordSpan.className = 'manifesto-word';
+                const isAccentWord = ACCENT_WORDS.some(w => wordText.includes(w) || w.includes(wordText));
 
-                const isAccentWord = ACCENT_WORDS.includes(wordText);
-
-                for (let i = 0; i < wordText.length; i++) {
-                    const char = wordText[i];
+                Array.from(wordText).forEach((charStr) => {
                     const charSpan = document.createElement('span');
                     charSpan.className = 'manifesto-char';
-                    charSpan.textContent = char;
-
-                    const isDot = char === '.' && wordText.startsWith('RESONATE');
-                    charSpan.dataset.accent = (isAccentWord || isDot) ? 'true' : 'false';
-
+                    charSpan.textContent = charStr;
+                    if (isAccentWord) {
+                        charSpan.dataset.accent = 'true';
+                    }
                     wordSpan.appendChild(charSpan);
-                    lineChars.push(charSpan);
-                }
+                    allChars.push(charSpan);
+                });
 
                 line.appendChild(wordSpan);
             });
-
-            allLineChars.push(lineChars);
         });
+
+        // Clean initial setup for typography composition (All characters dull neutral grey before reveal)
+        gsap.set(typography, { opacity: 1 });
+        gsap.set('.manifesto-line', { opacity: 1, y: 0 });
+        gsap.set('.manifesto-char', { color: 'rgba(255, 255, 255, 0.22)' });
 
         // 2. Build Single Master GSAP ScrollTrigger Timeline on .hero-track
         let isLogoHidden = false;
         if (navEl) navEl.classList.add('nav--hero');
+
+        // Dynamically calculate perfect geometric handoff to #work (No arbitrary negative margins)
+        // The hero lift finishes at progress 0.86. We pull #work up so it arrives exactly at top:0
+        // at the precise moment the hero parallax sweep finishes.
+        const trackEl = document.querySelector('.hero-track');
+        const workEl = document.getElementById('work');
+        if (trackEl && workEl) {
+            const scrollDistance = trackEl.offsetHeight - window.innerHeight;
+            const liftEndScroll = scrollDistance * 0.86;
+            const pullUp = trackEl.offsetHeight - liftEndScroll;
+            workEl.style.marginTop = `-${pullUp}px`;
+        }
 
         const masterTl = gsap.timeline({
             scrollTrigger: {
@@ -471,14 +474,14 @@ export function initHero() {
         gsap.set('.signature-container', { opacity: 1, y: 0, scale: 1 });
         gsap.set('#hero-video-wrap', { opacity: 0 });
         gsap.set('#hero-manifesto', { opacity: 1, y: '105vh' });
-        gsap.set('.manifesto-line', { y: 50, opacity: 0 });
+        gsap.set('.manifesto-line', { y: 0, opacity: 1 }); // Lines stay as ONE composition
 
         // BMW Assembly initial dormant state (Muted grey DRL, dormant dark fairing)
         gsap.set('.bmw-light-system', { opacity: 1, y: 0 });
         gsap.set('#bmw-fairing', { opacity: 0.22, filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8))' });
         gsap.set('#bmw-drl', { opacity: 0.25, filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.1))' });
         gsap.set('#bmw-drl path', { fill: '#4A4A4A' });
-        gsap.set('#bmw-projector', { opacity: 0, filter: 'brightness(1) drop-shadow(0 0 0px transparent)' });
+        gsap.set('#bmw-projector', { opacity: 0, filter: 'none' });
         gsap.set('.beam-stream', { opacity: 0, scaleX: 0.1, scaleY: 0 });
         gsap.set('#beam-bloom', { opacity: 0, scale: 0.2 });
         gsap.set('#white-takeover', { opacity: 0, pointerEvents: 'none' });
@@ -498,181 +501,137 @@ export function initHero() {
         masterTl.to('#hero-manifesto', { y: '0vh', pointerEvents: 'auto', ease: "power2.inOut", duration: 0.22 }, 0.22);
         masterTl.to('#bmw-fairing', { opacity: 0.45, duration: 0.15, ease: "power1.out" }, 0.30);
 
-        const lineWindows = [
-            { start: 0.44, duration: 0.12 }, // Line 1: BLENDING CREATIVITY AND CRAFT
-            { start: 0.52, duration: 0.12 }, // Line 2: TO SHAPE SYSTEMS & DIGITAL
-            { start: 0.58, duration: 0.08 }, // Line 3: EXPERIENCES
-            { start: 0.63, duration: 0.08 }  // Line 4: THAT RESONATE.
-        ];
+        // ── Phase 3: Character-by-Character Illumination Reveal (0.45 -> 0.70) ──
+        // Stagger character illumination across all chars in a single continuous composition flow (~1.0vh/char)
+        const numChars = allChars.length;
+        const totalSpan = 0.25; // 0.45 -> 0.70 timeline range (~1.0vh per char)
+        const step = numChars > 1 ? totalSpan / (numChars - 1) : 0;
 
-        // Animate each manifesto line upward as scroll progresses
-        lines.forEach((line, idx) => {
-            const win = lineWindows[idx] || { start: 0.68, duration: 0.10 };
-            masterTl.to(line, {
-                y: 0,
-                opacity: 1,
-                duration: win.duration * 0.8,
-                ease: 'power2.out'
-            }, win.start);
-        });
+        allChars.forEach((char, i) => {
+            const tStart = 0.45 + (i * step);
+            const isAccent = char.dataset.accent === 'true';
 
-        allLineChars.forEach((chars, lineIdx) => {
-            const win = lineWindows[lineIdx] || { start: 0.68, duration: 0.10 };
-            const charCount = chars.length;
-            if (!charCount) return;
-
-            const charStep = win.duration / charCount;
-
-            chars.forEach((char, cIdx) => {
-                const charStart = win.start + (cIdx * charStep);
-                const isAccent = char.dataset.accent === 'true';
-
-                // Precision Orange Reveal Edge Sweep
+            if (isAccent) {
+                // Accent chars: Muted Orange -> Brief White Hot Flash -> Clean Brand Orange (No persistent glow)
+                masterTl.to(char, {
+                    color: '#ffffff',
+                    textShadow: '0 0 16px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.7)',
+                    duration: 0.015,
+                    ease: 'none'
+                }, tStart);
                 masterTl.to(char, {
                     color: '#FF5509',
-                    textShadow: '0 0 18px rgba(255, 85, 9, 0.95), 0 4px 30px rgba(0, 0, 0, 0.9)',
-                    opacity: 1,
-                    duration: 0.02,
+                    textShadow: 'none',
+                    duration: 0.025,
                     ease: 'none'
-                }, charStart);
-
-                // Settle into final resolved color (white or orange accent)
+                }, tStart + 0.015);
+            } else {
+                // Standard chars: Neutral Grey -> Brief Orange Illumination Flash -> Clean Crisp White (No persistent glow)
                 masterTl.to(char, {
-                    color: isAccent ? '#FF5509' : '#ffffff',
-                    textShadow: isAccent ? '0 0 12px rgba(255, 85, 9, 0.45), 0 4px 30px rgba(0, 0, 0, 0.9)' : '0 4px 30px rgba(0, 0, 0, 0.9)',
-                    duration: 0.03,
-                    ease: 'power1.out'
-                }, charStart + 0.02);
-            });
+                    color: '#FF5509',
+                    textShadow: '0 0 16px rgba(255, 85, 9, 0.9), 0 0 30px rgba(255, 85, 9, 0.6)',
+                    duration: 0.015,
+                    ease: 'none'
+                }, tStart);
+                masterTl.to(char, {
+                    color: '#ffffff',
+                    textShadow: 'none',
+                    duration: 0.025,
+                    ease: 'none'
+                }, tStart + 0.015);
+            }
         });
 
-        // ── Phase 4: DRL Ignition Sequence (Pure White Flash -> Brand Orange #FF5509) ──
-        // 1. Initial Scroll Wake-Up: Brief Pure White DRL flash (0.45 -> 0.49)
-        masterTl.to('#bmw-drl path', { fill: '#ffffff', duration: 0.04, ease: 'sine.out' }, 0.45);
+        // ── Phase 4: DRL Ignition Sequence (Pure White Flash → Settles White) ──
+        masterTl.to('#bmw-drl path', { fill: '#ffffff', duration: 0.03, ease: 'sine.out' }, 0.45);
         masterTl.to('#bmw-drl', { 
             opacity: 1.0, 
             filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 35px rgba(255, 255, 255, 0.6))', 
-            duration: 0.04, 
+            duration: 0.03, 
             ease: 'sine.out' 
         }, 0.45);
-
-        // 2. Fast & Smooth Shift: Pure White -> Brand Orange (#FF5509) (0.49 -> 0.54)
-        masterTl.to('#bmw-drl path', { fill: '#FF5509', duration: 0.05, ease: 'sine.inOut' }, 0.49);
+        // DRL holds white — brief brightness pulse then crisp white settled state
         masterTl.to('#bmw-drl', { 
-            filter: 'drop-shadow(0 0 24px rgba(255, 85, 9, 1)) drop-shadow(0 0 45px rgba(255, 85, 9, 0.9))', 
-            duration: 0.05, 
+            filter: 'drop-shadow(0 0 24px rgba(255, 255, 255, 1)) drop-shadow(0 0 45px rgba(255, 255, 255, 0.8))', 
+            duration: 0.04, 
             ease: 'sine.inOut' 
-        }, 0.49);
+        }, 0.48);
 
-        // Period completion cue on RESONATE.
-        const lastLineChars = allLineChars[3];
-        if (lastLineChars && lastLineChars.length) {
-            const periodChar = lastLineChars[lastLineChars.length - 1];
-            if (periodChar && periodChar.textContent === '.') {
-                masterTl.to(periodChar, {
-                    color: '#FF5509',
-                    textShadow: '0 0 22px rgba(255, 85, 9, 1), 0 4px 30px rgba(0, 0, 0, 0.9)',
-                    scale: 1.18,
-                    duration: 0.02,
-                    ease: 'power2.out'
-                }, 0.76);
-                masterTl.to(periodChar, {
-                    scale: 1,
-                    textShadow: '0 0 10px rgba(255, 85, 9, 0.5), 0 4px 30px rgba(0, 0, 0, 0.9)',
-                    duration: 0.03,
-                    ease: 'power2.in'
-                }, 0.78);
-            }
-        }
-
-        // ── Phase 5: FINAL MANIFESTO HOLD & ANTICIPATION MOMENT (0.78 -> 0.85) ──
-        if (quote) {
-            gsap.set(quote, { y: 40, opacity: 0 });
-            masterTl.to(quote, {
-                opacity: 1,
-                y: 0,
-                duration: 0.06,
-                ease: 'power2.out'
-            }, 0.78);
-        }
-
-        // Projector subtle awakening during hold moment (anticipation tension before firing)
+        // Projector subtle awakening during final stage of character reveal
+        // NO saturate()/brightness() — they shift hue. drop-shadow only, fill #FF5509 stays correct orange.
         masterTl.to('#bmw-projector', {
-            opacity: 0.35,
-            filter: 'brightness(1.3) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))',
-            duration: 0.07,
+            opacity: 0.45,
+            filter: 'drop-shadow(0 0 8px rgba(255, 85, 9, 0.8)) drop-shadow(0 0 20px rgba(255, 85, 9, 0.5))',
+            duration: 0.05,
             ease: 'power1.inOut'
-        }, 0.78);
+        }, 0.62);
 
-        // ── Phase 6: PROJECTOR IGNITION (0.85 -> 0.89) ──
+        // ── Phase 5: PROJECTOR FULL IGNITION (0.68 → 0.72) ──
         masterTl.to('#bmw-projector', {
             opacity: 1.0,
-            filter: 'brightness(2.5) drop-shadow(0 0 25px rgba(255, 255, 255, 1))',
+            filter: 'drop-shadow(0 0 14px rgba(255, 85, 9, 1)) drop-shadow(0 0 35px rgba(255, 85, 9, 0.85)) drop-shadow(0 0 70px rgba(255, 85, 9, 0.5))',
             duration: 0.04,
             ease: 'power2.out'
-        }, 0.85);
+        }, 0.68);
 
-        // ── Phase 7: HIGH BEAM EXPANSION & ATMOSPHERIC BLOOM (0.89 -> 0.95) ──
+        // ── Phase 6 + 7: UNIFIED ORANGE SWELL (0.68 → 0.80) ──
+        // ALL orange elements build simultaneously so there's NEVER a dark gap between bloom and takeover.
+        // The takeover starts rising at 0.68 (same as projector) and reaches 1.0 by 0.78.
+        // Manifesto/BMW fade inside this orange swell — they disappear INTO the light, not into darkness.
+
+        // Beams expand quickly at the start of the swell
         masterTl.to('#beam-left', {
             opacity: 1.0,
             scaleX: 14.0,
             scaleY: 5.0,
-            duration: 0.07,
-            ease: 'power2.inOut'
-        }, 0.89);
-
+            duration: 0.04,
+            ease: 'power2.out'
+        }, 0.70);
         masterTl.to('#beam-right', {
             opacity: 1.0,
             scaleX: 14.0,
             scaleY: 5.0,
-            duration: 0.07,
-            ease: 'power2.inOut'
-        }, 0.89);
+            duration: 0.04,
+            ease: 'power2.out'
+        }, 0.70);
 
+        // Bloom expands over the full swell — adds depth to the orange atmosphere
         masterTl.to('#beam-bloom', {
-            opacity: 1.0,
-            scale: 6.0,
-            duration: 0.07,
-            ease: 'power2.inOut'
-        }, 0.89);
+            opacity: 0.85,
+            scale: 7.0,
+            duration: 0.08,
+            ease: 'power1.inOut'
+        }, 0.68);
 
-        // Manifesto typography and light assembly dissolve seamlessly into the white beam wash
+        // Orange takeover builds from 0.68 → 0.78 (linear, steady, elegant)
+        // At 0.73 (when manifesto fades), takeover is already ~50% opacity — dark bg fully covered
+        masterTl.to('#white-takeover', {
+            opacity: 1.0,
+            duration: 0.10,
+            ease: 'power1.inOut'
+        }, 0.68);
+
+        // Manifesto and BMW dissolve INTO the growing orange light (not into darkness)
         masterTl.to('#manifesto-typography', {
             opacity: 0,
-            y: -15,
+            y: -10,
             duration: 0.05,
             ease: 'power1.in'
-        }, 0.90);
-
+        }, 0.73);
         masterTl.to('.bmw-light-system', {
             opacity: 0,
-            scale: 1.1,
+            scale: 1.05,
             duration: 0.05,
             ease: 'power1.in'
-        }, 0.90);
+        }, 0.73);
 
-        masterTl.to(quote, {
-            opacity: 0,
-            y: -10,
-            duration: 0.04,
-            ease: 'power1.in'
-        }, 0.90);
-
-        // ── Phase 8: PURE VIEWPORT WHITE WASH & IN-PLACE SEAMLESS HANDOFF TO WORK (0.92 -> 1.00) ──
-        masterTl.to('#white-takeover', {
-            opacity: 1.0,
-            duration: 0.04,
+        // Parallax lift — hero sweeps upward revealing the work section below
+        // The solid orange takeover acts as a curtain rising, cleanly exposing #work which is positioned exactly beneath it via margin-top: -139vh.
+        masterTl.to('.hero-sticky-container', {
+            yPercent: -110,
+            duration: 0.06,
             ease: 'power2.in'
-        }, 0.92);
+        }, 0.80);
 
-        // Pre-position #work section directly inside the viewport behind the 100% white takeover layer
-        masterTl.fromTo('#work', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.05, ease: 'power2.out' }, 0.93);
-
-        // Dissolve white takeover overlay to reveal Selected Work ALREADY in-place at the exact manifesto position
-        masterTl.to('#white-takeover', {
-            opacity: 0,
-            duration: 0.05,
-            ease: 'power1.out'
-        }, 0.95);
     }());
 }

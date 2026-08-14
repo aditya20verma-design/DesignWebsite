@@ -5,12 +5,15 @@
    ============================================================ */
 
 :root {
-    --cs-bg: var(--color-neutral-100, #f8f7f5);
-    --cs-text-main: var(--color-black, #111111);
-    --cs-text-muted: #666666;
-    --cs-accent: var(--color-orange-600, #FF5509);
-    --cs-border: rgba(0, 0, 0, 0.08);
-    --cs-card-bg: #ffffff;
+    /* Intentional Art Direction: Light-mode editorial template (Class C) */
+    --cs-bg: var(--bg-inverted); /* Light background */
+    --cs-text-main: var(--text-inverted);
+    --cs-text-muted: var(--text-muted);
+    --cs-accent: var(--accent);
+    --cs-border: var(--border-on-light);
+    --cs-card-bg: var(--color-true-white);
+    
+    /* Layout Constants (Class D) */
     --cs-sidebar-width: 240px;
     --cs-header-height: 70px;
 }
@@ -122,7 +125,7 @@ body {
     font-family: var(--font-body);
     font-size: clamp(18px, 2vw, 24px);
     line-height: 1.45;
-    color: #444444;
+    color: var(--text-secondary);
     max-width: 42ch;
     margin-bottom: 3.5rem;
 }
@@ -215,7 +218,7 @@ body {
     font-family: var(--font-mono);
     font-size: 12px;
     letter-spacing: 0.05em;
-    color: #888888;
+    color: var(--text-muted);
     text-decoration: none;
     padding: 8px 12px;
     border-left: 2px solid transparent;
@@ -228,13 +231,13 @@ body {
 
 .cs-timeline-link:hover {
     color: var(--cs-text-main);
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: var(--color-black-a10);
 }
 
 .cs-timeline-link.active {
     color: var(--cs-accent);
     border-left-color: var(--cs-accent);
-    background-color: rgba(255, 85, 9, 0.05);
+    background-color: var(--accent-subtle);
     font-weight: 600;
 }
 
@@ -293,7 +296,7 @@ body {
     font-family: var(--font-body);
     font-size: clamp(16px, 1.2vw, 19px);
     line-height: 1.65;
-    color: #333333;
+    color: var(--text-secondary);
     max-width: 68ch;
     margin: 0;
 }
@@ -311,7 +314,7 @@ body {
 .cs-stat-card {
     background: var(--cs-card-bg);
     border: 1px solid var(--cs-border);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -338,10 +341,10 @@ body {
 
 /* Editorial Research Quote Block */
 .cs-quote-block {
-    background-color: rgba(255, 85, 9, 0.04);
+    background-color: var(--accent-subtle);
     border-left: 3px solid var(--cs-accent);
     padding: 2.5rem 3rem;
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     margin: 2rem 0;
 }
 
@@ -366,8 +369,8 @@ body {
 .cs-media-frame {
     width: 100%;
     aspect-ratio: 16 / 9;
-    background-color: #161616;
-    border-radius: 8px;
+    background-color: var(--bg-base);
+    border-radius: var(--radius-sm);
     overflow: hidden;
     position: relative;
     border: 1px solid var(--cs-border);
@@ -432,7 +435,7 @@ body {
 .cs-split-card {
     background: var(--cs-card-bg);
     border: 1px solid var(--cs-border);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -451,8 +454,8 @@ body {
 .cs-next-project-footer {
     border-top: 1px solid var(--cs-border);
     padding: 80px 40px;
-    background-color: #111111;
-    color: #ffffff;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
 }
 
 .cs-next-inner {
@@ -478,7 +481,7 @@ body {
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 600;
     letter-spacing: -0.02em;
-    color: #ffffff;
+    color: var(--text-primary);
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -496,7 +499,7 @@ body {
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #ffffff;
+    color: var(--text-primary);
     text-decoration: none;
     padding: 16px 32px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -507,7 +510,7 @@ body {
 .cs-next-link:hover {
     border-color: var(--cs-accent);
     background-color: var(--cs-accent);
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 /* ── Responsive Behavior ──────────────────────────────────── */

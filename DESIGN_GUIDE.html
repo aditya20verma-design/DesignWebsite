@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System — Scalable Architecture</title>
+    <style>
+        :root, [data-theme="dark"] {
+            --guide-bg: #111111;
+            --guide-surface: #1a1a1a;
+            --guide-text-primary: #f5f5f7;
+            --guide-text-secondary: #bfbebe;
+            --guide-text-muted: #777777;
+            --guide-border: rgba(255, 255, 255, 0.10);
+            --guide-border-subtle: rgba(255, 255, 255, 0.05);
+            --guide-accent: #FF5509;
+        }
+        [data-theme="light"] {
+            --guide-bg: #fdfdfd;
+            --guide-surface: #ffffff;
+            --guide-text-primary: #111111;
+            --guide-text-secondary: #4a4a4a;
+            --guide-text-muted: #6f6f6f;
+            --guide-border: rgba(0, 0, 0, 0.12);
+            --guide-border-subtle: rgba(0, 0, 0, 0.06);
+            --guide-accent: #FF5509;
+        }
+        body {
+            background: var(--guide-bg);
+            color: var(--guide-text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            margin: 0; 
+            padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 80px 40px 120px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 80px;
+            border-bottom: 1px solid var(--guide-border);
+            padding-bottom: 24px;
+        }
+        .header-left h1 { margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -0.02em; }
+        .header-left p { margin: 4px 0 0; color: var(--guide-text-secondary); font-size: 14px; }
+        .toggle-btn {
+            background: none; border: 1px solid var(--guide-border); color: var(--guide-text-primary);
+            padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .toggle-btn:hover { border-color: var(--guide-accent); }
+        
+        /* Section Styles */
+        .section { margin-bottom: 80px; }
+        .section-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--guide-text-muted);
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+        .block-title {
+            font-size: 20px; font-weight: 600; margin: 0 0 16px 0; border-bottom: 1px solid var(--guide-border-subtle); padding-bottom: 8px;
+        }
+        
+        /* Data Tables (Minimal) */
+        table {
+            width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 32px;
+        }
+        th, td {
+            text-align: left; padding: 12px 0; border-bottom: 1px solid var(--guide-border-subtle);
+        }
+        th { color: var(--guide-text-muted); font-size: 12px; font-weight: 500; }
+        td { color: var(--guide-text-secondary); }
+        td strong { color: var(--guide-text-primary); font-weight: 500; }
+        .code-tag {
+            font-family: ui-monospace, monospace; font-size: 12px;
+            color: var(--guide-text-secondary); background: rgba(125,125,125,0.1);
+            padding: 2px 6px; border-radius: 4px;
+        }
+        .ref-tag {
+            color: var(--guide-accent); font-family: ui-monospace, monospace; font-size: 12px;
+        }
+        
+        /* Color Swatches */
+        .palette { margin-bottom: 40px; }
+        .color-row { display: flex; align-items: center; margin-bottom: 8px; gap: 16px; font-size: 13px; }
+        .color-swatch { width: 140px; height: 32px; border-radius: 4px; border: 1px solid var(--guide-border-subtle); }
+        .color-name { width: 100px; color: var(--guide-text-primary); font-weight: 500; }
+        .color-hex { font-family: monospace; color: var(--guide-text-muted); }
+        .color-status { font-size: 12px; color: var(--guide-text-muted); }
+        .status-reserved { font-style: italic; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <h1>Design System</h1>
+                <p>Version v4.1 — Foundation to UI mapping.</p>
+            </div>
+            <button class="toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark/light">Dark / Light</button>
+        </header>
+
+        <section class="section">
+            <div class="section-header">1. FOUNDATIONS</div>
+            <p style="color: var(--guide-text-secondary); margin-bottom: 32px;">
+                Design ingredients. Changing these foundational tokens will propagate globally across the UI.
+            </p>
+
+            <h3 class="block-title">Color: Primary (Brand)</h3>
+            <div class="palette">
+                <div class="color-row"><div class="color-name">Primary 400</div><div class="color-swatch" style="background: #ff7a50"></div><div class="color-hex">#ff7a50</div><div class="color-status">Used</div></div>
+                <div class="color-row"><div class="color-name">Primary 500</div><div class="color-swatch" style="background: #ff642f"></div><div class="color-hex">#ff642f</div><div class="color-status">Used</div></div>
+                <div class="color-row"><div class="color-name">Primary 600</div><div class="color-swatch" style="background: #FF5509"></div><div class="color-hex">#FF5509</div><div class="color-status">Used (Core Brand)</div></div>
+                <div class="color-row status-reserved"><div class="color-name">Primary 700</div><div class="color-swatch" style="background: transparent; border-style: dashed"></div><div class="color-hex">#cc4307</div><div class="color-status">Reserved</div></div>
+                <div class="color-row status-reserved"><div class="color-name">Primary 800</div><div class="color-swatch" style="background: transparent; border-style: dashed"></div><div class="color-hex">#99320a</div><div class="color-status">Reserved</div></div>
+            </div>
+
+            <h3 class="block-title">Color: Secondary</h3>
+            <div class="palette">
+                <p style="font-size: 13px; color: var(--guide-text-muted);">Undefined / Reserved. The portfolio is intentionally a single-accent system.</p>
+            </div>
+
+            <h3 class="block-title">Typography</h3>
+            <table>
+                <tr><th>Role</th><th>Foundation</th><th>Stack</th></tr>
+                <tr><td><strong>Primary</strong></td><td><span class="code-tag">--font-family-primary</span></td><td>SF Pro Display, sans-serif</td></tr>
+                <tr><td><strong>Editorial</strong></td><td><span class="code-tag">--font-family-editorial</span></td><td>Brier, serif</td></tr>
+                <tr><td><strong>Monospace</strong></td><td><span class="code-tag">--font-family-mono</span></td><td>ui-monospace</td></tr>
+            </table>
+
+            <h3 class="block-title">Spacing Scale</h3>
+            <p style="font-size: 13px; color: var(--guide-text-muted);">Change-resilient 4px/8px basis.</p>
+            <table>
+                <tr><th>Token</th><th>Value</th></tr>
+                <tr><td><strong>--space-1</strong></td><td>4px</td></tr>
+                <tr><td><strong>--space-2</strong></td><td>8px</td></tr>
+                <tr><td><strong>--space-4</strong></td><td>16px</td></tr>
+                <tr><td><strong>--space-6</strong></td><td>24px</td></tr>
+                <tr><td><strong>--space-8</strong></td><td>32px</td></tr>
+            </table>
+        </section>
+
+        <section class="section">
+            <div class="section-header">2. SEMANTIC SYSTEM</div>
+            <p style="color: var(--guide-text-secondary); margin-bottom: 32px;">
+                Design meaning. This layer protects components from foundational changes. Semantics map strictly to Foundations.
+            </p>
+
+            <h3 class="block-title">Color Roles</h3>
+            <table>
+                <tr><th>Semantic Role</th><th>References Foundation</th></tr>
+                <tr><td><strong>bg-base</strong></td><td><span class="ref-tag">var(--color-neutral-900)</span></td></tr>
+                <tr><td><strong>bg-elevated</strong></td><td><span class="ref-tag">var(--color-neutral-800)</span></td></tr>
+                <tr><td><strong>text-primary</strong></td><td><span class="ref-tag">var(--color-neutral-100)</span></td></tr>
+                <tr><td><strong>text-muted</strong></td><td><span class="ref-tag">var(--color-neutral-400)</span></td></tr>
+                <tr><td><strong>accent</strong></td><td><span class="ref-tag">var(--color-primary-600)</span></td></tr>
+                <tr><td><strong>accent-hover</strong></td><td><span class="ref-tag">var(--color-primary-500)</span></td></tr>
+            </table>
+
+            <h3 class="block-title">Type Roles</h3>
+            <table>
+                <tr><th>Type Role</th><th>References Foundation</th></tr>
+                <tr><td><strong>font-heading</strong></td><td><span class="ref-tag">var(--font-family-primary)</span></td></tr>
+                <tr><td><strong>font-body</strong></td><td><span class="ref-tag">var(--font-family-primary)</span></td></tr>
+                <tr><td><strong>font-accent</strong></td><td><span class="ref-tag">var(--font-family-editorial)</span></td></tr>
+            </table>
+        </section>
+
+        <section class="section">
+            <div class="section-header">3. COMPONENT SYSTEM</div>
+            <p style="color: var(--guide-text-secondary); margin-bottom: 32px;">
+                Reusable UI contracts. Components map to Semantics. They never reference raw values directly.
+            </p>
+
+            <h3 class="block-title">Buttons</h3>
+            <table>
+                <tr><th>Component Token</th><th>References Semantic</th></tr>
+                <tr><td><strong>--btn-bg</strong></td><td><span class="ref-tag">transparent</span></td></tr>
+                <tr><td><strong>--btn-border</strong></td><td><span class="ref-tag">var(--border-default)</span></td></tr>
+                <tr><td><strong>--btn-text</strong></td><td><span class="ref-tag">var(--text-primary)</span></td></tr>
+            </table>
+
+            <h3 class="block-title">Cards</h3>
+            <table>
+                <tr><th>Component Token</th><th>References Semantic</th></tr>
+                <tr><td><strong>--card-bg</strong></td><td><span class="ref-tag">var(--bg-elevated)</span></td></tr>
+                <tr><td><strong>--card-border</strong></td><td><span class="ref-tag">var(--border-default)</span></td></tr>
+                <tr><td><strong>--card-radius</strong></td><td><span class="ref-tag">var(--radius-md)</span></td></tr>
+            </table>
+        </section>
+
+        <section class="section">
+            <div class="section-header">4. WEBSITE IMPLEMENTATION (STATUS)</div>
+            <h3 class="block-title">Adoption Audit</h3>
+            <table>
+                <tr><th>Area</th><th>Status</th></tr>
+                <tr><td><strong>Color Adoption</strong></td><td><span style="color: #4CAF50">✓ 98% MIGRATED</span> (3 Intentional Exceptions)</td></tr>
+                <tr><td><strong>Typography Adoption</strong></td><td><span style="color: #4CAF50">✓ 100% MIGRATED</span></td></tr>
+                <tr><td><strong>Spacing Adoption</strong></td><td><span style="color: #4CAF50">✓ 95% MIGRATED</span></td></tr>
+                <tr><td><strong>Radius Adoption</strong></td><td><span style="color: #4CAF50">✓ 95% MIGRATED</span> (2 Intentional Exceptions)</td></tr>
+                <tr><td><strong>Component Adoption</strong></td><td><span style="color: #4CAF50">✓ 100% MIGRATED</span></td></tr>
+                <tr><td><strong>Typography Swap Readiness</strong></td><td><span style="color: #4CAF50">✓ READY</span> (Brier decoupled)</td></tr>
+                <tr><td><strong>Color Swap Readiness</strong></td><td><span style="color: #4CAF50">✓ READY</span> (Centralized in vars)</td></tr>
+                <tr><td><strong>Spacing/Radius Swap Readiness</strong></td><td><span style="color: #4CAF50">✓ READY</span></td></tr>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', current);
+            localStorage.setItem('guide-theme', current);
+        }
+        (function() {
+            const saved = localStorage.getItem('guide-theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</body>
+</html>
