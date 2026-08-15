@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - Bike Sequence Expansion Refinements
+
+### Experience
+- Refined initial Scroll Expand Media state to 55vw.
+- Added a 20% scroll delay to the expansion, creating a more stable cinematic card presentation before the transition begins.
+- Flawlessly resolved a background color seam by isolating the anamorphic lens vignette to the inner clip-path container, preserving the pure `#141414` environment globally.
+- Reverted a corrupted python-based image patch in favor of a lossless `.jpg` asset for Frame 1, ensuring perfect color fidelity.
 ## [1.2.0] - Bike Sequence Cinematic Expansion
 
 ### Highlights

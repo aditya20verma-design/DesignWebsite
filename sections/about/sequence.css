@@ -32,7 +32,7 @@
 }
 
 /* Anamorphic Lens Vignette Overlay — hardware accelerated fade-out at smoke exit */
-#sequence-canvas-wrap::after {
+#sequence-canvas-inner::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -44,7 +44,7 @@
 }
 
 /* Fade vignette out completely during final white smoke frames */
-#sequence-canvas-wrap.vignette-exit::after {
+#sequence-canvas-wrap.vignette-exit #sequence-canvas-inner::after {
     opacity: 0;
 }
 

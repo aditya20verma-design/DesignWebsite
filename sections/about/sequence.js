@@ -54,9 +54,10 @@
     var BG_THRESHOLD = 0.68;
 
     // ── Framer-style Media Expansion (Scroll-driven Entry) ───────────
-    var EXPAND_INSET_Y = 29.5; // vh initial inset
-    var EXPAND_INSET_X = 27.5; // vw initial inset
+    var EXPAND_INSET_Y = 25;   // vh initial inset
+    var EXPAND_INSET_X = 22.5; // vw initial inset
     var EXPAND_RADIUS_TOKEN = 'var(--radius-xl)'; // Design System semantic token for large media
+    var EXPAND_START = 0.20;   // Delay expansion until 20% of entry is complete
 
     var TOTAL      = 83;
     var PATH       = 'sections/about/assets/sequence_6/frame';
@@ -227,18 +228,22 @@
 
     // ── Media Expansion (Scroll-driven Entry) ────────────────────────────────
     var lastExpandP = -1;
-    function applyMediaExpansion(p) {
+    function applyMediaExpansion(progress) {
         if (!canvasInner) return;
-        if (Math.abs(p - lastExpandP) < 0.001) return;
-        lastExpandP = p;
+        if (Math.abs(progress - lastExpandP) < 0.001) return;
+        lastExpandP = progress;
 
-        // p=0 (just entering viewport): full inset constraints
-        // p=1 (locked at top): full bleed (0 inset, 0 radius)
-        var inv = 1 - easeOut3(p);
+        // progress=0 (just entering viewport): full inset constraints
+        // progress=1 (locked at top): full bleed (0 inset, 0 radius)
+        var expandProgress = 0;
+        if (progress > EXPAND_START) {
+            expandProgress = (progress - EXPAND_START) / (1 - EXPAND_START);
+        }
+        var inv = 1 - easeOut3(expandProgress);
         var curY = (EXPAND_INSET_Y * inv).toFixed(2);
         var curX = (EXPAND_INSET_X * inv).toFixed(2);
 
-        if (p > 0.999) {
+        if (progress > 0.999) {
             canvasInner.style.clipPath = 'none';
         } else {
             canvasInner.style.clipPath = 'inset(' + curY + 'vh ' + curX + 'vw round calc(' + EXPAND_RADIUS_TOKEN + ' * ' + inv.toFixed(4) + '))';
@@ -333,7 +338,9 @@
             _reportFrameProgress();
             if (cb) cb();
         };
-        im.src = PATH + (n + 1) + '.webp';
+        var frameNum = n + 1;
+        var ext = (frameNum === 1) ? 'new.jpg' : '.webp';
+        im.src = PATH + frameNum + ext;
     }
 
     function loadBatch(list, done) {
