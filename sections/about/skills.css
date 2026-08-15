@@ -15,38 +15,7 @@
     overflow: hidden;
 }
 
-/* ── Header ───────────────────────────────────────────────── */
-.skills__header {
-    max-width: var(--container-lg);
-    margin: 0 auto 4rem;
-}
 
-.skills__label {
-    font-family: var(--font-ui);
-    font-size: var(--text-caption-size);
-    line-height: var(--text-caption-lh);
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(26, 26, 26, 0.5);
-    margin-bottom: 1.5rem;
-}
-
-.skills__headline {
-    font-family: var(--font-heading);
-    font-size: var(--text-h2-size);
-    line-height: var(--text-h2-lh);
-    font-weight: var(--text-h2-weight);
-    letter-spacing: -0.02em;
-    color: var(--text-inverted);
-    max-width: 600px;
-}
-
-.skills__headline em {
-    font-family: var(--font-accent);
-    font-weight: 400;
-    letter-spacing: -0.01em;
-}
 
 /* ── Grid of Categories ───────────────────────────────────── */
 .skills__grid {

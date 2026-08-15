@@ -38,13 +38,18 @@ window.CIRCUIT_CONFIG = {
     ],
 
     // ── Section mapping (informational / advisory reference)
-    // The ACTUAL runtime source-of-truth is the ZONES array in circuit.js.
-    // To add a new section: add an entry to ZONES in circuit.js (config.js is kept in sync for docs).
+    // ACTUAL runtime zones are now DERIVED DYNAMICALLY from [data-section-id]
+    // attributes in the DOM via shared/section-registry.js.
+    // To add a new section: add data-section-id/label/theme attributes to the
+    // HTML element. The Circuit will discover it automatically.
+    // Legacy reference kept for documentation:
     SECTIONS: [
-        { id: 'hero',    progress: 0.00, label: null,      scrollTo: 'hero'    },
-        { id: 'work',    progress: 0.22, label: 'WORK',    scrollTo: 'work'    },
-        { id: 'about',   progress: 0.65, label: 'ABOUT',   scrollTo: 'about'   },
-        { id: 'contact', progress: 0.85, label: 'CONTACT', scrollTo: 'contact' },
+        { id: 'hero',          label: 'HOME',         note: 'data-section-id on .hero-track' },
+        { id: 'work',          label: 'WORK',         note: 'data-section-id on #work' },
+        { id: 'about',         label: 'ABOUT',        note: 'data-section-id on #about-sequence' },
+        { id: 'journey',       label: 'JOURNEY',      note: 'data-section-id on #my-journey' },
+        { id: 'testimonials',  label: 'TESTIMONIALS', note: 'data-section-id on #testimonials' },
+        { id: 'contact',       label: 'CONTACT',      note: 'data-section-id on #contact' },
     ],
 
     // ── Colors

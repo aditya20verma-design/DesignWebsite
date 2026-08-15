@@ -19,6 +19,10 @@
 }
 
 #work-inner {
+    position: relative;
+    z-index: 1;
+    transform-origin: 50% 50%;
+    border-radius: 0;
     display: flex;
     flex-direction: column;
 }
@@ -768,5 +772,173 @@
             rgba(255, 255, 255, 0.22) 82%,
             transparent 100%
         ) !important;
+    }
+}
+
+/* ── Dynamic Content Wrapper ────────────────────────────── */
+.content-wrapper {
+    position: relative;
+    z-index: 10;
+    background-color: var(--color-neutral-100);
+    padding-top: var(--fluid-md);
+    transform-origin: center bottom;
+    /* GPU layer for blink-free pinning transition */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform-style: flat; /* flat avoids z-fighting with child layers */
+}
+
+
+/* ── Projects (Legacy layout structure) ─────────────────── */
+.project {
+    padding: var(--fluid-lg) var(--page-margin-x);
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-on-light);
+    overflow: hidden;
+    background-color: var(--color-neutral-100);
+    color: var(--text-inverted);
+}
+
+.project-bg-text {
+    position: absolute;
+    font-family: var(--font-heading);
+    font-size: clamp(4rem, 18vw, 18vw);
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    -webkit-text-stroke: 1px rgba(0,0,0,0.06);
+    color: transparent;
+    white-space: nowrap;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.project-content {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: var(--grid-gap);
+    align-items: center;
+    width: 100%;
+    max-width: var(--container-lg);
+    margin: 0 auto;
+    z-index: 2;
+    position: relative;
+}
+
+.project.reverse .project-content {
+    grid-template-columns: 1.6fr 1fr;
+}
+
+.project.reverse .project-info {
+    order: 2;
+}
+
+.project-image-wrapper {
+    aspect-ratio: 1212 / 948;
+    max-height: 70vh;
+    width: 100%;
+    border-radius: var(--radius-xs);
+    overflow: hidden;
+    position: relative;
+}
+
+.parallax-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.project-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+}
+
+.project-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-h1-size);
+    line-height: var(--text-h1-lh);
+    font-weight: var(--text-h1-weight);
+    letter-spacing: -0.02em;
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+    color: var(--text-inverted);
+}
+
+.project-meta {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    line-height: var(--text-caption-lh);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-neutral-600);
+    margin-bottom: 0;
+}
+
+.project-desc {
+    font-family: var(--font-body);
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-lh);
+    font-weight: var(--text-body-weight);
+    max-width: 40ch;
+    color: var(--color-neutral-700);
+    margin-top: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+/* ── Tablet (≤ 900px) overrides ─────────────────────────── */
+@media (max-width: 900px) {
+    /* Projects: stack vertically */
+    .project-content,
+    .project.reverse .project-content {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .project.reverse .project-info {
+        order: unset; /* Reset so info is always on top */
+    }
+
+    /* Image comes after info on mobile */
+    .project-image-wrapper {
+        max-height: 50vh;
+    }
+}
+
+/* ── Mobile (≤ 600px) overrides ─────────────────────────── */
+@media (max-width: 600px) {
+    /* Projects: full-bleed sections — no horizontal padding on the section itself.
+       Inner .project-content keeps its padding so text is indented,
+       but backgrounds and large decorative type go fully edge-to-edge */
+    .project {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .project-content {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    .project-bg-text {
+        font-size: clamp(3rem, 15vw, 5rem);
+        opacity: 0.5;
+    }
+
+    .project-image-wrapper {
+        max-height: 55vw;
+        min-height: 180px;
+    }
+
+    .project-desc {
+        max-width: 100%;
     }
 }

@@ -2,7 +2,10 @@ import { initShared } from './shared/shared.js';
 import { initHero } from './sections/hero/hero.js';
 import { HERO_CONFIG } from './sections/hero/hero.config.js';
 import { initWork } from './sections/work/work.js';
+import { initTestimonials } from './sections/testimonials/testimonials.js';
 import { initFooter } from './sections/footer/footer.js';
+import { initSound } from './shared/sound.js';
+import * as SectionRegistry from './shared/section-registry.js';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ASSET CONFIG — swap any asset by updating section config files.
@@ -15,9 +18,14 @@ window.ASSETS = {
     }
 };
 
+// ── Expose Section Registry globally for non-module consumers (circuit.js) ──
+window.__sectionRegistry = SectionRegistry;
+
 document.addEventListener("DOMContentLoaded", () => {
+    initSound();
     initShared();
     initHero();
     initWork();
+    initTestimonials();
     initFooter();
 });

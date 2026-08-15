@@ -1,0 +1,528 @@
+/* ── Scroll Hint ────────────────────────────────────────── */
+.scroll-down {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+    right: calc(env(safe-area-inset-right, 0px) + 1.25rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 9999; 
+    color: var(--text-secondary);
+    opacity: 0;
+    pointer-events: none;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color   0.65s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.6s  cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hero state: explicitly visible regardless of background color */
+.scroll-down.scroll-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.line-container {
+    width: 1px;
+    height: 40px;
+    overflow: hidden;
+    background: var(--color-white-a15);
+    transition: background 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line {
+    width: 100%;
+    height: 100%;
+    background: currentColor;
+    transform: translateY(-100%);
+    animation: scrollLine 1.6s cubic-bezier(0.2, 0, 0, 1) infinite;
+}
+
+/* On Light Sections: reveal with #999999 mid-grey */
+.scroll-down.scroll-on-light {
+    color: #999999;
+    opacity: 1;
+}
+.scroll-down.scroll-on-light .line-container {
+    background: var(--color-black-a15);
+}
+
+@keyframes scrollLine {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+
+/* ── Hero Track & Sticky Hero ───────────────────────────── */
+.hero-track {
+    /* 380vh = unified master sticky runway for Hero collapse -> Video atmosphere -> Manifesto scrub */
+    height: 380vh;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-sticky-container {
+    position: sticky;
+    top: 0;
+    /* Safari Fix 4: 100dvh = dynamic viewport height — adjusts when
+       Safari's toolbar shows/hides. Prevents overflow gap at bottom.
+       Fallback: var(--app-height) is set by JS to window.innerHeight. */
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    overflow: visible;
+}
+
+/* ── Cinematic Video Background Layer (Hero Collapse Atmosphere) ── */
+.hero-video-wrap {
+    display: none !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    will-change: opacity;
+}
+
+.hero-video-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    pointer-events: none;
+}
+
+.hero-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 25%, rgba(10, 10, 10, 0.65) 100%),
+                linear-gradient(to bottom, rgba(10, 10, 10, 0.4) 0%, transparent 20%, transparent 80%, rgba(10, 10, 10, 0.8) 100%);
+    pointer-events: none;
+}
+
+.hero {
+    height: 100dvh;
+    height: var(--app-height, 100dvh);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0; left: 0;
+    overflow: visible;
+    background-color: var(--bg-inverted);
+    color: var(--text-inverted);
+    z-index: 2;
+    transform-origin: center 40%;
+}
+
+/* hero-inner: clips unicorn canvas + grid overlay to the card's visible bounds */
+.hero-inner {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* ── AV Signature (Lando Norris-style) ───────────────────────────────────────
+ * Hero card scales to 35% of viewport.
+ * Signature stays at FULL fixed size — it does NOT scale with the hero.
+ * Result: signature towers over the small collapsed card, extending beyond
+ * its edges (like Lando's signature bursting out of the photo rectangle).
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.signature-container {
+    position: absolute;       /* relative to .hero-sticky-container */
+    top: 0; left: 0;
+    width: 100%;              /* covers full sticky-container (100vw × 100vh) */
+    height: 100%;
+    z-index: 5;               /* above .hero (z-index:1) and its contents */
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;        /* NO clipping — let strokes go beyond container */
+}
+
+/* Fixed-size Lottie container — does NOT scale with the hero card */
+#sig-lottie {
+    width: min(72vw, 820px);  /* ← signature width. Hero collapses to ~35vw, so
+                                  signature is ~2× the card — overflows on all sides */
+    aspect-ratio: 1;          /* Lottie canvas is 512×512 (square) */
+    flex-shrink: 0;           /* never compress the signature */
+    overflow: visible;        /* let SVG trim-path strokes render beyond the element box */
+    margin-top: 84px;         /* shift signature 84px down from centre (60+24) */
+}
+
+/* Stroke colour — uses --sig-stroke token from color system */
+#sig-lottie path,
+#sig-lottie polyline,
+#sig-lottie ellipse {
+    stroke: var(--sig-stroke) !important;
+}
+
+
+/* Unicorn Studio WebGL Canvas */
+.unicorn-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: scale(1.1) translateY(8%) translateX(40px);  /* +40px right offset */
+    transform-origin: 50% 50%;              /* TRUE CENTER anchor for balanced tilt */
+    z-index: 3;                            /* sits above dot grid (z-index: 2) */
+    pointer-events: auto;
+    will-change: transform;
+    /* mix-blend-mode removed — image renders opaquely on top of dots */
+}
+
+/* Particle Dot Overlay */
+.hero-grid-overlay {
+    position: absolute;
+    top: -5%; left: -5%;
+    width: 110%; height: 110%;
+    pointer-events: none;
+    z-index: 2;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    opacity: 1;
+    transform-origin: center;
+    transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1),
+                opacity 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+
+#dotsCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.hero:hover .hero-grid-overlay {
+    opacity: 1;
+    transform: perspective(1200px) rotateX(2deg) rotateY(-1deg) scale(1.02);
+}
+
+.hero h1 {
+    font-size: clamp(4rem, 12vw, 14rem);
+    text-transform: uppercase;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    font-weight: 900;
+}
+
+.manifesto-stage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: var(--app-height, 100dvh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 7vw;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.manifesto-container {
+    position: relative;
+    width: 100%;
+    max-width: 1240px;
+    margin-top: 0; /* Pinned dead-center in viewport */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.manifesto-typography {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.manifesto-line {
+    font-family: var(--font-heading);
+    font-size: clamp(1.4rem, 4.3vw, 4.4rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    text-transform: uppercase;
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap; /* Strictly prevents word wrapping / orphans inside lines */
+    justify-content: center;
+    column-gap: 0.32em;
+    white-space: nowrap;
+}
+
+/* Individual character wrappers */
+.manifesto-word {
+    display: inline-flex;
+    white-space: nowrap;
+}
+
+.manifesto-char {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.22); /* Neutral grey initial state */
+    will-change: color, text-shadow;
+    transition: none;
+}
+
+/* Highlighted words use Brier serif font */
+.manifesto-char[data-accent="true"],
+.manifesto-accent {
+    font-family: var(--font-accent);
+    font-weight: 400;
+    letter-spacing: 0em;
+    color: rgba(255, 255, 255, 0.22); /* Dull neutral grey before reveal */
+    will-change: color, text-shadow;
+}
+
+/* Slogan Quote styling */
+.manifesto-quote {
+    margin-top: 3.5rem;
+    opacity: 0;
+    transform: translateY(22px);
+    will-change: transform, opacity;
+}
+
+.quote-text {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: clamp(1rem, 1.6vw, 1.45rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.65); /* Soft muted grey */
+    margin: 0;
+    max-width: 760px;
+    text-wrap: balance; /* Native browser orphan prevention */
+}
+
+.quote-accent {
+    color: var(--accent);
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 400;
+}
+
+@media (max-width: 680px) {
+    .hero-track {
+        height: 350vh;
+    }
+    .manifesto-line {
+        font-size: clamp(1.1rem, 5.4vw, 2.1rem);
+        column-gap: 0.24em;
+    }
+    .manifesto-quote {
+        margin-top: 2.2rem;
+    }
+    .quote-text {
+        font-size: clamp(0.95rem, 3.8vw, 1.2rem);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * BMW S1000RR Headlight Interaction Assembly & High Beam System
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* Light System Container — Scaled down by 20% hero object positioned above manifesto */
+.bmw-light-system {
+    position: relative;
+    width: clamp(88px, 11.2vw, 168px); /* Reduced by 20% (~11.2vw wide desktop) */
+    aspect-ratio: 616 / 128;
+    margin-top: 0.8rem;
+    margin-bottom: clamp(2.5rem, 6.5vh, 4.8rem); /* Breathable intentional space above manifesto */
+    z-index: 2;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: opacity, transform;
+}
+
+.bmw-assembly {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Layer Alignment — Shared 616x128 ViewBox alignment guarantees ground-truth geometry */
+.bmw-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    will-change: opacity, filter;
+}
+
+/* Initial Dormant State Styling */
+.bmw-fairing {
+    opacity: 0.22;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
+}
+
+.bmw-drl {
+    opacity: 0.25; /* Dormant muted state */
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.1));
+}
+
+.bmw-drl path {
+    fill: #4A4A4A; /* Muted grey initially before ignition */
+    transition: fill 0.3s ease;
+}
+
+.bmw-projector {
+    opacity: 0; /* 0% initial intensity */
+    filter: none; /* No initial filter — GSAP animates drop-shadow only */
+}
+
+/* Volumetric High Beams emitted directly from projector SVG focal points (Left: 24.5%, Right: 75.5%) */
+/* Physics: real light cones are saturated at source, fade to transparent at edges — never white */
+.beam-stream {
+    position: absolute;
+    top: 48%;
+    height: 220vh;
+    width: 90px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transform-origin: top center;
+    background: radial-gradient(ellipse at top, 
+        rgba(255, 85, 9, 1) 0%,
+        rgba(255, 85, 9, 0.88) 15%,
+        rgba(255, 85, 9, 0.55) 45%,
+        rgba(255, 85, 9, 0.15) 75%,
+        transparent 100%);
+    filter: blur(10px) saturate(1.6);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+}
+
+.beam-left {
+    left: 24.5%;
+    transform: translate(-50%, 0) scaleX(0.1) scaleY(0);
+}
+
+.beam-right {
+    left: 75.5%;
+    transform: translate(-50%, 0) scaleX(0.1) scaleY(0);
+}
+
+/* Cinematic Atmospheric Light Bloom */
+/* Physics fix: NO white at centre — real coloured light stays saturated at source.
+   White core was causing the grey/beige muddy intermediate wash. Pure orange falloff only. */
+.beam-bloom {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.2);
+    width: 120vw;
+    height: 120vw;
+    max-width: 1600px;
+    max-height: 1600px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 12;
+    opacity: 0;
+    background: radial-gradient(circle at center,
+        rgba(255, 85, 9, 0.96) 0%,
+        rgba(255, 85, 9, 0.80) 20%,
+        rgba(255, 85, 9, 0.50) 45%,
+        rgba(255, 85, 9, 0.18) 70%,
+        transparent 90%);
+    filter: blur(55px) saturate(1.4);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+}
+
+/* Global Fixed Viewport White Takeover Layer — Ensures 100% full screen wash without cuts */
+.white-takeover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    will-change: opacity;
+}
+
+/* Ensure manifesto container sits above stage background with relative hierarchy */
+.manifesto-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.manifesto-typography {
+    position: relative;
+    z-index: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #mouse-trail-canvas,
+    #dotsCanvas,
+    .beam-stream,
+    #beam-bloom {
+        display: none !important;
+        opacity: 0 !important;
+    }
+
+    .signature-container,
+    #sig-lottie {
+        opacity: 1 !important;
+    }
+
+    #bmw-drl path {
+        fill: var(--accent) !important;
+    }
+
+    #bmw-drl {
+        opacity: 1 !important;
+        filter: drop-shadow(0 0 16px rgba(255, 85, 9, 0.8)) !important;
+    }
+
+    .manifesto-line,
+    .manifesto-char {
+        opacity: 1 !important;
+        transform: none !important;
+        color: #ffffff !important;
+    }
+
+    .manifesto-char[data-accent="true"] {
+        color: var(--accent) !important;
+    }
+}

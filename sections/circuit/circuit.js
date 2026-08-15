@@ -12,12 +12,83 @@
     }
 
     // ── SECTION ZONES: divide track into segments mapped to DOM sections ───
-    const ZONES = [
-        { id: 'hero',    target: 'hero',      start: 0.00, end: 0.22, label: 'HOME',      scrollTo: 'hero' },
-        { id: 'work',    target: 'project-1', start: 0.22, end: 0.65, label: 'WORK',    scrollTo: 'project-1' },
-        { id: 'about',   target: 'about',     start: 0.65, end: 0.85, label: 'ABOUT',   scrollTo: 'about' },
-        { id: 'contact', target: 'contact',   start: 0.85, end: 1.00, label: 'CONTACT', scrollTo: 'contact' },
-    ];
+    // Populated dynamically by buildZonesFromRegistry() at init time.
+    // Shape: [{ id, target, start, end, label, scrollTo, _el }]
+    // Previously hardcoded — now derived from [data-section-id] elements
+    // via shared/section-registry.js.
+    let ZONES = [];
+
+    // ── Build ZONES from the Section Registry ──────────────────────────────
+    // Reads all [data-section-id] elements, measures their document positions,
+    // and assigns proportional fractional ranges (start/end) for each zone.
+    // This runs ONCE at init (and re-runs on resize via computeMilestones).
+    function buildZonesFromRegistry() {
+        // Import is not available in IIFE — use the global registry API
+        const registry = window.__sectionRegistry;
+        if (!registry) {
+            console.warn('[Circuit] Section Registry not available — using fallback zones');
+            // Fallback: use legacy hardcoded zones so the site still works
+            // if the registry isn't loaded (e.g., dev/test scenarios)
+            ZONES = [
+                { id: 'hero',    target: 'hero',    start: 0.00, end: 0.22, label: 'HOME',    scrollTo: 'hero' },
+                { id: 'work',    target: 'work',    start: 0.22, end: 0.65, label: 'WORK',    scrollTo: 'work' },
+                { id: 'about',   target: 'about-sequence', start: 0.65, end: 0.85, label: 'ABOUT',   scrollTo: 'about-sequence' },
+                { id: 'contact', target: 'contact', start: 0.85, end: 1.00, label: 'CONTACT', scrollTo: 'contact' },
+            ];
+            return;
+        }
+
+        registry.measure();
+        const sections = registry.getSections();
+
+        if (sections.length < 2) {
+            console.warn('[Circuit] fewer than 2 sections registered');
+            return;
+        }
+
+        // Compute the total scrollable range
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+
+        // For each registered section, compute its trigger scroll position
+        // using the SAME logic as the existing computeMilestones:
+        //   - First section: scroll = 0
+        //   - Last section: scroll = maxScroll - 0.5 * vh
+        //   - Others: absoluteTop - 0.2 * vh
+        const vh = window.innerHeight;
+        const triggerPoints = sections.map((sec, i) => {
+            if (i === 0) return 0;
+            if (i === sections.length - 1) return Math.max(0, maxScroll - vh * 0.5);
+            return Math.max(0, sec.top - vh * 0.2);
+        });
+
+        // Add the absolute end point (maxScroll = progress 1.0)
+        // This ensures the last zone reaches the bottom of the page
+
+        // Convert trigger scroll positions to normalized fractions (0–1)
+        // by dividing by maxScroll
+        const fractions = triggerPoints.map(t => Math.min(1, t / maxScroll));
+
+        // Build ZONES array with the same shape as the old hardcoded version
+        const newZones = [];
+        for (let i = 0; i < sections.length; i++) {
+            const sec = sections[i];
+            const start = fractions[i];
+            // end = next section's start, or 1.0 for the last
+            const end = (i < sections.length - 1) ? fractions[i + 1] : 1.0;
+
+            newZones.push({
+                id:       sec.id,
+                target:   sec.scrollTo || sec.id,   // DOM element ID for milestone measurement
+                start:    start,
+                end:      end,
+                label:    sec.label,
+                scrollTo: sec.scrollTo || sec.id,   // Scroll target for click navigation
+                _el:      sec.el,                   // Direct element ref (avoids getElementById)
+            });
+        }
+
+        ZONES = newZones;
+    }
 
     // ── DOM refs ───────────────────────────────────────────────────────────
     let pillEl, innerEl, rootEl, tiltEl, svgEl;
@@ -113,6 +184,7 @@
         }
 
         // Inject overlays
+        buildZonesFromRegistry(); // Must run BEFORE zone visuals are built
         buildFilters();
         buildSectionZones();
         buildRider();
@@ -749,11 +821,18 @@
     function computeMilestones() {
         milestones = [];
 
+        // Rebuild ZONES from registry to pick up any layout changes (resize, etc.)
+        buildZonesFromRegistry();
+
+        if (!ZONES.length) return;
+
         // maxScroll computed FIRST — the final zone needs it to ensure progress reaches 1.0
         const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
         ZONES.forEach((z, i) => {
-            const el = document.getElementById(z.target);
+            // Prefer the direct element reference from the registry (_el)
+            // Fall back to getElementById for the legacy fallback path
+            const el = z._el || document.getElementById(z.target);
             if (!el) return;
 
             // Get standard document-level top position
