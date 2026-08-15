@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - Modular Architecture Refactor
+
+### Highlights
+- Completely modularized the portfolio architecture, decoupling CSS and JS files by specific sections.
+- Stabilized and froze the underlying codebase structure, laying the technical foundation for future visual redesigns.
+
+### Technical
+- Implemented a dynamic lightweight Section Registry (`shared/section-registry.js`) for global domain-aware routing.
+- Upgraded the Circuit tracker to dynamically derive zones and milestones from the Section Registry instead of hardcoded metrics.
+- Extracted section-specific styles from the monolithic `style.css` into dedicated module stylesheets (`hero.css`, `work.css`, `footer.css`, etc.).
+- Extracted section-specific JavaScript from `script.js` into targeted runtime modules (`hero.js`, `work.js`, etc.).
+- Decoupled Testimonials and Shared Sound ownership from the monolithic footer logic.
+
 ## [1.2.1] - Bike Sequence Expansion Refinements
 
 ### Experience
