@@ -53,7 +53,10 @@
     var TEXT_END     = 0.96;
     var BG_THRESHOLD = 0.68;
 
-
+    // ── Framer-style Media Expansion (Scroll-driven Entry) ───────────
+    var EXPAND_INSET_Y = 29.5; // vh initial inset
+    var EXPAND_INSET_X = 27.5; // vw initial inset
+    var EXPAND_RADIUS_TOKEN = 'var(--radius-xl)'; // Design System semantic token for large media
 
     var TOTAL      = 83;
     var PATH       = 'sections/about/assets/sequence_6/frame';
@@ -64,6 +67,7 @@
     // ── DOM refs ─────────────────────────────────────────────────────────────
     var section     = document.getElementById('about-sequence');
     var wrap        = document.getElementById('sequence-canvas-wrap');
+    var canvasInner = document.getElementById('sequence-canvas-inner');
     var canvas      = document.getElementById('sequence-canvas');
     var smoke       = document.getElementById('sequence-smoke');
     var loader      = document.getElementById('sequence-loader');
@@ -141,13 +145,6 @@
         var rawP = -rect.top / total;
         var p    = clamp(rawP, 0, 1);
 
-        // ── Work dimming (curtain entry depth) ────────────────────────────
-        // section.rect.top goes from +VH (canvas at screen bottom) → 0 (canvas locked)
-        // We want dimming to begin when canvas is 1 screen away and finish at lock.
-        // p_dim = (VH - rect.top) / VH  → 0 at +1VH, 1 at rect.top=0
-        var pDim = clamp((VH - rect.top) / VH, 0, 1);
-        applyWorkDim(pDim);
-
         // ── Background class swap (dark → beige) ─────────────────────────
         if (p >= BG_THRESHOLD && !isBeigeMode) {
             isBeigeMode = true;
@@ -191,6 +188,8 @@
             riseP = newRiseP;
             schedDraw();
         }
+        
+        applyMediaExpansion(newRiseP);
 
         // ── Velocity micro-zoom (only during locked scrub phase) ─────────────
         // Tracks scroll delta and applies a tiny zoom pulse to the canvas draw.
@@ -226,45 +225,24 @@
         }
     }
 
-    // ── Work section dark scrim (ICOMAT pattern) ──────────────────────────
-    // WHY SCRIM OVERLAY instead of filter:brightness():
-    //   filter creates a GPU compositing layer/stacking context on #work.
-    //   #about-sequence (margin-top:-100vh) visually overlaps #work's compositing region.
-    //   GPU compositor applied the brightness filter to that overlap → grey band.
-    //
-    //   #work-scrim is position:absolute inside #work. Opacity 0→0.88.
-    //   No filter = no stacking context = no bleed. #work has overflow:hidden so
-    //   the scrim is perfectly clipped to the section bounds.
-    //
-    // Tune values:
-    //   scale:  1.0 → 0.82   (content shrinks toward center)
-    //   scrim:  0   → 0.88   (black overlay opacity — near-black at peak)
-    //   radius: 0   → 24px
-    var workEl    = document.getElementById('more-work'); // Target more-work instead of work-inner to avoid breaking GSAP pin!
-    var workScrim = document.getElementById('work-scrim'); // dark overlay opacity target
-    var curScale  = 1.0, curScrim = 0.0, curRadius = 0.0;
-    var lastDim   = -1;
+    // ── Media Expansion (Scroll-driven Entry) ────────────────────────────────
+    var lastExpandP = -1;
+    function applyMediaExpansion(p) {
+        if (!canvasInner) return;
+        if (Math.abs(p - lastExpandP) < 0.001) return;
+        lastExpandP = p;
 
-    function applyWorkDim(p) {
-        if (!workEl || !workScrim) return;
-        if (Math.abs(p - lastDim) < 0.001) return;
-        lastDim = p;
+        // p=0 (just entering viewport): full inset constraints
+        // p=1 (locked at top): full bleed (0 inset, 0 radius)
+        var inv = 1 - easeOut3(p);
+        var curY = (EXPAND_INSET_Y * inv).toFixed(2);
+        var curX = (EXPAND_INSET_X * inv).toFixed(2);
 
-        var curScale  = 1 - p * 0.18;   // 1.0 → 0.82  (content scales down)
-        var curScrim  = p * 0.88;        // 0   → 0.88  (black overlay covers section)
-        var curRadius = p * 24;          // 0   → 24px
-
-        // Scale + corner rounding on content only (clear transform when 1.0 so position:fixed works for children)
-        if (curScale > 0.999) {
-            workEl.style.transform = 'none';
-            workEl.style.borderRadius = '0px';
+        if (p > 0.999) {
+            canvasInner.style.clipPath = 'none';
         } else {
-            workEl.style.transform = 'scale(' + curScale.toFixed(4) + ')';
-            workEl.style.borderRadius = curRadius.toFixed(1) + 'px';
+            canvasInner.style.clipPath = 'inset(' + curY + 'vh ' + curX + 'vw round calc(' + EXPAND_RADIUS_TOKEN + ' * ' + inv.toFixed(4) + '))';
         }
-
-        // Black scrim covers full #work (content + beige background) — clipped by overflow:hidden
-        workScrim.style.opacity = curScrim.toFixed(3);
     }
 
     // ── Draw pipeline ─────────────────────────────────────────────────────
@@ -303,10 +281,8 @@
         // ── Base cover scale (always fills canvas — zero bands guaranteed) ────────
         var scCover = Math.max(W / iW, H / iH);
 
-        // ── Ken Burns Zoom-Out (cubic ease-out — snappier spring-like settle) ─────
-        // ZOOM_IN=1.30: 30% oversized at entry. zoom >= 1.0 always → ZERO bands.
-        var ZOOM_IN = 1.30;
-        var zoom    = ZOOM_IN + (1.0 - ZOOM_IN) * easeOut3(riseP); // 1.30 → 1.00
+        // ── Constant 1.0 zoom at entry (removed Ken Burns effect) ─────────────────
+        var zoom = 1.0;
 
         // ── Velocity micro-zoom (camera-tracking breathe during scrub) ────────────
         // velZoom: 1.0 at rest → 1.025 at fast scroll. Camera follows bike energy.
@@ -314,11 +290,9 @@
 
         var sc = scCover * zoom * activeVelZoom;
 
-        // ── Parallax vertical drift (4% — eased, deeper unveiled-from-above pull) ─
-        var parallaxY = easeOut3(1 - riseP) * H * 0.04;
-
+        // Parallax removed (dy is purely centered)
         var dx = (W - iW * sc) / 2;
-        var dy = (H - iH * sc) / 2 + parallaxY;
+        var dy = (H - iH * sc) / 2;
 
         ctx.clearRect(0, 0, W, H);
         ctx.drawImage(img, dx, dy, iW * sc, iH * sc);

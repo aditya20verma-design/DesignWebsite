@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - Bike Sequence Cinematic Expansion
+
+### Highlights
+- Replaced the legacy Ken Burns entry effect with a premium, Framer-style scroll-driven media expansion for the bike sequence.
+- Implemented a physically accurate `#141414` environment for the bike canvas, matching the global Design System.
+
+### Experience
+- Added a constrained 45vw media card state that dynamically expands to edge-to-edge full-bleed based on scroll progress.
+- Resolved "white bleed" transition artifacts between the Work and About sections.
+- Flawlessly patched the baked `#111111` background in the initial 3D render frame to match the native UI environment without requiring runtime compositing.
+
 ## [1.1.0] - Phase 2 Design System & Repository Governance
 
 ### Highlights

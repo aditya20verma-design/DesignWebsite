@@ -8,7 +8,7 @@
     width: 100%;
     height: 360vh;         /* Combined budget: 100vh rise + 80vh bike scrub + 180vh horiz scrub */
     /* margin-top: -100vh removed so it doesn't swallow the interactive More Work grid */
-    background: #ffffff;   /* White background */
+    background: var(--bg-base);
     overflow: visible;     /* Must NOT clip sticky child */
 }
 
@@ -19,7 +19,7 @@
     height: 100vh;
     overflow: hidden;
     z-index: 10;           /* Canvas stays above footer until unpinned */
-    background: #ffffff;   /* Pure white container */
+    background: var(--bg-base);
 }
 
 /* Layer 1: Canvas Inner */
