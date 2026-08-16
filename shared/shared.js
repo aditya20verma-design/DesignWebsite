@@ -144,8 +144,13 @@ export function initShared() {
                         }
                         continue;
                     }
-                    const m = bg.match(/\d+/g);
-                    if (m && m.length >= 3) { totalLum += luminance(+m[0], +m[1], +m[2]); count++; }
+                    const m = bg.match(/\d+\.?\d*/g);
+                    if (m && m.length >= 3) {
+                        const alpha = m.length >= 4 ? parseFloat(m[3]) : 1;
+                        if (alpha < 0.2) continue;
+                        totalLum += luminance(+m[0], +m[1], +m[2]); 
+                        count++; 
+                    }
                     break;
                 }
             });
@@ -182,8 +187,12 @@ export function initShared() {
                         }
                         continue;
                     }
-                    const m = bg.match(/\d+/g);
-                    if (m && m.length >= 3) stLum = luminance(+m[0], +m[1], +m[2]);
+                    const m = bg.match(/\d+\.?\d*/g);
+                    if (m && m.length >= 3) {
+                        const alpha = m.length >= 4 ? parseFloat(m[3]) : 1;
+                        if (alpha < 0.2) continue;
+                        stLum = luminance(+m[0], +m[1], +m[2]);
+                    }
                     break;
                 }
                 if (stLum > 140) soundToggle.classList.add('sound-on-light');
@@ -386,7 +395,12 @@ export function initShared() {
                 let bg = getComputedStyle(el).backgroundColor;
                 if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') continue;
                 const m = bg.match(/\d+\.?\d*/g);
-                if (m && m.length >= 3) { lum = 0.299 * +m[0] + 0.587 * +m[1] + 0.114 * +m[2]; break; }
+                if (m && m.length >= 3) {
+                    const alpha = m.length >= 4 ? parseFloat(m[3]) : 1;
+                    if (alpha < 0.2) continue;
+                    lum = 0.299 * +m[0] + 0.587 * +m[1] + 0.114 * +m[2]; 
+                    break; 
+                }
             }
             if (lum === null) {
                 const m = getComputedStyle(document.body).backgroundColor.match(/\d+\.?\d*/g);

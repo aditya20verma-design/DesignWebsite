@@ -958,7 +958,6 @@ nav.nav--hero .nav-link {
 /* ── Journey Deck Section ─────────────────────────────────────────── */
 .journey-section {
     width: 100%;
-    padding: 8rem var(--page-margin-x) 10rem;
     position: relative;
     z-index: 1; /* Sits above sticky footer reveal */
     overflow: visible;
@@ -1005,9 +1004,7 @@ nav.nav--hero .nav-link {
     .about-section {
         padding: 6rem var(--page-margin-x);
     }
-    .journey-section {
-        padding: 4rem var(--page-margin-x) 6rem;
-    }
+
 
 
 
@@ -1040,9 +1037,7 @@ nav.nav--hero .nav-link {
     .about-section {
         padding: 4rem var(--page-margin-x);
     }
-    .journey-section {
-        padding: 2.5rem var(--page-margin-x) 4rem;
-    }
+
 
     /* Keep sticky so the hero pins while the card-collapse animates */
     .hero-sticky-container {

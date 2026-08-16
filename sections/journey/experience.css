@@ -13,7 +13,7 @@
     /* Pure deep dark background matching the end-state overlay of #horiz-journey (#141414) */
     background-color: var(--bg-base);
     color: var(--text-primary);
-    padding: 6vh 0;
+    padding: var(--fluid-lg) 0;
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -566,9 +566,7 @@
         width: 88vw;
     }
 
-    .journey-section {
-        padding: 50px 0 70px;
-    }
+
 
     .journey-header {
         margin-bottom: 0;

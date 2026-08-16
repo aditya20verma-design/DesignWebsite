@@ -20,12 +20,19 @@ const TRANSITION_EASE = 'power3.out';
 
 // ── State ───────────────────────────────────────────────────────────────────
 let activeProject = 0;
-let scrollActiveProject = 0;
+let clickActivatedIndex = -1;
+let pendingActiveIndex = -1;
 let isHovering = false;
+let isDOMScrolling = false;
 let panels = [];
 let scrollTriggerInstance = null;
 const isMobile = () => window.innerWidth <= 768;
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+window.addEventListener('scroll', () => {
+    isDOMScrolling = true;
+    requestAnimationFrame(() => { isDOMScrolling = false; });
+}, { passive: true });
 
 // ══════════════════════════════════════════════════════════════════════════════
 // RENDER — Build DOM
@@ -45,13 +52,13 @@ function renderSectionHeader() {
 function renderFeaturedPanel(project, index) {
     const tags = project.tags.map(t => `<span class="fw-panel-tag">${t}</span>`).join('');
     return `
-        <div class="fw-panel ${index === 0 ? 'is-active' : ''}"
-             id="project-${project.id}"
-             data-project-index="${index}"
-             data-project-id="${project.id}"
-             tabindex="0"
-             role="button"
-             aria-label="${project.title} — ${project.company}">
+        <a href="${project.caseStudyUrl}" 
+           class="fw-panel ${index === 0 ? 'is-active' : ''}"
+           id="project-${project.id}"
+           data-project-index="${index}"
+           data-project-id="${project.id}"
+           tabindex="0"
+           aria-label="${project.title} — ${project.company}">
             <div class="fw-panel-art">
                 <img src="${project.image}"
                      alt="${project.title}"
@@ -70,15 +77,12 @@ function renderFeaturedPanel(project, index) {
                 <div class="fw-panel-expanded">
                     <p class="fw-panel-hook">${project.hook}</p>
                     <div class="fw-panel-tags">${tags}</div>
-                    <a href="${project.caseStudyUrl}"
-                       class="fw-panel-cta"
-                       data-cursor="pill"
-                       data-cursor-label="View project">
+                    <span class="fw-panel-cta">
                         VIEW CASE STUDY <span class="cta-arrow">↗</span>
-                    </a>
+                    </span>
                 </div>
             </div>
-        </div>
+        </a>
     `;
 }
 
@@ -89,14 +93,15 @@ function renderFeaturedStage(featured) {
         <div class="fw-pin-outer" id="fw-pin-outer">
         <div class="fw-stage-wrap" id="fw-stage-wrap">
             <div class="fw-heading-bg" id="fw-heading-bg">
-                <h2 class="fw-brier-title">
-                    <span class="fw-brier-line">Featured</span>
-                    <span class="fw-brier-line">Work</span>
-                </h2>
+                <div class="fw-heading-content">
+                    <h2 class="fw-brier-title">
+                        <span class="fw-brier-line fw-line-brier">Projects worth</span>
+                        <span class="fw-brier-line fw-line-regular">slowing down for.</span>
+                    </h2>
+                    <p class="fw-heading-body">Product thinking, sharp interfaces, and a little obsession with the details.</p>
+                </div>
             </div>
             <div class="fw-stage" id="fw-stage">
-                <div class="fw-fade-top"></div>
-                <div class="fw-fade-bottom"></div>
                 ${panelsMarkup}
             </div>
         </div>
@@ -112,7 +117,7 @@ function renderMoreWorkCard(project) {
             <a href="${project.caseStudyUrl}"
                class="mw-card-link"
                data-cursor="pill"
-               data-cursor-label="View project"
+               data-cursor-label="View case study ↗"
                aria-label="${project.title} Case Study">
                 <div class="mw-card-media">
                     <span class="mw-card-bg-num">${project.number}</span>
@@ -125,10 +130,8 @@ function renderMoreWorkCard(project) {
                     <span class="mw-card-num">${project.number}</span>
                     <h4 class="mw-card-title">${project.title}</h4>
                     <span class="mw-card-company">${project.company}</span>
-                    <div class="mw-card-hover">
-                        <p class="mw-card-hook">${project.hook}</p>
-                        <span class="mw-card-cta">VIEW CASE STUDY <span class="cta-arrow">↗</span></span>
-                    </div>
+                    <p class="mw-card-hook">${project.hook}</p>
+                    <span class="mw-card-cta">VIEW CASE STUDY <span class="cta-arrow">↗</span></span>
                 </div>
             </a>
         </article>
@@ -196,29 +199,73 @@ function updateActiveStrokeProximity(e) {
     activePanel.style.setProperty('--stroke-right-color', calculateStrokeColor(distRight));
 }
 
+// ── Fixed Track Geometry Helper ─────────────────────────────────────────────
+function getLayoutGeometry() {
+    const stage = document.querySelector('.fw-stage');
+    if (!stage) return null;
+
+    const W = stage.clientWidth || window.innerWidth;
+    const g = Math.max(4, Math.min(window.innerWidth * 0.005, 8));
+    const totalGutters = 4 * g;
+    const W_avail = Math.max(0, W - totalGutters);
+
+    const ratioActive = 3.5;
+    const ratioCollapsed = 0.8;
+    const totalRatio = ratioActive + 4 * ratioCollapsed; // 6.7
+
+    const wActive = (ratioActive / totalRatio) * W_avail;
+    const wCollapsed = (ratioCollapsed / totalRatio) * W_avail;
+    const deltaW = wActive - wCollapsed;
+
+    return { W, g, wActive, wCollapsed, deltaW };
+}
+
+function getPanelX(i, activeIdx, geom) {
+    if (!geom) return 0;
+    const { g, wCollapsed, deltaW } = geom;
+    const active = activeIdx < 0 ? 0 : activeIdx;
+    const base = i * (wCollapsed + g);
+    return i > active ? base + deltaW : base;
+}
+
 function setActiveProject(index, animate = true) {
     if (index >= FEATURED_COUNT) return;
-    if (index === activeProject && (index === -1 || panels[index]?.classList.contains('is-active'))) return;
+    const targetIdx = index < 0 ? 0 : index;
 
     resetPanelStrokes();
-    activeProject = index;
+    activeProject = targetIdx;
+
+    const geom = getLayoutGeometry();
+    if (!geom) return;
 
     panels.forEach((panel, i) => {
-        const isActive = i === index;
+        const isActive = i === activeProject;
         panel.classList.toggle('is-active', isActive);
 
         if (isMobile()) return;
 
+        // Skip explicit JS/GSAP manipulation if the ScrollTrigger entrance is still active.
+        // The ScrollTrigger's dynamic interpolator perfectly owns the composition logic.
+        if (!window.fwEntranceSettled) return;
+
+        const targetX = getPanelX(i, activeProject, geom);
+        const targetWidth = isActive ? geom.wActive : geom.wCollapsed;
+
         if (animate && typeof gsap !== 'undefined' && !prefersReducedMotion()) {
-            const targetFlex = isActive ? PANEL_FLEX_ACTIVE : PANEL_FLEX_INACTIVE;
-            gsap.to(panel, {
-                flex: targetFlex,
-                duration: 0.6,
-                ease: 'power3.out',
+            if (panel._hoverTween) panel._hoverTween.kill();
+            
+            panel._hoverTween = gsap.to(panel, {
+                x: targetX,
+                width: targetWidth,
+                duration: TRANSITION_DURATION,
+                ease: TRANSITION_EASE,
                 overwrite: 'auto'
             });
         } else {
-            panel.style.flex = isActive ? PANEL_FLEX_ACTIVE : PANEL_FLEX_INACTIVE;
+            gsap.set(panel, {
+                x: targetX,
+                width: targetWidth
+            });
         }
     });
 }
@@ -238,39 +285,29 @@ function initPanelInteraction() {
                 isHovering = true;
                 setActiveProject(index);
             });
+
+            const contentArea = panel.querySelector('.fw-panel-content');
+            if (contentArea) {
+                contentArea.addEventListener('mouseenter', () => {
+                    if (panel.classList.contains('is-active') && window._cursorEnterPill) {
+                        window._cursorEnterPill('View case study ↗');
+                    }
+                });
+
+                contentArea.addEventListener('mouseleave', () => {
+                    if (window._cursorLeavePill) window._cursorLeavePill();
+                });
+            }
         }
 
-        // Add gutter dead-zone tracking using panel bounds
-        panel.addEventListener('mousemove', (e) => {
-            if (!window.fwEntranceSettled) return;
-            const rect = panel.getBoundingClientRect();
-            // Dead zone is the outer 12px of the panel (simulating the gutter interaction gap)
-            const isNearEdge = (e.clientX - rect.left < 12) || (rect.right - e.clientX < 12);
-            
-            if (isNearEdge) {
-                if (isHovering) {
-                    isHovering = false;
-                    setActiveProject(-1);
-                }
-            } else {
-                if (!isHovering) {
-                    isHovering = true;
-                    setActiveProject(index);
-                }
-            }
-        });
-
-        panel.addEventListener('mouseleave', () => {
-            // we let the stage mouseleave handle reverting to scroll state, or if it moves into another panel, that panel's enter fires
-        });
-        
         panel.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const cta = panel.querySelector('.fw-panel-cta');
-                if (cta) {
-                    sessionStorage.setItem('last_clicked_project_card', `project-${panel.dataset.projectId}`);
-                    window.location.href = cta.href;
+                if (!panel.classList.contains('is-active')) {
+                    e.preventDefault();
+                    setActiveProject(index);
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    window.location.href = panel.href;
                 }
             }
             if (e.key === 'ArrowRight' && index < FEATURED_COUNT - 1) {
@@ -290,40 +327,48 @@ function initPanelInteraction() {
         });
 
         panel.addEventListener('click', (e) => {
-            if (e.target.closest('.fw-panel-cta')) return;
-
-            if (panel.classList.contains('is-active')) {
-                const cta = panel.querySelector('.fw-panel-cta');
-                if (cta) {
-                    sessionStorage.setItem('last_clicked_project_card', `project-${panel.dataset.projectId}`);
-                    window.location.href = cta.href;
+            if (!window.fwEntranceSettled) {
+                e.preventDefault();
+                pendingActiveIndex = index;
+                
+                if (window.fwScrollTriggers && window.fwScrollTriggers.length > 0) {
+                    const st = window.fwScrollTriggers[0];
+                    const targetScroll = st.start + (st.end - st.start) * 0.95 + 2; // +2px to guarantee progress >= 1
+                    
+                    if (window.__lenisInstance) {
+                        window.__lenisInstance.scrollTo(targetScroll, { 
+                            duration: 1.0, 
+                            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) 
+                        });
+                    } else {
+                        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                    }
                 }
-            } else {
+                return;
+            }
+
+            if (clickActivatedIndex !== index) {
+                e.preventDefault();
+                clickActivatedIndex = index;
                 setActiveProject(index);
-                scrollActiveProject = index;
             }
         });
     });
 
-    if (!supportsHover || isMobile()) {
-        panels.forEach((panel, index) => {
-            panel.addEventListener('click', () => {
-                if (!panel.classList.contains('is-active')) {
-                    setActiveProject(index);
-                }
-            });
-        });
-    }
+
 
     const stage = document.getElementById('fw-stage');
     const stageWrap = document.getElementById('fw-stage-wrap');
 
     if (stage && supportsHover && !isMobile()) {
         stage.addEventListener('mouseleave', () => {
+            const isLenisScrolling = window.__lenisInstance && window.__lenisInstance.isScrolling;
+            if (isLenisScrolling || isDOMScrolling) return;
+
             if (!window.fwEntranceSettled) return;
             isHovering = false;
             resetPanelStrokes();
-            setActiveProject(-1);
+            setActiveProject(0);
         });
     }
 
@@ -334,6 +379,12 @@ function initPanelInteraction() {
             }
         }, { passive: true });
     }
+
+    window.addEventListener('resize', () => {
+        if (window.fwEntranceSettled) {
+            setActiveProject(activeProject, false);
+        }
+    });
 }
 
 
@@ -346,14 +397,15 @@ function initScrollProgression() {
     if (isMobile()) return;
     if (prefersReducedMotion()) return;
 
+    const pinOuter = document.getElementById('fw-pin-outer');
     const stageWrap = document.getElementById('fw-stage-wrap');
-    if (!stageWrap) return;
+    if (!pinOuter || !stageWrap) return;
 
-    // Kill any previous instance
-    if (scrollTriggerInstance) {
-        scrollTriggerInstance.kill();
-        scrollTriggerInstance = null;
+    // Kill any previous instances
+    if (window.fwScrollTriggers) {
+        window.fwScrollTriggers.forEach(t => t.kill());
     }
+    window.fwScrollTriggers = [];
 
     const headingBg = document.getElementById('fw-heading-bg');
     const stage = document.querySelector('.fw-stage');
@@ -363,90 +415,118 @@ function initScrollProgression() {
 
     window.fwEntranceSettled = false;
 
-    // ── Initial hidden state: everything is off-screen to the RIGHT ──
-    // Heading slides in with the group
-    gsap.set(headingBg, { x: window.innerWidth, opacity: 0 });
-    // Stage (contains all 5 panels) is also pushed right
-    gsap.set(stage, { x: window.innerWidth * 0.6 });
-    // Stack panels: panel[4] is rightmost (xPercent: 0), rest stacked on top of it to its right
-    gsap.set(panelEls[0], { xPercent: 400 });
-    gsap.set(panelEls[1], { xPercent: 300 });
-    gsap.set(panelEls[2], { xPercent: 200 });
-    gsap.set(panelEls[3], { xPercent: 100 });
-    gsap.set(panelEls[4], { xPercent: 0 });
+    const geom = getLayoutGeometry();
+    if (!geom) return;
 
-    // ─────────────────────────────────────────────────────────────────
-    // SCROLL TIMELINE
-    // Total pinned scroll: +=280vh (viewport heights)
-    //   Phase 1 (0 → 0.22):    Heading + stacked deck enters     ~62vh
-    //   Phase 2 (0.22 → 0.70): Stack unfolds                     ~134vh
-    //   Phase 3 (0.70 → 1.0):  Hold + Interaction               ~84vh
-    // ─────────────────────────────────────────────────────────────────
+    const g = geom.g;
+
+    // ── FINAL SETTLED STATE ──
+    const settledX = panelEls.map((_, i) => getPanelX(i, 0, geom));
+    const wChunk1 = headingBg.offsetWidth || Math.min(geom.W * 0.38, 520);
+    const headingLeft = parseFloat(window.getComputedStyle(headingBg).left) || 0;
+
+    // ── INITIAL STATE (t = 0) ──
+    // Train entering from RIGHT side. 
+    // Option B: Shifted back to 85vw so it only slightly peeks during the vertical entry scroll.
+    const chunk1StartX = geom.W * 0.85;
+    
+    // The physical right edge of Chunk 1 on screen is (chunk1StartX + headingLeft) + wChunk1.
+    // The deck must start exactly `chunkGap` pixels to the right of this physical edge.
+    const chunkGap = 64; // Maximum gap from design system (--space-16)
+    const deckStartX = chunk1StartX + headingLeft + wChunk1 + chunkGap;
+
+    // Deck is fanned (16px offset)
+    const FAN_OFFSET = 16;
+    const initialCardX = panelEls.map((_, i) => deckStartX + i * FAN_OFFSET);
+
+    // Set Initial CSS
+    gsap.set(headingBg, { x: chunk1StartX, opacity: 1 });
+    panelEls.forEach((panel, i) => {
+        gsap.set(panel, { 
+            x: initialCardX[i], 
+            width: geom.wCollapsed 
+        });
+    });
+    gsap.set(stage, { x: 0 });
+
+    // ── PREPARE HEIGHT BUDGET ──
+    // Activate the reserved scroll height (280vh) BEFORE creating the trigger.
+    // This allows the timeline's 'bottom bottom' math to perfectly map the entire distance.
+    if (pinOuter) pinOuter.classList.add('is-pinned');
+
+    // ── ONE AUTHORITATIVE MASTER SCROLL TIMELINE ──
+    // Uses dynamic interpolation to guarantee smooth reverse scrubs from ANY active hover state.
     const tl = gsap.timeline({
         scrollTrigger: {
-            trigger: stageWrap,
-            start: 'top top',
-            end: '+=280%',
-            pin: true,
-            // ScrollTrigger's auto pin-spacing computed 0 reserved space for this
-            // element (a quirk of its container context), which let the More Work
-            // grid scroll up into view while Featured Work was still pinned and
-            // mid-animation. Instead we manage the reserved scroll distance
-            // ourselves: pinSpacing:false + a fixed-height `.fw-pin-outer` wrapper
-            // (see work.css) that reserves 100vh (stage) + 280vh (pin) = 380vh, so
-            // More Work only reaches the viewport after Featured has scrolled away.
-            pinSpacing: false,
-            anticipatePin: 1,
-            scrub: 0.5,           // Responsive scrub
+            trigger: pinOuter,
+            start: 'top bottom',  
+            end: 'bottom bottom', 
+            scrub: true,
+            invalidateOnRefresh: true,
             onUpdate: (self) => {
-                // Enable interaction at 0.70 so they are firmly settled in place.
-                if (self.progress >= 0.70 && !window.fwEntranceSettled) {
+                // ANIM_DUR maps the untacking sequence to 95% of the scroll range
+                let p = self.progress / 0.95;
+                if (p > 1) p = 1;
+
+                if (p >= 1 && !window.fwEntranceSettled) {
                     window.fwEntranceSettled = true;
-                    setActiveProject(0, false);
-                    scrollActiveProject = 0;
-                } else if (self.progress < 0.70 && window.fwEntranceSettled) {
+                    
+                    if (pendingActiveIndex !== -1) {
+                        activeProject = pendingActiveIndex;
+                        clickActivatedIndex = pendingActiveIndex;
+                        pendingActiveIndex = -1;
+                        setActiveProject(activeProject, true); // Animate expansion
+                    } else {
+                        // Ensure the visual state perfectly matches the active class states
+                        setActiveProject(activeProject === -1 ? 0 : activeProject, false);
+                    }
+                } else if (p < 1 && window.fwEntranceSettled) {
                     window.fwEntranceSettled = false;
-                    setActiveProject(-1, false);
-                    scrollActiveProject = -1;
+                    
+                    // Immediately kill active hover tweens and remove classes for reverse scrub
+                    panelEls.forEach(panel => {
+                        panel.classList.remove('is-active');
+                        if (panel._hoverTween) {
+                            panel._hoverTween.kill();
+                            panel._hoverTween = null;
+                        }
+                    });
                 }
-            },
-            onLeave: () => {
-                // fwEntranceSettled is already handled dynamically by onUpdate
-            },
-            onEnterBack: () => {
-                // fwEntranceSettled is handled by onUpdate as progress drops below 0.70
+
+                if (!window.fwEntranceSettled) {
+                    // ── DYNAMIC INTERPOLATION ──
+                    // By interpolating towards the LAST KNOWN active project, we guarantee that 
+                    // scrolling backwards never causes a violent snap back to Card 0.
+                    const targetActive = activeProject === -1 ? 0 : activeProject;
+                    const currentSettledX = panelEls.map((_, i) => getPanelX(i, targetActive, geom));
+                    const currentChunk1EndX = currentSettledX[0] - wChunk1 - chunkGap - headingLeft;
+
+                    // Interpolate Heading
+                    const headingX = chunk1StartX + (currentChunk1EndX - chunk1StartX) * p;
+                    gsap.set(headingBg, { x: headingX });
+
+                    // Interpolate Cards
+                    panelEls.forEach((panel, i) => {
+                        const currentX = initialCardX[i] + (currentSettledX[i] - initialCardX[i]) * p;
+                        const targetW = i === targetActive ? geom.wActive : geom.wCollapsed;
+                        const currentW = geom.wCollapsed + (targetW - geom.wCollapsed) * p;
+                        
+                        gsap.set(panel, { x: currentX, width: currentW });
+                    });
+                }
             },
             onLeaveBack: () => {
                 window.fwEntranceSettled = false;
-                // Reset panel flex states so scroll-back reversal is clean
-                panels.forEach(panel => { panel.style.flex = ''; });
+                activeProject = -1; // Reset memory so next entry defaults to Card 0
+                pendingActiveIndex = -1;
             }
         }
     });
 
-    // ── Phase 1 (0 → 0.22): Enter from right ──
-    tl.to(headingBg, { x: 0, opacity: 1, ease: 'power3.out', duration: 0.22 }, 0);
-    tl.to(stage, { x: 0, ease: 'power3.out', duration: 0.22 }, 0);
+    // Dummy tween to force timeline to consume the full scrub range
+    tl.to({}, { duration: 1 });
 
-    // ── Phase 2 (0.22 → 0.70): Staggered left-to-right unfold ──
-    const unfoldStart = 0.22;
-    const unfoldDuration = 0.48; // span
-    const stagger = 0.05;        // offset
-
-    tl.to(panelEls[0], { xPercent: 0, ease: 'power2.inOut', duration: unfoldDuration - stagger * 0 }, unfoldStart + stagger * 0);
-    tl.to(panelEls[1], { xPercent: 0, ease: 'power2.inOut', duration: unfoldDuration - stagger * 1 }, unfoldStart + stagger * 1);
-    tl.to(panelEls[2], { xPercent: 0, ease: 'power2.inOut', duration: unfoldDuration - stagger * 2 }, unfoldStart + stagger * 2);
-    tl.to(panelEls[3], { xPercent: 0, ease: 'power2.inOut', duration: unfoldDuration - stagger * 3 }, unfoldStart + stagger * 3);
-    // Panel 4 is already at xPercent:0 (rightmost anchor) — no animation needed
-
-    // ── Phase 3 (0.70 → 1.0): Hold — all 5 visible ──
-    tl.to({}, { duration: 0.30 }, 0.70); // empty tween to extend timeline to 1.0
-
-    scrollTriggerInstance = tl.scrollTrigger;
-
-    // Activate the reserved scroll height only now that the pin is live.
-    const pinOuter = document.getElementById('fw-pin-outer');
-    if (pinOuter) pinOuter.classList.add('is-pinned');
+    window.fwScrollTriggers.push(tl.scrollTrigger);
 }
 
 
@@ -584,7 +664,7 @@ export function initWorkStage() {
     if (!panels.length) return;
 
     // Reset flex to inactive by default for the entrance animation
-    scrollActiveProject = -1;
+    clickActivatedIndex = -1;
     setActiveProject(-1, false);
 }
 

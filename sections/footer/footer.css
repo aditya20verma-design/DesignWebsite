@@ -17,7 +17,7 @@
 /* Inner wrapper — GSAP animates translateY(60px) → 0 as footer is revealed.
    No opacity here — GSAP handles it to avoid partial-fade artifacts. */
 .footer-inner {
-    padding: 100px var(--page-margin-x);
+    padding: var(--fluid-xl) var(--page-margin-x) var(--fluid-lg);
     min-height: 660px;
     display: flex;
     flex-direction: column;
@@ -128,9 +128,6 @@
 /* ── Mobile (≤ 600px) ───────────────────────────────────── */
 @media (max-width: 600px) {
     /* Footer */
-    .footer-inner {
-        padding: 4rem 1.25rem 5rem;
-    }
 
     .footer-heading {
         font-size: clamp(1.75rem, 8vw, 3rem);

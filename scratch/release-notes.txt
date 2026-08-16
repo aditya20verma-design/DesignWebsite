@@ -1,0 +1,8 @@
+### Highlights
+- Replaced the legacy Ken Burns entry effect with a premium, Framer-style scroll-driven media expansion for the bike sequence.
+- Implemented a physically accurate `#141414` environment for the bike canvas, matching the global Design System.
+
+### Experience
+- Added a constrained 45vw media card state that dynamically expands to edge-to-edge full-bleed based on scroll progress.
+- Resolved "white bleed" transition artifacts between the Work and About sections.
+- Flawlessly patched the baked `#111111` background in the initial 3D render frame to match the native UI environment without requiring runtime compositing.

@@ -1,11 +1,10 @@
 /* ============================================================
    TYPOGRAPHY SYSTEM — Aditya Verma Portfolio
    ============================================================
-   Two fonts. SF Pro leads. Brier decorates.
-
-   SF Pro  → ALL headings, body, UI, labels, navigation
-   Brier   → Decoration only — apply via .font-accent on
-               selected <span>s inside headings
+   SF Pro      → ALL headings, body, UI, labels, navigation
+   Brier       → Decoration only — .font-accent spans inside headings
+   Mostwasted  → Display accent: Manifesto 'Who Race' tagline
+   Brushed Traveler → Graphic display: Manifesto '20' identity mark
 
    Rules:
    - Weights: 400, 500, 600 only
@@ -14,6 +13,24 @@
    - Alignment: left only
    ============================================================ */
 
+
+/* ── @font-face: Mostwasted ───────────────────────────────── */
+@font-face {
+    font-family: 'Mostwasted';
+    src: url('./fonts/Mostwasted.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ── @font-face: Brushed Traveler ─────────────────────────── */
+@font-face {
+    font-family: 'Brushed Traveler';
+    src: url('./fonts/Brushed Traveler.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
 
 /* ── @font-face: Brier ─────────────────────────────────────── */
 @font-face {
@@ -45,8 +62,15 @@
     --font-body:     var(--font-family-primary);  /* Paragraphs, descriptions */
     --font-ui:       var(--font-family-primary);  /* Nav, labels, buttons, meta */
     --font-mono:     var(--font-family-mono);     /* Dates, timestamps, code */
-    --font-accent:   var(--font-family-editorial);/* Brier decoration: .font-accent spans only */
-    --font:          var(--font-body);            /* <body> default */
+    --font-accent:        var(--font-family-editorial);/* Brier decoration: .font-accent spans only */
+    --font:              var(--font-body);            /* <body> default */
+
+    /* ── Display Accent Fonts ──────────────────────────────
+       Registered here for global reuse across sections.
+       Currently consumed by Manifesto (sections/hero).
+    ─────────────────────────────────────────────────── */
+    --font-mostwasted:      'Mostwasted', cursive;     /* Tagline display: 'Who Race' */
+    --font-brushed-traveler:'Brushed Traveler', cursive;/* Graphic mark: '20' identity */
 
 
     /* ── Type Scale ────────────────────────────────────────

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><body>
+<img id="img" src="../sections/about/assets/sequence_6/frame1.backup.webp" onload="analyze()">
+<script>
+function analyze() {
+    let img = document.getElementById('img');
+    let canvas = document.createElement('canvas');
+    canvas.width = img.width; canvas.height = img.height;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    let data = ctx.getImageData(0,0,1,1).data;
+    console.log("Browser pixel 0,0:", data);
+}
+</script>
+</body></html>

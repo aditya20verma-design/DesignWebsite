@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - Cinematic Work Interaction Refinements
+
+### Highlights
+- Completely rebuilt the "More Work" component layout into a stable, non-collapsing grid system.
+- Implemented an elegant "early-click auto-completion" model for Featured Work cards during the scroll entrance.
+
+### Experience
+- Early clicks on a partially visible Featured Work card during the entrance transition now organically auto-scroll to the settled boundary before securely triggering the expansion tween.
+- Re-architected Featured Work click gating to enforce an "Expand first, Navigate second" user flow without fragile timeout dependencies.
+- Refactored `mouseleave` resets to perfectly respect native and Lenis scroll states, preventing the page from abruptly snapping back to Card 01 during reverse scrubs.
+
+### Fixes
+- Fixed an alpha-channel evaluation bug in the smart cursor system that incorrectly displayed light-mode pills on dark transparent background blends.
+
 ## [2.0.0] - Modular Architecture Refactor
 
 ### Highlights

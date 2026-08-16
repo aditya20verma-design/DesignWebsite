@@ -1,0 +1,203 @@
+/* ══════════════════════════════════════════════════════════════════
+   ARCHIVED: BMW S1000RR Headlight Manifesto CSS Fragment
+   Originally lived in: sections/hero/hero.css (lines ~224–528)
+   Replaced by: Phase 3A New Manifesto Redesign (2026-08-16)
+   DO NOT import this file. Reference only.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Old Manifesto Stage Layout ─────────────────────────── */
+.manifesto-stage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: var(--app-height, 100dvh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 7vw;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+}
+.manifesto-container {
+    position: relative;
+    width: 100%;
+    max-width: 1240px;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.manifesto-typography {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+.manifesto-line {
+    font-family: var(--font-heading);
+    font-size: clamp(1.4rem, 4.3vw, 4.4rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    text-transform: uppercase;
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    column-gap: 0.32em;
+    white-space: nowrap;
+}
+.manifesto-word { display: inline-flex; white-space: nowrap; }
+.manifesto-char {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.22);
+    will-change: color, text-shadow;
+    transition: none;
+}
+.manifesto-char[data-accent="true"],
+.manifesto-accent {
+    font-family: var(--font-accent);
+    font-weight: 400;
+    letter-spacing: 0em;
+    color: rgba(255, 255, 255, 0.22);
+    will-change: color, text-shadow;
+}
+.manifesto-quote {
+    margin-top: 3.5rem;
+    opacity: 0;
+    transform: translateY(22px);
+    will-change: transform, opacity;
+}
+.quote-text {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: clamp(1rem, 1.6vw, 1.45rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    max-width: 760px;
+    text-wrap: balance;
+}
+.quote-accent {
+    color: var(--accent);
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* ── BMW S1000RR Headlight Assembly ──────────────────────── */
+.bmw-light-system {
+    position: relative;
+    width: clamp(88px, 11.2vw, 168px);
+    aspect-ratio: 616 / 128;
+    margin-top: 0.8rem;
+    margin-bottom: clamp(2.5rem, 6.5vh, 4.8rem);
+    z-index: 2;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: opacity, transform;
+}
+.bmw-assembly {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bmw-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    will-change: opacity, filter;
+}
+.bmw-fairing { opacity: 0.22; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8)); }
+.bmw-drl { opacity: 0.25; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.1)); }
+.bmw-drl path { fill: #4A4A4A; transition: fill 0.3s ease; }
+.bmw-projector { opacity: 0; filter: none; }
+
+/* Volumetric High Beams */
+.beam-stream {
+    position: absolute;
+    top: 48%;
+    height: 220vh;
+    width: 90px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transform-origin: top center;
+    background: radial-gradient(ellipse at top,
+        rgba(255, 85, 9, 1) 0%,
+        rgba(255, 85, 9, 0.88) 15%,
+        rgba(255, 85, 9, 0.55) 45%,
+        rgba(255, 85, 9, 0.15) 75%,
+        transparent 100%);
+    filter: blur(10px) saturate(1.6);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+}
+.beam-left  { left: 24.5%; transform: translate(-50%, 0) scaleX(0.1) scaleY(0); }
+.beam-right { left: 75.5%; transform: translate(-50%, 0) scaleX(0.1) scaleY(0); }
+.beam-bloom {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.2);
+    width: 120vw;
+    height: 120vw;
+    max-width: 1600px;
+    max-height: 1600px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 12;
+    opacity: 0;
+    background: radial-gradient(circle at center,
+        rgba(255, 85, 9, 0.96) 0%,
+        rgba(255, 85, 9, 0.80) 20%,
+        rgba(255, 85, 9, 0.50) 45%,
+        rgba(255, 85, 9, 0.18) 70%,
+        transparent 90%);
+    filter: blur(55px) saturate(1.4);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+}
+
+/* Global Fixed Viewport White Takeover Layer */
+.white-takeover {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    will-change: opacity;
+}
+
+/* Reduced-motion overrides for archived system */
+@media (prefers-reduced-motion: reduce) {
+    .beam-stream, #beam-bloom { display: none !important; opacity: 0 !important; }
+    #bmw-drl path { fill: var(--accent) !important; }
+    #bmw-drl { opacity: 1 !important; filter: drop-shadow(0 0 16px rgba(255, 85, 9, 0.8)) !important; }
+    .manifesto-line, .manifesto-char { opacity: 1 !important; transform: none !important; color: #ffffff !important; }
+    .manifesto-char[data-accent="true"] { color: var(--accent) !important; }
+}

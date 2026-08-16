@@ -376,257 +376,82 @@ export function initHero() {
         });
     }());
 
-    // ── Apple-Level Editorial Typographic Manifesto Scrub Engine ──
-    // ── Master Scroll-Driven Unified Hero & Manifesto Experience ──
+    // ── Phase 3A — New Editorial Manifesto Scrub Engine ──
     (function initMasterHeroScroll() {
         const manifesto = document.getElementById('hero-manifesto');
-        const typography = document.getElementById('manifesto-typography');
-        const navEl = document.querySelector('.nav');
-        if (!manifesto || !typography) return;
+        if (!manifesto) return;
 
-        // Respect prefers-reduced-motion
+        const navEl = document.querySelector('.nav');
+
+        // Reduced-motion: snap manifesto into place
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            gsap.set(typography, {
-                color: '#ffffff',
-                WebkitTextFillColor: '#ffffff',
-                opacity: 1
-            });
-            gsap.set('#hero-manifesto', { opacity: 1, y: 0 });
-            gsap.set('.bmw-light-system', { opacity: 1, y: 0, scale: 1 });
-            gsap.set('#bmw-drl path', { fill: '#ffffff' });
-            gsap.set('#bmw-drl', { opacity: 1, filter: 'drop-shadow(0 0 16px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.5))' });
-            gsap.set('.beam-stream, #beam-bloom, #white-takeover', { display: 'none', opacity: 0 });
-            gsap.set('.manifesto-line', { opacity: 1, y: 0 });
+            gsap.set('#hero-manifesto', { y: 0 });
             return;
         }
 
-        // Parse manifesto lines into character spans while preserving accent words
-        const ACCENT_WORDS = ['CREATIVITY', 'SYSTEMS', 'RESONATE.'];
-        const lines = typography.querySelectorAll('.manifesto-line');
-        const allChars = [];
-
-        lines.forEach((line) => {
-            const lineText = line.textContent.trim();
-            const words = lineText.split(/\s+/);
-            line.innerHTML = '';
-
-            words.forEach((wordText) => {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'manifesto-word';
-                const isAccentWord = ACCENT_WORDS.some(w => wordText.includes(w) || w.includes(wordText));
-
-                Array.from(wordText).forEach((charStr) => {
-                    const charSpan = document.createElement('span');
-                    charSpan.className = 'manifesto-char';
-                    charSpan.textContent = charStr;
-                    if (isAccentWord) {
-                        charSpan.dataset.accent = 'true';
-                    }
-                    wordSpan.appendChild(charSpan);
-                    allChars.push(charSpan);
-                });
-
-                line.appendChild(wordSpan);
-            });
-        });
-
-        // Clean initial setup for typography composition (All characters dull neutral grey before reveal)
-        gsap.set(typography, { opacity: 1 });
-        gsap.set('.manifesto-line', { opacity: 1, y: 0 });
-        gsap.set('.manifesto-char', { color: 'rgba(255, 255, 255, 0.22)' });
-
-        // 2. Build Single Master GSAP ScrollTrigger Timeline on .hero-track
         let isLogoHidden = false;
         if (navEl) navEl.classList.add('nav--hero');
 
-        // Dynamically calculate perfect geometric handoff to #work (No arbitrary negative margins)
-        // The hero lift finishes at progress 0.86. We pull #work up so it arrives exactly at top:0
-        // at the precise moment the hero parallax sweep finishes.
+        // ── GEOMETRY CONTRACT: Hero → Manifesto handoff ──
+        // The Manifesto sits outside the sticky container and flows normally.
+        // We pull it upward so it smoothly scrolls into the viewport exactly
+        // as the Hero finishes scaling down (progress 0.22).
         const trackEl = document.querySelector('.hero-track');
-        const workEl = document.getElementById('work');
-        if (trackEl && workEl) {
+        const manifestoEl = document.getElementById('hero-manifesto');
+        if (trackEl && manifestoEl) {
             const scrollDistance = trackEl.offsetHeight - window.innerHeight;
-            const liftEndScroll = scrollDistance * 0.86;
-            const pullUp = trackEl.offsetHeight - liftEndScroll;
-            workEl.style.marginTop = `-${pullUp}px`;
+            const startEnterScroll = scrollDistance * 0.22;
+            const targetTop = startEnterScroll + window.innerHeight;
+            const pullUp = trackEl.offsetHeight - targetTop;
+            manifestoEl.style.marginTop = `-${pullUp}px`;
         }
+        
+        // Remove margin from #work to restore its natural flow after Manifesto
+        const workEl = document.getElementById('work');
+        if (workEl) workEl.style.marginTop = '0px';
 
+        // ── masterTl: single ScrollTrigger, scrubbed ──────────────
         const masterTl = gsap.timeline({
             scrollTrigger: {
                 trigger: '.hero-track',
                 start: 'top top',
                 end: 'bottom bottom',
-                scrub: 0.5,
+                scrub: true,
                 onUpdate: (self) => {
                     const p = self.progress;
-                    // AV logo clip-path hiding during scroll
                     if (p > 0.03 && p < 0.88) {
-                        if (!isLogoHidden) { gsap.to('.av-shape', { clipPath: "inset(0% 0% 100% 0%)", duration: 0.4, ease: "power2.inOut", overwrite: "auto" }); isLogoHidden = true; }
+                        if (!isLogoHidden) { gsap.to('.av-shape', { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.4, ease: 'power2.inOut', overwrite: 'auto' }); isLogoHidden = true; }
                     } else {
-                        if (isLogoHidden) { gsap.to('.av-shape', { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut", overwrite: "auto" }); isLogoHidden = false; }
+                        if (isLogoHidden) { gsap.to('.av-shape', { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.5, ease: 'power2.inOut', overwrite: 'auto' }); isLogoHidden = false; }
                     }
                 }
             }
         });
 
-        // Initial positions for Hero Portrait/AV Sign & Manifesto stage
-        gsap.set('.hero', { clipPath: "inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)", opacity: 1, y: 0, scale: 1 });
+        // ── Initial state ─────────────────────────────────────────
+        gsap.set('.hero',                { clipPath: 'inset(0vh calc(0vw - 0vh) 0vh calc(0vw - 0vh) round 0px)', opacity: 1, y: 0, scale: 1 });
         gsap.set('.signature-container', { opacity: 1, y: 0, scale: 1 });
-        gsap.set('#hero-video-wrap', { opacity: 0 });
-        gsap.set('#hero-manifesto', { opacity: 1, y: '105vh' });
-        gsap.set('.manifesto-line', { y: 0, opacity: 1 }); // Lines stay as ONE composition
+        gsap.set('#hero-video-wrap',     { opacity: 0 });
+        gsap.set('#white-takeover',      { opacity: 0, pointerEvents: 'none' });
 
-        // BMW Assembly initial dormant state (Muted grey DRL, dormant dark fairing)
-        gsap.set('.bmw-light-system', { opacity: 1, y: 0 });
-        gsap.set('#bmw-fairing', { opacity: 0.22, filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8))' });
-        gsap.set('#bmw-drl', { opacity: 0.25, filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.1))' });
-        gsap.set('#bmw-drl path', { fill: '#4A4A4A' });
-        gsap.set('#bmw-projector', { opacity: 0, filter: 'none' });
-        gsap.set('.beam-stream', { opacity: 0, scaleX: 0.1, scaleY: 0 });
-        gsap.set('#beam-bloom', { opacity: 0, scale: 0.2 });
-        gsap.set('#white-takeover', { opacity: 0, pointerEvents: 'none' });
+        const isVideoEnabled   = HERO_CONFIG.video && HERO_CONFIG.video.enabled !== false;
+        const maxVideoOpacity  = isVideoEnabled ? (HERO_CONFIG.video.maxOpacity || 0.85) : 0;
 
-        const isVideoEnabled = HERO_CONFIG.video && HERO_CONFIG.video.enabled !== false;
-        const maxVideoOpacity = isVideoEnabled ? (HERO_CONFIG.video.maxOpacity || 0.85) : 0;
-
-        // ── Phase 1: Unicorn Studio Canvas Scale Down (0.00 -> 0.22) ──
-        masterTl.to('.hero', { scale: 0.42, clipPath: "inset(12vh calc(50vw - 44vh) 0vh calc(50vw - 44vh) round 0px)", opacity: 1, ease: "power2.inOut", duration: 0.22 }, 0);
+        // ── Phase 1: Hero card scale down (0.00 → 0.22) ──────────
+        masterTl.to('.hero', { scale: 0.42, clipPath: 'inset(12vh calc(50vw - 44vh) 0vh calc(50vw - 44vh) round 0px)', opacity: 1, ease: 'power2.inOut', duration: 0.22 }, 0);
         masterTl.fromTo('#scroll-hint', { opacity: 1, pointerEvents: 'auto' }, { opacity: 0, pointerEvents: 'none', duration: 0.12, ease: 'power1.out' }, 0);
-        masterTl.to('.unicorn-canvas', { scale: 1.19, ease: "power2.inOut", duration: 0.22 }, 0);
-        masterTl.to('#hero-video-wrap', { opacity: maxVideoOpacity, ease: "power1.inOut", duration: 0.22 }, 0);
+        masterTl.to('.unicorn-canvas', { scale: 1.19, ease: 'power2.inOut', duration: 0.22 }, 0);
+        masterTl.to('#hero-video-wrap', { opacity: maxVideoOpacity, ease: 'power1.inOut', duration: 0.22 }, 0);
 
-        // ── Phase 2: Scaled Hero Card + AV Signature Scroll UP & Manifesto + BMW Light Scroll UP (0.22 -> 0.44) ──
-        masterTl.to('.hero', { y: '-105vh', pointerEvents: 'none', ease: "power2.inOut", duration: 0.22 }, 0.22);
-        masterTl.to('.signature-container', { y: '-105vh', pointerEvents: 'none', ease: "power2.inOut", duration: 0.22 }, 0.22);
-        masterTl.to('#hero-manifesto', { y: '0vh', pointerEvents: 'auto', ease: "power2.inOut", duration: 0.22 }, 0.22);
-        masterTl.to('#bmw-fairing', { opacity: 0.45, duration: 0.15, ease: "power1.out" }, 0.30);
+        // ── Phase 2: Hero card + Signature scroll UP (0.22 → 0.595) synced to natural scroll ──
+        masterTl.to('.hero',                { y: '-105vh', pointerEvents: 'none', ease: 'none', duration: 0.375 }, 0.22);
+        masterTl.to('.signature-container', { y: '-105vh', pointerEvents: 'none', ease: 'none', duration: 0.375 }, 0.22);
 
-        // ── Phase 3: Character-by-Character Illumination Reveal (0.45 -> 0.70) ──
-        // Stagger character illumination across all chars in a single continuous composition flow (~1.0vh/char)
-        const numChars = allChars.length;
-        const totalSpan = 0.25; // 0.45 -> 0.70 timeline range (~1.0vh per char)
-        const step = numChars > 1 ? totalSpan / (numChars - 1) : 0;
+        // ── Phase 3: Manifesto remains static (0.44 → 0.80) ───────
+        // Zero sub-element animations (No stagger, no scale, no fade-in)
 
-        allChars.forEach((char, i) => {
-            const tStart = 0.45 + (i * step);
-            const isAccent = char.dataset.accent === 'true';
-
-            if (isAccent) {
-                // Accent chars: Muted Orange -> Brief White Hot Flash -> Clean Brand Orange (No persistent glow)
-                masterTl.to(char, {
-                    color: '#ffffff',
-                    textShadow: '0 0 16px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 255, 255, 0.7)',
-                    duration: 0.015,
-                    ease: 'none'
-                }, tStart);
-                masterTl.to(char, {
-                    color: '#FF5509',
-                    textShadow: 'none',
-                    duration: 0.025,
-                    ease: 'none'
-                }, tStart + 0.015);
-            } else {
-                // Standard chars: Neutral Grey -> Brief Orange Illumination Flash -> Clean Crisp White (No persistent glow)
-                masterTl.to(char, {
-                    color: '#FF5509',
-                    textShadow: '0 0 16px rgba(255, 85, 9, 0.9), 0 0 30px rgba(255, 85, 9, 0.6)',
-                    duration: 0.015,
-                    ease: 'none'
-                }, tStart);
-                masterTl.to(char, {
-                    color: '#ffffff',
-                    textShadow: 'none',
-                    duration: 0.025,
-                    ease: 'none'
-                }, tStart + 0.015);
-            }
-        });
-
-        // ── Phase 4: DRL Ignition Sequence (Pure White Flash → Settles White) ──
-        masterTl.to('#bmw-drl path', { fill: '#ffffff', duration: 0.03, ease: 'sine.out' }, 0.45);
-        masterTl.to('#bmw-drl', { 
-            opacity: 1.0, 
-            filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 35px rgba(255, 255, 255, 0.6))', 
-            duration: 0.03, 
-            ease: 'sine.out' 
-        }, 0.45);
-        // DRL holds white — brief brightness pulse then crisp white settled state
-        masterTl.to('#bmw-drl', { 
-            filter: 'drop-shadow(0 0 24px rgba(255, 255, 255, 1)) drop-shadow(0 0 45px rgba(255, 255, 255, 0.8))', 
-            duration: 0.04, 
-            ease: 'sine.inOut' 
-        }, 0.48);
-
-        // Projector subtle awakening during final stage of character reveal
-        // NO saturate()/brightness() — they shift hue. drop-shadow only, fill #FF5509 stays correct orange.
-        masterTl.to('#bmw-projector', {
-            opacity: 0.45,
-            filter: 'drop-shadow(0 0 8px rgba(255, 85, 9, 0.8)) drop-shadow(0 0 20px rgba(255, 85, 9, 0.5))',
-            duration: 0.05,
-            ease: 'power1.inOut'
-        }, 0.62);
-
-        // ── Phase 5: PROJECTOR FULL IGNITION (0.68 → 0.72) ──
-        masterTl.to('#bmw-projector', {
-            opacity: 1.0,
-            filter: 'drop-shadow(0 0 14px rgba(255, 85, 9, 1)) drop-shadow(0 0 35px rgba(255, 85, 9, 0.85)) drop-shadow(0 0 70px rgba(255, 85, 9, 0.5))',
-            duration: 0.04,
-            ease: 'power2.out'
-        }, 0.68);
-
-        // ── Phase 6 + 7: UNIFIED ORANGE SWELL (0.68 → 0.80) ──
-        // ALL orange elements build simultaneously so there's NEVER a dark gap between bloom and takeover.
-        // The takeover starts rising at 0.68 (same as projector) and reaches 1.0 by 0.78.
-        // Manifesto/BMW fade inside this orange swell — they disappear INTO the light, not into darkness.
-
-        // Beams expand quickly at the start of the swell
-        masterTl.to('#beam-left', {
-            opacity: 1.0,
-            scaleX: 14.0,
-            scaleY: 5.0,
-            duration: 0.04,
-            ease: 'power2.out'
-        }, 0.70);
-        masterTl.to('#beam-right', {
-            opacity: 1.0,
-            scaleX: 14.0,
-            scaleY: 5.0,
-            duration: 0.04,
-            ease: 'power2.out'
-        }, 0.70);
-
-        // Bloom expands over the full swell — adds depth to the orange atmosphere
-        masterTl.to('#beam-bloom', {
-            opacity: 0.85,
-            scale: 7.0,
-            duration: 0.08,
-            ease: 'power1.inOut'
-        }, 0.68);
-
-        // Orange takeover builds from 0.68 → 0.78 (linear, steady, elegant)
-        // At 0.73 (when manifesto fades), takeover is already ~50% opacity — dark bg fully covered
-        masterTl.to('#white-takeover', {
-            opacity: 1.0,
-            duration: 0.10,
-            ease: 'power1.inOut'
-        }, 0.68);
-
-        // Manifesto and BMW dissolve INTO the growing orange light (not into darkness)
-        masterTl.to('#manifesto-typography', {
-            opacity: 0,
-            y: -10,
-            duration: 0.05,
-            ease: 'power1.in'
-        }, 0.73);
-        masterTl.to('.bmw-light-system', {
-            opacity: 0,
-            scale: 1.05,
-            duration: 0.05,
-            ease: 'power1.in'
-        }, 0.73);
-
-        // Parallax lift — hero sweeps upward revealing the work section below
-        // The solid orange takeover acts as a curtain rising, cleanly exposing #work which is positioned exactly beneath it via margin-top: -139vh.
+        // ── Phase 4: Cinematic lift — Hero → Work handoff (0.80 → 0.86) ──
+        // GEOMETRY CONTRACT: Must remain at 0.80 start, 0.06 duration, yPercent -110.
         masterTl.to('.hero-sticky-container', {
             yPercent: -110,
             duration: 0.06,
@@ -635,3 +460,4 @@ export function initHero() {
 
     }());
 }
+
