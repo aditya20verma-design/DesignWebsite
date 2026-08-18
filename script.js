@@ -5,6 +5,7 @@ import { initWork } from './sections/work/work.js';
 import { initTestimonials } from './sections/testimonials/testimonials.js';
 import { initFooter } from './sections/footer/footer.js';
 import { initSound } from './shared/sound.js';
+import { initProjectViewer } from './projects/project-viewer.js';
 import * as SectionRegistry from './shared/section-registry.js';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -28,4 +29,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initWork();
     initTestimonials();
     initFooter();
+    initProjectViewer();
 });

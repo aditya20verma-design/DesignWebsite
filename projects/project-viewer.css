@@ -1,0 +1,668 @@
+/* ============================================================
+   PROJECT VIEWER — Universal Case Study System
+   ============================================================
+   All rules scoped to #project-viewer to guarantee zero
+   bleed into the portfolio underneath.
+   ============================================================ */
+
+/* ── Viewer Shell ─────────────────────────────────────────── */
+
+#project-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.2, 0, 0, 1);
+}
+
+#project-viewer.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Scrim — darkened gap visible at the very top (clickable close region) */
+#project-viewer-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1;
+    cursor: pointer;
+}
+
+/* Scroll container — the actual case study surface */
+#project-viewer-scroll {
+    position: absolute;
+    /* Deliberate top offset: viewer peeks below portfolio nav with clear breathing room */
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: var(--color-neutral-900);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(30px);
+    transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1);
+    cursor: default;
+    /* Hide native persistent scrollbar track */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#project-viewer-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+/* ── Custom Transient Auto-Hiding Scrollbar Indicator ────── */
+#project-viewer-scrollbar {
+    position: absolute;
+    top: 76px;
+    bottom: 12px;
+    right: 6px;
+    width: 4px;
+    z-index: 10003;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+#project-viewer-scrollbar.is-active {
+    opacity: 1;
+}
+
+#project-viewer-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    will-change: transform;
+}
+
+#project-viewer.is-open #project-viewer-scroll {
+    transform: translateY(0);
+}
+
+/* Close button — positioned top-right, floating above the surface with clear gap */
+#project-viewer-close {
+    position: absolute;
+    top: 14px;
+    right: 24px;
+    z-index: 10003;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: none;
+    color: var(--color-neutral-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#project-viewer.is-open #project-viewer-close {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#project-viewer-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: white;
+    transform: scale(1.05);
+}
+
+#project-viewer-close svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    fill: none;
+}
+
+/* Top Edge Scroll Fade — Progressive Blur activated on scroll */
+#project-viewer-top-fade {
+    position: absolute;
+    top: 64px; /* Match scroll container top offset */
+    left: 0;
+    right: 0;
+    height: 56px;
+    z-index: 10002;
+    pointer-events: none;
+    background: transparent;
+    border-radius: 16px 16px 0 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.75) 20%,
+        rgba(0, 0, 0, 0.45) 45%,
+        rgba(0, 0, 0, 0.20) 70%,
+        rgba(0, 0, 0, 0.05) 88%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.75) 20%,
+        rgba(0, 0, 0, 0.45) 45%,
+        rgba(0, 0, 0, 0.20) 70%,
+        rgba(0, 0, 0, 0.05) 88%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#project-viewer-top-fade.is-scrolled {
+    opacity: 1;
+}
+
+/* Hide custom cursor when viewer is open */
+body.viewer-open .cursor-dot,
+body.viewer-open .cursor-outline { display: none !important; }
+
+
+/* ── Case Study — Universal Layout ───────────────────────── */
+
+#project-viewer-scroll .pv-case-study {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 5vw, 80px);
+    padding-bottom: 0; /* More Projects section handles its own bottom spacing */
+}
+
+
+/* ── Hero ─────────────────────────────────────────────────── */
+
+#project-viewer-scroll .pv-hero {
+    padding-top: clamp(60px, 10vh, 120px);
+    padding-bottom: clamp(40px, 6vh, 80px);
+    border-bottom: 1px solid var(--color-white-a08);
+}
+
+#project-viewer-scroll .pv-eyebrow {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+
+#project-viewer-scroll .pv-title {
+    font-family: var(--font-heading);
+    font-size: clamp(36px, 7vw, 72px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+#project-viewer-scroll .pv-title .font-accent {
+    font-family: var(--font-accent);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+
+#project-viewer-scroll .pv-tagline {
+    font-family: var(--font-body);
+    font-size: var(--text-body-lg-size);
+    line-height: var(--text-body-lg-lh);
+    color: var(--text-secondary);
+    max-width: 680px;
+}
+
+
+/* ── Snapshot ─────────────────────────────────────────────── */
+
+#project-viewer-scroll .pv-snapshot {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 24px 32px;
+    padding: clamp(32px, 4vh, 56px) 0;
+    border-bottom: 1px solid var(--color-white-a08);
+}
+
+#project-viewer-scroll .pv-snap-item {}
+
+#project-viewer-scroll .pv-snap-label {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+#project-viewer-scroll .pv-snap-value {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-body-sm-size);
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+
+/* ── Section Headers ─────────────────────────────────────── */
+
+#project-viewer-scroll .pv-section {
+    padding-top: clamp(48px, 7vh, 80px);
+}
+
+#project-viewer-scroll .pv-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-white-a08);
+}
+
+#project-viewer-scroll .pv-section-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+#project-viewer-scroll .pv-section-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-h2-size);
+    font-weight: 600;
+    line-height: var(--text-h2-lh);
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+
+
+/* ── Body Text ───────────────────────────────────────────── */
+
+#project-viewer-scroll .pv-body {
+    font-family: var(--font-body);
+    font-size: var(--text-body-lg-size);
+    line-height: 1.72;
+    color: var(--text-secondary);
+    max-width: 720px;
+}
+
+#project-viewer-scroll .pv-body + .pv-body {
+    margin-top: 16px;
+}
+
+
+/* ── Quote Block ─────────────────────────────────────────── */
+
+#project-viewer-scroll .pv-quote {
+    margin: clamp(32px, 4vh, 56px) 0;
+    padding: 32px 0 32px 28px;
+    border-left: 2px solid var(--accent);
+}
+
+#project-viewer-scroll .pv-quote-text {
+    font-family: var(--font-body);
+    font-size: var(--text-body-lg-size);
+    line-height: 1.65;
+    color: var(--text-primary);
+    font-style: italic;
+}
+
+#project-viewer-scroll .pv-quote-attr {
+    display: block;
+    margin-top: 12px;
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+
+/* ── Stats Grid ──────────────────────────────────────────── */
+
+#project-viewer-scroll .pv-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: clamp(32px, 4vh, 48px) 0;
+}
+
+#project-viewer-scroll .pv-stat-card {
+    background: var(--color-white-a05);
+    border: 1px solid var(--color-white-a08);
+    border-radius: 12px;
+    padding: 28px 24px;
+    text-align: center;
+}
+
+#project-viewer-scroll .pv-stat-value {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin-bottom: 8px;
+}
+
+#project-viewer-scroll .pv-stat-label {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+
+/* ── Media Placeholder ───────────────────────────────────── */
+
+#project-viewer-scroll .pv-media {
+    margin: clamp(32px, 4vh, 48px) 0 8px 0;
+    aspect-ratio: 16 / 9;
+    background: var(--color-white-a05);
+    border: 1px solid var(--color-white-a08);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+}
+
+#project-viewer-scroll .pv-media-num {
+    font-family: var(--font-mono);
+    font-size: 48px;
+    font-weight: 600;
+    color: var(--color-white-a08);
+    line-height: 1;
+}
+
+#project-viewer-scroll .pv-media-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+#project-viewer-scroll .pv-media-caption {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: var(--text-muted);
+    margin-bottom: clamp(16px, 2vh, 24px);
+}
+
+
+/* ── Split Grid (Comparison Cards) ───────────────────────── */
+
+#project-viewer-scroll .pv-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: clamp(24px, 3vh, 40px) 0;
+}
+
+#project-viewer-scroll .pv-split-card {
+    background: var(--color-white-a05);
+    border: 1px solid var(--color-white-a08);
+    border-radius: 12px;
+    padding: 28px 24px;
+}
+
+#project-viewer-scroll .pv-split-card h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-label-size);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+#project-viewer-scroll .pv-split-card p {
+    font-family: var(--font-body);
+    font-size: var(--text-body-sm-size);
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+
+/* ── Ordered List ────────────────────────────────────────── */
+
+#project-viewer-scroll .pv-list {
+    list-style: none;
+    padding: 0;
+    margin: clamp(16px, 2vh, 28px) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#project-viewer-scroll .pv-list li {
+    font-family: var(--font-body);
+    font-size: var(--text-body-lg-size);
+    line-height: 1.65;
+    color: var(--text-secondary);
+    padding-left: 24px;
+    position: relative;
+}
+
+#project-viewer-scroll .pv-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+#project-viewer-scroll .pv-list li strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+
+/* ── More Projects Section (Horizontal Carousel) ──────────── */
+
+#project-viewer-scroll .pv-more-projects {
+    margin-top: clamp(64px, 8vh, 100px);
+    padding: clamp(48px, 6vh, 80px) clamp(20px, 5vw, 80px);
+    border-top: 1px solid var(--color-white-a08);
+    background: var(--color-neutral-950);
+    /* Extend edge-to-edge by breaking out of the max-width container */
+    margin-left: calc(-1 * clamp(20px, 5vw, 80px));
+    margin-right: calc(-1 * clamp(20px, 5vw, 80px));
+}
+
+#project-viewer-scroll .pv-more-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+#project-viewer-scroll .pv-more-label {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+#project-viewer-scroll .pv-more-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#project-viewer-scroll .pv-more-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-white-a05);
+    border: 1px solid var(--color-white-a08);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+#project-viewer-scroll .pv-more-arrow:hover {
+    background: var(--color-white-a12);
+    color: white;
+    border-color: var(--color-white-a20);
+}
+
+#project-viewer-scroll .pv-more-arrow svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+#project-viewer-scroll .pv-more-strip-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+#project-viewer-scroll .pv-more-strip {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-white-a12) transparent;
+}
+
+#project-viewer-scroll .pv-more-strip::-webkit-scrollbar {
+    height: 4px;
+}
+
+#project-viewer-scroll .pv-more-strip::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#project-viewer-scroll .pv-more-strip::-webkit-scrollbar-thumb {
+    background: var(--color-white-a12);
+    border-radius: 4px;
+}
+
+#project-viewer-scroll .pv-project-card {
+    flex: 0 0 clamp(280px, 32vw, 340px);
+    scroll-snap-align: start;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--color-white-a05);
+    border: 1px solid var(--color-white-a08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+#project-viewer-scroll .pv-project-card:hover {
+    border-color: var(--color-white-a20);
+    transform: translateY(-4px);
+}
+
+#project-viewer-scroll .pv-card-img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    display: block;
+    background: var(--color-neutral-850);
+}
+
+#project-viewer-scroll .pv-card-body {
+    padding: 18px 20px 20px;
+}
+
+#project-viewer-scroll .pv-card-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 6px;
+    display: block;
+}
+
+#project-viewer-scroll .pv-card-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-label-size);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+#project-viewer-scroll .pv-card-company {
+    font-family: var(--font-ui);
+    font-size: var(--text-caption-size);
+    color: var(--text-muted);
+}
+
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    #project-viewer-scroll {
+        top: 56px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    #project-viewer-top-fade {
+        top: 56px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    #project-viewer-close {
+        top: 10px;
+        right: 16px;
+        width: 34px;
+        height: 34px;
+    }
+
+    #project-viewer-scroll .pv-split {
+        grid-template-columns: 1fr;
+    }
+
+    #project-viewer-scroll .pv-snapshot {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #project-viewer-scroll .pv-more-grid {
+        grid-template-columns: 1fr;
+    }
+}

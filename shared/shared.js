@@ -209,11 +209,32 @@ export function initShared() {
 
     // ── Scroll Restoration Fix ──
     if (history.scrollRestoration) history.scrollRestoration = 'manual';
-    window.scrollTo(0, 0);
-    window.addEventListener('pageshow', () => {
+
+    function restoreScroll() {
+        const savedScroll = sessionStorage.getItem('portfolio_scroll_pos');
+        if (savedScroll !== null) {
+            const pos = parseFloat(savedScroll);
+            if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+            if (window.__lenisInstance) {
+                window.__lenisInstance.scrollTo(pos, { immediate: true });
+            } else {
+                window.scrollTo(0, pos);
+            }
+            sessionStorage.removeItem('portfolio_scroll_pos');
+        } else {
+            window.scrollTo(0, 0);
+            if (window.__lenisInstance) window.__lenisInstance.scrollTo(0, { immediate: true });
+        }
+    }
+
+    if (sessionStorage.getItem('portfolio_scroll_pos') === null) {
         window.scrollTo(0, 0);
-        if (window.__lenisInstance) window.__lenisInstance.scrollTo(0, { immediate: true });
+    }
+
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted) restoreScroll();
     });
+    window.__restorePortfolioScroll = restoreScroll;
 
     // ── Lenis & GSAP Setup ──
     gsap.registerPlugin(ScrollTrigger);
@@ -226,7 +247,6 @@ export function initShared() {
     }) : null;
     window.__lenisInstance = lenis;
     if (lenis) {
-        lenis.scrollTo(0, { immediate: true });
         lenis.on('scroll', ScrollTrigger.update);
         gsap.ticker.add((time) => {
             lenis.raf(time * 1000);

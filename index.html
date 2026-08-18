@@ -166,6 +166,7 @@
     <link rel="stylesheet" href="sections/journey/experience.css?v=1">
     <link rel="stylesheet" href="sections/work/work.css?v=1">
     <link rel="stylesheet" href="sections/footer/footer.css?v=1">
+    <link rel="stylesheet" href="projects/project-viewer.css">
 
     <!-- Dependencies — GSAP must be sync (used immediately). Lenis must be sync (used immediately by script.js). -->
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
@@ -874,6 +875,17 @@
     <script src="sections/about/sequence.js?v=59" defer></script>
     <!-- Horizontal Journey Track: Lando Norris-style horizontal scroll -->
     <script src="sections/about/horiz-journey.js?v=1" defer></script>
+
+    <!-- ── Universal Project Viewer ── -->
+    <div id="project-viewer" aria-hidden="true">
+        <div id="project-viewer-scrim"></div>
+        <div id="project-viewer-scroll" data-lenis-prevent></div>
+        <div id="project-viewer-top-fade"></div>
+        <div id="project-viewer-scrollbar"><div id="project-viewer-scrollbar-thumb"></div></div>
+        <button id="project-viewer-close" aria-label="Close Project">
+            <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+    </div>
 </body>
 
 </html>

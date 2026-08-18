@@ -552,29 +552,10 @@ function initCursorIntegration() {
 function initCaseStudyNavigation() {
     document.querySelectorAll('#work a[href*="projects/"]').forEach(link => {
         link.addEventListener('click', () => {
-            const card = link.closest('.mw-card') || link.closest('.fw-panel');
-            if (card && card.id) {
-                sessionStorage.setItem('last_clicked_project_card', card.id);
-            } else if (card && card.dataset.projectId) {
-                sessionStorage.setItem('last_clicked_project_card', `project-${card.dataset.projectId}`);
-            }
+            const scrollPos = window.__lenisInstance ? window.__lenisInstance.scroll : window.scrollY;
+            sessionStorage.setItem('portfolio_scroll_pos', scrollPos);
         });
     });
-
-    const savedCardId = sessionStorage.getItem('last_clicked_project_card');
-    if (savedCardId) {
-        sessionStorage.removeItem('last_clicked_project_card');
-        const targetCard = document.getElementById(savedCardId);
-        if (targetCard) {
-            setTimeout(() => {
-                if (window.__lenisInstance) {
-                    window.__lenisInstance.scrollTo(targetCard, { immediate: false, duration: 0.8, offset: -90 });
-                } else {
-                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 300);
-        }
-    }
 }
 
 function initEntranceAnimations() {

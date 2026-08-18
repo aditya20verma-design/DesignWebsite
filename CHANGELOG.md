@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - Interactive Project Viewer & Case Study Expansion
+
+### Highlights
+- Built an interactive, seamless inline Project Viewer overlay system (`projects/project-viewer.js`, `projects/project-viewer.css`) for full case study presentations.
+- Added comprehensive project content and standalone case study pages (`bublingo`, `data-that-i-wear`, `digital-detox`, `dune-speaker`, `go-karting`, and updated existing project views).
+
+### Experience
+- Implemented intelligent scroll-position saving and smooth restoration when navigating to and from case study views.
+- Added direct deep-linking redirect capabilities for individual project URLs back into the primary portfolio experience.
+
 ## [2.1.1] - Repository Cleanup
 
 ### Technical
