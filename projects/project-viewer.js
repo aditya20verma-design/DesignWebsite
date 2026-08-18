@@ -14,8 +14,9 @@ import { PROJECTS_DATA } from '../sections/work/projects.data.js';
 const URL_TO_PROJECT = {};
 PROJECTS_DATA.forEach(p => { URL_TO_PROJECT[p.caseStudyUrl] = p; });
 
-// Track current project to avoid redundant renders
+// Track current project and in-viewer history depth
 let currentProjectId = null;
+let viewerHistoryDepth = 0;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // INIT
@@ -25,28 +26,34 @@ export function initProjectViewer() {
     const viewer = document.getElementById('project-viewer');
     if (!viewer) return;
 
+    if (!history.state) {
+        history.replaceState({ isPortfolio: true }, '', window.location.href);
+    }
+
     // ── 1. Intercept project link clicks on the portfolio ──
     document.addEventListener('click', handleGlobalClick);
 
     // ── 2. Browser Back / Forward ──
     window.addEventListener('popstate', (e) => {
         if (e.state && e.state.projectId) {
+            viewerHistoryDepth = e.state.depth || 1;
             openViewer(e.state.projectId, false);
         } else {
+            viewerHistoryDepth = 0;
             closeViewer();
         }
     });
 
-    // ── 3. Close button ──
+    // ── 3. Close button (Always exits to portfolio) ──
     const closeBtn = document.getElementById('project-viewer-close');
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => history.back());
+        closeBtn.addEventListener('click', handleCloseAction);
     }
 
-    // ── 4. Scrim click to close ──
+    // ── 4. Scrim click to close (Always exits to portfolio) ──
     const scrim = document.getElementById('project-viewer-scrim');
     if (scrim) {
-        scrim.addEventListener('click', () => history.back());
+        scrim.addEventListener('click', handleCloseAction);
     }
 
     // ── 5. Scroll handler (Top blur activation + Transient scrollbar thumb) ──
@@ -100,6 +107,19 @@ export function initProjectViewer() {
     checkInitialProjectDeepLink();
 }
 
+function handleCloseAction() {
+    if (viewerHistoryDepth > 0 && window.history.length > viewerHistoryDepth) {
+        const steps = viewerHistoryDepth;
+        viewerHistoryDepth = 0;
+        history.go(-steps);
+    } else {
+        viewerHistoryDepth = 0;
+        closeViewer();
+        const originPath = window.location.pathname.replace(/\/projects\/.*$/, '/index.html');
+        history.replaceState({ isPortfolio: true }, '', originPath);
+    }
+}
+
 function checkInitialProjectDeepLink() {
     // Check if redirected from a standalone project HTML page
     const redirectUrl = sessionStorage.getItem('open_project_url');
@@ -107,8 +127,9 @@ function checkInitialProjectDeepLink() {
         sessionStorage.removeItem('open_project_url');
         const project = findProjectByHref(redirectUrl);
         if (project && PROJECT_CONTENT[project.id]) {
+            viewerHistoryDepth = 1;
             openViewer(project.id, false);
-            history.replaceState({ projectId: project.id, url: project.caseStudyUrl }, '', project.caseStudyUrl);
+            history.replaceState({ projectId: project.id, url: project.caseStudyUrl, depth: 1 }, '', project.caseStudyUrl);
             return;
         }
     }
@@ -118,8 +139,9 @@ function checkInitialProjectDeepLink() {
     if (currentPath && currentPath !== '/' && !currentPath.endsWith('index.html')) {
         const project = findProjectByHref(currentPath);
         if (project && PROJECT_CONTENT[project.id]) {
+            viewerHistoryDepth = 1;
             openViewer(project.id, false);
-            history.replaceState({ projectId: project.id, url: project.caseStudyUrl }, '', project.caseStudyUrl);
+            history.replaceState({ projectId: project.id, url: project.caseStudyUrl, depth: 1 }, '', project.caseStudyUrl);
         }
     }
 }
@@ -174,8 +196,9 @@ function openViewer(projectId, pushHistory) {
 
     // Push history state
     if (pushHistory) {
+        viewerHistoryDepth++;
         history.pushState(
-            { projectId, url: project.caseStudyUrl },
+            { projectId, url: project.caseStudyUrl, depth: viewerHistoryDepth },
             '',
             project.caseStudyUrl
         );
