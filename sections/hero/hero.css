@@ -156,8 +156,8 @@
 
 /* Fixed-size Lottie container — does NOT scale with the hero card */
 #sig-lottie {
-    width: min(72vw, 820px);  /* ← signature width. Hero collapses to ~35vw, so
-                                  signature is ~2× the card — overflows on all sides */
+    width: min(55vw, 600px);  /* ← signature width. Hero collapses to ~35vw, so
+                                  signature is slightly larger than the card */
     aspect-ratio: 1;          /* Lottie canvas is 512×512 (square) */
     flex-shrink: 0;           /* never compress the signature */
     overflow: visible;        /* let SVG trim-path strokes render beyond the element box */
