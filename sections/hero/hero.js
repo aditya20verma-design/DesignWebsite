@@ -387,6 +387,8 @@ export function initHero() {
                 }
             }
             gridEl.appendChild(frag);
+            // Reset hover reference on grid rebuild
+            lastHoveredCell = null;
         }
 
         // ── Trigger ripple wave from origin cell ──────────────────────────────
@@ -411,17 +413,16 @@ export function initHero() {
         // ── Click delegation on .hero-inner ───────────────────────────────────
         // Clicks on the Unicorn canvas (z-index 4) bubble up through .hero-inner.
         heroInner.addEventListener('click', (e) => {
-            const heroEl = document.getElementById('hero');
-            const rect = heroEl.getBoundingClientRect();
+            const gridRect = gridEl.getBoundingClientRect();
+            if (!gridRect.width || !gridRect.height) return;
             
-            const localX = e.clientX - rect.left;
-            const localY = e.clientY - rect.top;
+            const normX = (e.clientX - gridRect.left) / gridRect.width;
+            const normY = (e.clientY - gridRect.top) / gridRect.height;
             
-            const scaleX = rect.width / heroEl.offsetWidth;
-            const scaleY = rect.height / heroEl.offsetHeight;
-            
-            const col = Math.floor((localX / scaleX) / R.cellSize);
-            const row = Math.floor((localY / scaleY) / R.cellSize);
+            let col = Math.floor(normX * numCols);
+            let row = Math.floor(normY * numRows);
+            if (col >= numCols) col = numCols - 1;
+            if (row >= numRows) row = numRows - 1;
             
             if (col >= 0 && col < numCols && row >= 0 && row < numRows) {
                 triggerRipple(row, col);
@@ -433,19 +434,18 @@ export function initHero() {
         HeroPointer.callbacks.push((ptr) => {
             if (ptr.isVirtual) return; // Ripple grid doesn't respond to proxy virtual events
             
-            const { x, y, rect } = ptr;
-            if (!rect) return;
+            const { x, y } = ptr;
+            const gridRect = gridEl.getBoundingClientRect();
+            if (!gridRect.width || !gridRect.height) return;
             
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                const localX = x - rect.left;
-                const localY = y - rect.top;
+            if (x >= gridRect.left && x <= gridRect.right && y >= gridRect.top && y <= gridRect.bottom) {
+                const normX = (x - gridRect.left) / gridRect.width;
+                const normY = (y - gridRect.top) / gridRect.height;
                 
-                const heroEl = document.getElementById('hero');
-                const scaleX = rect.width / heroEl.offsetWidth;
-                const scaleY = rect.height / heroEl.offsetHeight;
-                
-                const col = Math.floor((localX / scaleX) / R.cellSize);
-                const row = Math.floor((localY / scaleY) / R.cellSize);
+                let col = Math.floor(normX * numCols);
+                let row = Math.floor(normY * numRows);
+                if (col >= numCols) col = numCols - 1;
+                if (row >= numRows) row = numRows - 1;
                 
                 if (col >= 0 && col < numCols && row >= 0 && row < numRows) {
                     const targetIdx = row * numCols + col;

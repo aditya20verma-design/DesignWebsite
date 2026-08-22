@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - Hero Ripple Grid Cursor Coordinate Mapping Patch
+
+### Fixes
+- Updated ripple grid hover and click coordinate math in `sections/hero/hero.js` to reference `#rippleGrid`'s actual rendered bounding box (`gridRect`) rather than `#hero`.
+- Fixed cell misalignment during scroll-driven scaling/transforms and across varying viewports.
+
 ## [2.3.0] - Hero Interactive Ripple Grid & Journey View Switcher
 
 ### Highlights
