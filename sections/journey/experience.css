@@ -56,50 +56,165 @@
     font-weight: 400;
 }
 
-/* ── Minimalist Editorial Text View Switcher (TIMELINE · LIST) Below Heading ── */
-.journey-view-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
+/* ── Editorial Typographic View Switcher (Miniature Layout Preview) ── */
+#my-journey {
+    position: relative;
 }
 
-.toggle-dot {
-    color: rgba(255, 255, 255, 0.25);
-    font-size: 0.85rem;
-    line-height: 1;
-    user-select: none;
-    padding: 0 2px;
-}
-
-.view-toggle-btn {
+.journey-view-switcher {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
     display: inline-flex;
     align-items: center;
-    background: transparent;
+    gap: 0;
+    background-color: rgba(255, 255, 255, 0.07);
+    background-image: radial-gradient(36px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(255, 85, 9, var(--spotlight-opacity, 0)), transparent 80%);
     border: none;
-    color: rgba(255, 255, 255, 0.4);
-    font-family: var(--font-mono, monospace);
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 6px 4px;
+    border-radius: 4px;
+    padding: 10px;
+    color: #e5e4e0;
     cursor: pointer;
-    transition: color 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     outline: none;
     user-select: none;
+    box-sizing: border-box;
+    box-shadow: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: background-color 0.25s ease, opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.view-toggle-btn:hover:not(.active) {
-    color: rgba(255, 255, 255, 0.95);
+.journey-view-switcher:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
 }
 
-.view-toggle-btn.active {
-    color: var(--accent);
+.journey-view-switcher:active {
+    transform: translateX(-50%) scale(0.97);
+}
+
+.journey-view-switcher:focus-visible {
+    background-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 0 0 2px rgba(255, 85, 9, 0.35);
+}
+
+/* Typography Chamber: 2-Line Stacked Flow (Center Aligned) */
+.switcher-type-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    user-select: none;
+    line-height: 1;
+}
+
+.switcher-brier-stage {
+    position: relative;
+    height: 0.9rem;
+    min-width: 44px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brier-word {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    font-family: var(--font-serif, serif);
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #e5e4e0;
+    letter-spacing: 0.07em;
+    line-height: 0.9rem;
+    white-space: nowrap;
+    text-transform: uppercase;
+    text-align: center;
+    will-change: transform, opacity;
+}
+
+.brier-word-grid {
+    opacity: 1;
+}
+
+.brier-word-list {
+    opacity: 0;
+}
+
+/* Line 2: Animated Uppercase Sub-Label Stage (Micro-Tracked Precision Sub-Label) */
+.switcher-sub-stage {
+    position: relative;
+    height: 0.7rem;
+    min-width: 44px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+}
+
+.sub-word {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    font-family: var(--font-body, var(--font-sans, sans-serif));
+    font-size: 0.58rem;
     font-weight: 500;
+    color: #e5e4e0;
+    letter-spacing: 0.14em;
+    line-height: 0.7rem;
+    white-space: nowrap;
+    text-transform: uppercase;
+    text-align: center;
+    will-change: transform, opacity;
+}
+
+.sub-word-grid {
+    opacity: 1;
+}
+
+.sub-word-list {
+    opacity: 0;
+}
+
+/* Miniature Spatial Graphic Stage (Unified 3.5px Spacing & 16px Wireframe Line Architecture) */
+.switcher-graphic-stage {
+    position: relative;
+    width: 37px;
+    height: 28px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.switcher-spatial-svg {
+    width: 37px;
+    height: 28px;
+    overflow: visible;
+}
+
+.sq-module {
+    will-change: transform, x, y, width, height, fill;
+    transition: fill 0.3s ease;
+}
+
+.wire-bar {
+    will-change: transform, x, y, width, opacity;
+}
+
+@media (max-width: 768px) {
+    .journey-view-switcher {
+        bottom: 20px;
+        padding: 7px 14px;
+        gap: 12px;
+    }
 }
 
 /* ── VIEW 1: Timeline Stage ── */

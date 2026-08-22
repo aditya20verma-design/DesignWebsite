@@ -1,6 +1,7 @@
 import { initShared } from './shared/shared.js';
 import { initHero } from './sections/hero/hero.js';
 import { HERO_CONFIG } from './sections/hero/hero.config.js';
+
 import { initWork } from './sections/work/work.js';
 import { initTestimonials } from './sections/testimonials/testimonials.js';
 import { initFooter } from './sections/footer/footer.js';
@@ -26,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initSound();
     initShared();
     initHero();
+
     initWork();
     initTestimonials();
     initFooter();

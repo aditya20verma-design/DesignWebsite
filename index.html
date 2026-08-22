@@ -96,16 +96,16 @@
     <script>
         (function () {
             // ── TUNABLE VALUES ──────────────────────────────────────
-            var GATE_TIMEOUT_MS      = 15000; // max wait — allows full 83-frame load on slow connection
-            var UNICORN_SETTLE_MS    = 800;   // ms after canvas inject → WebGL first pixels drawn
-            var SEQ_FRAME_SETTLE_MS  = 0;     // loadBatch onload already confirms decode
+            var GATE_TIMEOUT_MS = 15000; // max wait — allows full 83-frame load on slow connection
+            var UNICORN_SETTLE_MS = 800;   // ms after canvas inject → WebGL first pixels drawn
+            var SEQ_FRAME_SETTLE_MS = 0;     // loadBatch onload already confirms decode
             // ───────────────────────────────────────────────────────
 
             var _resolve;
             window.__preloaderReady = new Promise(function (res) { _resolve = res; });
 
             var _unicornDone = false;
-            var _seqDone     = false;
+            var _seqDone = false;
 
             // Tracks latest progress (0–100); initLoader catches up on registration
             window.__loaderProgressNow = 0;
@@ -179,6 +179,8 @@
     <!-- Unicorn Studio WebGL: must be sync so init() can be called immediately after -->
     <script
         src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.6/dist/unicornStudio.umd.js"></script>
+
+
 </head>
 
 <body>
@@ -383,11 +385,8 @@
     <div class="lenis-wrapper">
 
         <!-- Lando Norris Sticky Hero Track -->
-        <div class="hero-track"
-             data-section-id="hero"
-             data-section-label="HOME"
-             data-section-scroll-to="hero"
-             data-section-theme="dark">
+        <div class="hero-track" data-section-id="hero" data-section-label="HOME" data-section-scroll-to="hero"
+            data-section-theme="dark">
 
             <div class="hero-sticky-container">
 
@@ -406,9 +405,11 @@
                         <div class="hero-white-box"
                             style="position: absolute; top:0; left:0; width:100%; height:100%; background-color:#ffffff; z-index: 0;">
                         </div>
-                        <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL" data-cursor="pill" data-cursor-label="Hover to reveal"></div>
+                        <div class="unicorn-canvas" data-us-project="kt5EwBtAEDtnn2IDefYL" data-cursor="pill"
+                            data-cursor-label="Hover to reveal"></div>
+                        <div class="hero-visual-overlay" id="hero-visual-overlay" aria-hidden="true"></div>
                         <div class="hero-grid-overlay">
-                            <canvas id="dotsCanvas"></canvas>
+                            <div id="rippleGrid" aria-hidden="true"></div>
                         </div>
                         <!-- Hero cover: hides the white bg until UnicornStudio paints its first frame -->
                         <div id="hero-cover"
@@ -450,7 +451,10 @@
                         <span class="manifesto-role-line font-accent" id="manifesto-role-product">PRODUCT</span>
                         <span class="manifesto-role-line" id="manifesto-role-designer">DESIGNER</span>
                     </div>
-                    <div class="manifesto-tagline" id="manifesto-tagline">Who Race</div>
+                    <div class="manifesto-tagline-row">
+                        <div class="manifesto-tagline" id="manifesto-tagline">Who Race</div>
+
+                    </div>
                 </div>
 
                 <!-- CENTER: spacer — '20' is absolutely positioned behind -->
@@ -458,16 +462,14 @@
 
                 <!-- RIGHT: Reserved empty structural container for OrangKit image carousel -->
                 <div class="manifesto-right" id="manifesto-right">
-                    <div class="manifesto-carousel-container" id="manifesto-carousel-container" aria-label="Image carousel container"></div>
+                    <div class="manifesto-carousel-container" id="manifesto-carousel-container"
+                        aria-label="Image carousel container"></div>
                 </div>
 
             </div>
-        </div>        <!-- ── Work Section — Cinematic Featured Work + More Work ──────────── -->
-        <div class="content-wrapper" id="work"
-             data-section-id="work"
-             data-section-label="WORK"
-             data-section-scroll-to="work"
-             data-section-theme="dark">
+        </div> <!-- ── Work Section — Cinematic Featured Work + More Work ──────────── -->
+        <div class="content-wrapper" id="work" data-section-id="work" data-section-label="WORK"
+            data-section-scroll-to="work" data-section-theme="dark">
             <div id="work-inner">
                 <!-- JS renders: Section Header + Featured Stage + More Work Grid -->
             </div>
@@ -489,10 +491,7 @@
                  Frames: sections/about/assets/sequence/Frame1–168.webp
                  Logic:  sections/about/sequence.js
             ──────────────────────────────────────────────────────────────-->
-            <section id="about-sequence"
-                     data-section-id="about"
-                     data-section-label="ABOUT"
-                     data-section-theme="dark">
+            <section id="about-sequence" data-section-id="about" data-section-label="ABOUT" data-section-theme="dark">
 
                 <!-- Canvas wrapper — this element gets pinned by ScrollTrigger -->
                 <div id="sequence-canvas-wrap">
@@ -540,7 +539,8 @@
                             <div class="hj-card hj-card-portrait-lg hj-pos-1">
                                 <div class="hj-card-frame">
                                     <div class="hj-card-img-wrap">
-                                        <img src="assets/images/journey/01.jpg" alt="Journey 01" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <img src="assets/images/journey/01.jpg" alt="Journey 01" class="hj-card-img"
+                                            loading="lazy" decoding="async" onerror="this.style.display='none'">
                                         <div class="hj-card-placeholder">
                                             <span class="hj-ph-num">01</span>
                                         </div>
@@ -552,7 +552,8 @@
                             <div class="hj-card hj-card-landscape hj-pos-2">
                                 <div class="hj-card-frame">
                                     <div class="hj-card-img-wrap">
-                                        <img src="assets/images/journey/02.jpg" alt="Journey 02" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <img src="assets/images/journey/02.jpg" alt="Journey 02" class="hj-card-img"
+                                            loading="lazy" decoding="async" onerror="this.style.display='none'">
                                         <div class="hj-card-placeholder">
                                             <span class="hj-ph-num">02</span>
                                         </div>
@@ -564,7 +565,8 @@
                             <div class="hj-card hj-card-square hj-pos-3">
                                 <div class="hj-card-frame">
                                     <div class="hj-card-img-wrap">
-                                        <img src="assets/images/journey/03.jpg" alt="Journey 03" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <img src="assets/images/journey/03.jpg" alt="Journey 03" class="hj-card-img"
+                                            loading="lazy" decoding="async" onerror="this.style.display='none'">
                                         <div class="hj-card-placeholder">
                                             <span class="hj-ph-num">03</span>
                                         </div>
@@ -576,7 +578,8 @@
                             <div class="hj-card hj-card-portrait-sm hj-pos-4">
                                 <div class="hj-card-frame">
                                     <div class="hj-card-img-wrap">
-                                        <img src="assets/images/journey/04.jpg" alt="Journey 04" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <img src="assets/images/journey/04.jpg" alt="Journey 04" class="hj-card-img"
+                                            loading="lazy" decoding="async" onerror="this.style.display='none'">
                                         <div class="hj-card-placeholder">
                                             <span class="hj-ph-num">04</span>
                                         </div>
@@ -588,7 +591,8 @@
                             <div class="hj-card hj-card-landscape-wide hj-pos-5">
                                 <div class="hj-card-frame">
                                     <div class="hj-card-img-wrap">
-                                        <img src="assets/images/journey/05.jpg" alt="Journey 05" class="hj-card-img" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                        <img src="assets/images/journey/05.jpg" alt="Journey 05" class="hj-card-img"
+                                            loading="lazy" decoding="async" onerror="this.style.display='none'">
                                         <div class="hj-card-placeholder">
                                             <span class="hj-ph-num">05</span>
                                         </div>
@@ -603,26 +607,13 @@
             </section><!-- /#about-sequence -->
 
             <!-- ── My Journey: Premium Interactive Timeline & List Views ───────────── -->
-            <section id="my-journey" class="journey-section" aria-label="My Journey"
-                     data-section-id="journey"
-                     data-section-label="JOURNEY"
-                     data-section-theme="dark">
+            <section id="my-journey" class="journey-section" aria-label="My Journey" data-section-id="journey"
+                data-section-label="JOURNEY" data-section-theme="dark">
                 <div class="journey-wrapper">
 
                     <!-- Upper Section Header with Editorial Text View Switcher Below Heading -->
                     <header class="journey-header">
                         <h2 class="journey-title">My <span class="font-accent">JOURNEY</span></h2>
-
-                        <!-- Minimal Text-Only View Switcher (TIMELINE · LIST) Below Heading -->
-                        <div class="journey-view-toggle" id="journey-view-toggle" role="tablist" aria-label="View Mode Switcher">
-                            <button class="view-toggle-btn active font-mono" data-view="timeline" role="tab" aria-selected="true" aria-label="Timeline View">
-                                TIMELINE
-                            </button>
-                            <span class="toggle-dot" aria-hidden="true">·</span>
-                            <button class="view-toggle-btn font-mono" data-view="list" role="tab" aria-selected="false" aria-label="List View">
-                                LIST
-                            </button>
-                        </div>
                     </header>
 
                     <!-- VIEW 1: Interactive Timeline Stage -->
@@ -677,16 +668,64 @@
                     </div>
 
                 </div>
+
+                <!-- Editorial Typographic View Switcher (Option 1 Destination-Based Affordance) -->
+                <button class="journey-view-switcher" id="journey-view-switcher" data-destination="list" type="button"
+                    aria-label="Switch to List View">
+                    <!-- Typography Chamber: 2-Line Brier + Body Stack -->
+                    <div class="switcher-type-stack">
+                        <!-- Line 1: Primary Brier Editorial Destination -->
+                        <div class="switcher-brier-stage">
+                            <span class="brier-word brier-word-grid font-serif">GRID</span>
+                            <span class="brier-word brier-word-list font-serif">LIST</span>
+                        </div>
+                        <!-- Line 2: Animated Uppercase Sub-Label Stage -->
+                        <div class="switcher-sub-stage">
+                            <span class="sub-word sub-word-grid font-body">VIEW</span>
+                            <span class="sub-word sub-word-list font-body">VIEW</span>
+                        </div>
+                    </div>
+
+                    <!-- Miniature Spatial Preview Chamber (Idea 1: Ultra-Thin 2.4px Wireframe Line Architecture) -->
+                    <div class="switcher-graphic-stage" aria-hidden="true">
+                        <svg class="switcher-spatial-svg" width="29" height="28" viewBox="0 0 29 28" fill="none">
+                            <!-- Square 1 (Lead Translucent Grey) -->
+                            <rect class="sq-module sq-1" x="1" y="1.5" width="6" height="6" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.7)" />
+                            <!-- Ultra-Thin Wireframe Line 1 -->
+                            <rect class="wire-bar bar-1" x="10" y="3.3" width="14" height="2.4" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.7)" opacity="0.85" />
+
+                            <!-- Square 2 (Secondary Translucent Grey) -->
+                            <rect class="sq-module sq-2" x="1" y="11" width="6" height="6" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.5)" />
+                            <!-- Ultra-Thin Wireframe Line 2 -->
+                            <rect class="wire-bar bar-2" x="10" y="12.8" width="14" height="2.4" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.5)" opacity="0.7" />
+
+                            <!-- Square 3 (Tertiary Translucent Grey) -->
+                            <rect class="sq-module sq-3" x="1" y="20.5" width="6" height="6" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.32)" />
+                            <!-- Ultra-Thin Wireframe Line 3 -->
+                            <rect class="wire-bar bar-3" x="10" y="22.3" width="14" height="2.4" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.32)" opacity="0.55" />
+
+                            <!-- Square 4 (Folded Collapsed Module) -->
+                            <rect class="sq-module sq-4" x="1" y="20.5" width="6" height="6" rx="0.5"
+                                fill="rgba(229, 228, 224, 0.18)" opacity="0" />
+                        </svg>
+                    </div>
+                </button>
             </section>
 
             <!-- ── Testimonials Deck Section ──────────────────────────── -->
             <!-- Content rendered by sections/about/testimonials.config.js -->
-            <section class="journey-section" id="testimonials" style="background: #e5e4e0; padding: var(--fluid-lg) var(--page-margin-x); overflow: hidden;"
-                     data-section-id="testimonials"
-                     data-section-label="TESTIMONIALS"
-                     data-section-theme="light">
+            <section class="journey-section" id="testimonials"
+                style="background: #e5e4e0; padding: var(--fluid-lg) var(--page-margin-x); overflow: hidden;"
+                data-section-id="testimonials" data-section-label="TESTIMONIALS" data-section-theme="light">
                 <div class="skills__header" style="margin-bottom: 4rem;">
-                    <h2 class="skills__headline" style="font-size: clamp(2.8rem, 5vw, 4.5rem); max-width: 1000px; color: #111111;">
+                    <h2 class="skills__headline"
+                        style="font-size: clamp(2.8rem, 5vw, 4.5rem); max-width: 1000px; color: #111111;">
                         People I've <span class="font-accent" style="color: #FF5509;">built with</span>
                     </h2>
                 </div>
@@ -697,85 +736,88 @@
 
 
             <!-- Contact / Footer -->
-            <footer class="footer-section" id="contact"
-                    data-section-id="contact"
-                    data-section-label="CONTACT"
-                    data-section-scroll-to="contact"
-                    data-section-theme="dark">
+            <footer class="footer-section" id="contact" data-section-id="contact" data-section-label="CONTACT"
+                data-section-scroll-to="contact" data-section-theme="dark">
                 <div class="footer-inner">
-                <div class="footer-grid">
-                    <div class="footer-left">
-                        <h2 class="footer-heading reveal-text-scroll">
-                            GOT AN <span class="font-accent">IDEA</span><br>
-                            OR
-                            <a href="#" id="email-copy-btn" class="view-btn footer-pill" title="Copy Email">
-                                <span class="text-stack" style="display: inline-grid; place-items: center; flex: 1;">
-                                    <span class="email-text" style="grid-area: 1/1; transition: opacity 0.3s ease;">
-                                        <span class="hover-stagger"
-                                            style="line-height:1; font-weight:400; text-transform:none;">aditya20verma@gmail.com</span>
+                    <div class="footer-grid">
+                        <div class="footer-left">
+                            <h2 class="footer-heading reveal-text-scroll">
+                                GOT AN <span class="font-accent">IDEA</span><br>
+                                OR
+                                <a href="#" id="email-copy-btn" class="view-btn footer-pill" title="Copy Email">
+                                    <span class="text-stack"
+                                        style="display: inline-grid; place-items: center; flex: 1;">
+                                        <span class="email-text" style="grid-area: 1/1; transition: opacity 0.3s ease;">
+                                            <span class="hover-stagger"
+                                                style="line-height:1; font-weight:400; text-transform:none;">aditya20verma@gmail.com</span>
+                                        </span>
+                                        <span class="copied-text"
+                                            style="grid-area: 1/1; transition: opacity 0.3s ease; opacity: 0; line-height:1; font-weight:400; text-transform:none; pointer-events: none;">Copied</span>
                                     </span>
-                                    <span class="copied-text"
-                                        style="grid-area: 1/1; transition: opacity 0.3s ease; opacity: 0; line-height:1; font-weight:400; text-transform:none; pointer-events: none;">Copied</span>
-                                </span>
-                                <span class="icon-stack"
-                                    style="position:absolute; right:1.6rem; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; width:16px; height:16px; overflow:hidden;">
-                                    <!-- Dual-span wipe: icon1 exits up, icon2 enters from below on hover -->
-                                    <span class="copy-icon copy-icon-1"
-                                        style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
+                                    <span class="icon-stack"
+                                        style="position:absolute; right:1.6rem; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; width:16px; height:16px; overflow:hidden;">
+                                        <!-- Dual-span wipe: icon1 exits up, icon2 enters from below on hover -->
+                                        <span class="copy-icon copy-icon-1"
+                                            style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                                </path>
+                                            </svg>
+                                        </span>
+                                        <span class="copy-icon copy-icon-2"
+                                            style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%; transform:translateY(100%);">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                                </path>
+                                            </svg>
+                                        </span>
+                                        <!-- Check icons for copied state -->
+                                        <span class="check-icon check-icon-1"
+                                            style="position:absolute; display:none; align-items:center; justify-content:center; width:100%; height:100%;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        </span>
                                     </span>
-                                    <span class="copy-icon copy-icon-2"
-                                        style="position:absolute; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%; transform:translateY(100%);">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
-                                    </span>
-                                    <!-- Check icons for copied state -->
-                                    <span class="check-icon check-icon-1"
-                                        style="position:absolute; display:none; align-items:center; justify-content:center; width:100%; height:100%;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </span>
-                                </span>
-                            </a><br>
-                            OPPORTUNITY?
-                        </h2>
-                    </div>
-                    <div class="footer-right">
-                        <div class="footer-links-col">
-                            <a href="https://www.linkedin.com/in/aditya20verma/" target="_blank"
-                                rel="noopener noreferrer" class="nav-link" style="justify-content: space-between;"><span
-                                    class="hover-stagger" style="display:inline-block; line-height: 1;">LINKEDIN</span>
-                                <span class="nav-arrow">&nearr;</span></a>
-                            <a href="https://www.behance.net/aditya20vrm" target="_blank" rel="noopener noreferrer"
-                                class="nav-link" style="justify-content: space-between;"><span class="hover-stagger"
-                                    style="display:inline-block; line-height: 1;">BEHANCE</span> <span
-                                    class="nav-arrow">&nearr;</span></a>
+                                </a><br>
+                                OPPORTUNITY?
+                            </h2>
                         </div>
-                        <div class="footer-links-col">
-                            <a href="assets/resume.pdf"
-                                target="_blank" rel="noopener noreferrer" class="nav-link"
-                                style="justify-content: space-between;"><span class="hover-stagger"
-                                    style="display:inline-block; line-height: 1;">DOWNLOAD RESUME</span> <span
-                                    class="nav-arrow">&darr;</span></a>
+                        <div class="footer-right">
+                            <div class="footer-links-col">
+                                <a href="https://www.linkedin.com/in/aditya20verma/" target="_blank"
+                                    rel="noopener noreferrer" class="nav-link"
+                                    style="justify-content: space-between;"><span class="hover-stagger"
+                                        style="display:inline-block; line-height: 1;">LINKEDIN</span>
+                                    <span class="nav-arrow">&nearr;</span></a>
+                                <a href="https://www.behance.net/aditya20vrm" target="_blank" rel="noopener noreferrer"
+                                    class="nav-link" style="justify-content: space-between;"><span class="hover-stagger"
+                                        style="display:inline-block; line-height: 1;">BEHANCE</span> <span
+                                        class="nav-arrow">&nearr;</span></a>
+                            </div>
+                            <div class="footer-links-col">
+                                <a href="assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="nav-link"
+                                    style="justify-content: space-between;"><span class="hover-stagger"
+                                        style="display:inline-block; line-height: 1;">DOWNLOAD RESUME</span> <span
+                                        class="nav-arrow">&darr;</span></a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Footer Bottom Bar -->
-                <div class="footer-bottom" style="max-width:var(--container-lg); margin:4rem auto 0; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
-                    <p style="font-family:var(--font-ui); font-size:var(--text-caption-size); color:rgba(255,255,255,0.3); letter-spacing:0.04em;">© 2025 Aditya Verma. Designed & built with care.</p>
-                </div>
+                    <!-- Footer Bottom Bar -->
+                    <div class="footer-bottom"
+                        style="max-width:var(--container-lg); margin:4rem auto 0; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+                        <p
+                            style="font-family:var(--font-ui); font-size:var(--text-caption-size); color:rgba(255,255,255,0.3); letter-spacing:0.04em;">
+                            © 2025 Aditya Verma. Designed & built with care.</p>
+                    </div>
                 </div>
             </footer>
         </div> <!-- End of rest-of-content -->
@@ -793,7 +835,7 @@
     <script>
         (function () {
             var MAX_WAIT = 5000;
-            var cover     = document.getElementById('hero-cover');
+            var cover = document.getElementById('hero-cover');
             var container = document.querySelector('.unicorn-canvas');
             if (!cover || !container) {
                 // No canvas container — still signal gate so loader can proceed
@@ -881,9 +923,13 @@
         <div id="project-viewer-scrim"></div>
         <div id="project-viewer-scroll" data-lenis-prevent></div>
         <div id="project-viewer-top-fade"></div>
-        <div id="project-viewer-scrollbar"><div id="project-viewer-scrollbar-thumb"></div></div>
+        <div id="project-viewer-scrollbar">
+            <div id="project-viewer-scrollbar-thumb"></div>
+        </div>
         <button id="project-viewer-close" aria-label="Close Project">
-            <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            <svg viewBox="0 0 24 24">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
         </button>
     </div>
 </body>

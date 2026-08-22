@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - Hero Interactive Ripple Grid & Journey View Switcher
+
+### Highlights
+- Replaced legacy particle dot background in Hero section with a high-fidelity interactive ambient Ripple Grid system (`sections/hero/hero.js`, `sections/hero/hero.css`).
+- Built an editorial typographic View Switcher component for My Journey section (`sections/journey/experience.js`, `sections/journey/experience.css`), allowing users to toggle seamlessly between Timeline and List presentations.
+- Updated Hero Lottie draw-on signature asset to `ebv3.json` with customizable visual darkening overlay configuration.
+
+### Experience
+- Added Euclidean wave propagation and subtle ambient grey depth pulses on hero click/hover interactions.
+- Added scroll-triggered floating entrance animation for the Journey View Switcher with GSAP integration.
+
 ## [2.2.1] - Project Viewer History Depth & Close Navigation Patch
 
 ### Fixes

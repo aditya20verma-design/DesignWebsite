@@ -181,36 +181,90 @@
     height: 100%;
     transform: scale(1.1) translateY(8%) translateX(40px);  /* +40px right offset */
     transform-origin: 50% 50%;              /* TRUE CENTER anchor for balanced tilt */
-    z-index: 3;                            /* sits above dot grid (z-index: 2) */
+    z-index: 4;                            /* sits above dot grid (z-index: 3) */
     pointer-events: auto;
     will-change: transform;
     /* mix-blend-mode removed — image renders opaquely on top of dots */
 }
 
-/* Particle Dot Overlay */
+/* Progressive overlay over Unicorn canvas */
+.hero-visual-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999 !important;              /* force above canvas even if UnicornStudio sets inline z-index */
+    opacity: 0;
+    will-change: opacity;
+}
+
+/* Ripple Grid Container */
 .hero-grid-overlay {
     position: absolute;
     top: -5%; left: -5%;
     width: 110%; height: 110%;
-    pointer-events: none;
-    z-index: 2;
+    pointer-events: none;           /* grid never intercepts clicks — hero-inner delegation handles it */
+    z-index: 3;                     /* below .unicorn-canvas (z-index: 4) */
     -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
     mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
-    opacity: 1;
-    transform-origin: center;
-    transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1),
-                opacity 0.6s cubic-bezier(0.2, 0, 0, 1);
+    overflow: hidden;
 }
 
-#dotsCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
+/* Ripple Grid CSS */
+@keyframes cell-ripple {
+    0%   { opacity: var(--ripple-base-opacity, 1); box-shadow: var(--cell-shadow-rest); }
+    20%  { opacity: var(--ripple-peak-opacity, 1); box-shadow: var(--cell-shadow-ripple); }
+    100% { opacity: var(--ripple-base-opacity, 1); box-shadow: var(--cell-shadow-rest); }
 }
 
-.hero:hover .hero-grid-overlay {
-    opacity: 1;
-    transform: perspective(1200px) rotateX(2deg) rotateY(-1deg) scale(1.02);
+#rippleGrid {
+    display: grid;                  /* columns/rows set dynamically by JS */
+    position: relative;
+}
+
+.ripple-cell {
+    box-sizing: border-box;
+    border: 0.5px solid;            /* borderColor set inline by JS */
+    opacity: var(--ripple-base-opacity, 1);
+    box-shadow: var(--cell-shadow-rest, none);
+    background-color: transparent;
+    will-change: opacity, box-shadow;
+    transition: opacity 250ms ease, box-shadow 250ms ease;
+}
+
+.ripple-cell.is-hovered {
+    box-shadow: var(--cell-shadow-hover, none) !important;
+}
+
+.ripple-cell.is-rippling {
+    animation: cell-ripple
+        var(--ripple-duration, 200ms)
+        ease-out
+        var(--ripple-delay, 0ms)
+        1
+        none;                       /* fill-mode: none — returns to CSS opacity/shadow after animation */
+}
+
+/* Mobile Performance Fallback: Replace expensive box-shadow with lightweight background-color */
+@media (max-width: 768px) {
+    @keyframes cell-ripple-mobile {
+        0%   { opacity: 1; background-color: transparent; }
+        20%  { opacity: 1; background-color: rgba(0, 0, 0, 0.08); }
+        100% { opacity: 1; background-color: transparent; }
+    }
+    
+    .ripple-cell {
+        box-shadow: none !important;
+        will-change: opacity, background-color;
+        transition: opacity 250ms ease, background-color 250ms ease;
+    }
+    
+    .ripple-cell.is-hovered {
+        background-color: rgba(0, 0, 0, 0.04) !important;
+    }
+    
+    .ripple-cell.is-rippling {
+        animation-name: cell-ripple-mobile;
+    }
 }
 
 .hero h1 {
@@ -237,10 +291,11 @@
     pointer-events: none;
 }
 
+
 /* Three-column layout */
 .manifesto-columns {
     position: relative;
-    z-index: 2;
+    z-index: 2;                     /* restored — inline canvas is inside column flow */
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
@@ -278,15 +333,15 @@
     font-family: var(--font-accent);
 }
 
-/* "Who Race" tagline using Mostwasted display font */
+/* "Who Race" tagline using Mostwasted display font. */
 .manifesto-tagline {
     font-family: var(--font-mostwasted);
     font-size: clamp(1.4rem, 3vw, 3.2rem);
+    margin-top: clamp(0.4rem, 1vh, 0.8rem);
     font-weight: 400;
-    color: var(--accent);                /* Brand orange */
+    color: var(--accent);
     letter-spacing: 0.01em;
     line-height: 1.2;
-    margin-top: clamp(0.4rem, 1vh, 0.8rem);
 }
 
 /* ── CENTER: Spacer ('20' absolute behind) ───────────────── */
@@ -368,8 +423,8 @@
     .manifesto-role-line {
         font-size: clamp(2.8rem, 13vw, 4.5rem);
     }
-    .manifesto-tagline {
-        font-size: clamp(1.4rem, 6vw, 2rem);
+    .manifesto-tagline-row {
+        font-size: clamp(1.4rem, 6vw, 2rem); /* responsive override on the row owner */
     }
     .manifesto-twenty {
         font-size: 42vw;

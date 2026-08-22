@@ -143,11 +143,47 @@ export function initHero() {
         });
     }
 
+    // ── Shared RAF Geometry Cache for Hero Interactions ──
+    const HeroPointer = {
+        x: 0, y: 0,
+        isVirtual: false,
+        rafScheduled: false,
+        rect: null, // latest getBoundingClientRect() of .hero
+        callbacks: []
+    };
+    
+    // We bind exactly ONE pointermove listener to coalesce all pointer reads
+    window.addEventListener('mousemove', (e) => {
+        HeroPointer.x = e.clientX;
+        HeroPointer.y = e.clientY;
+        HeroPointer.isVirtual = !!e._isVirtual;
+        if (!HeroPointer.rafScheduled) {
+            HeroPointer.rafScheduled = true;
+            requestAnimationFrame(() => {
+                HeroPointer.rafScheduled = false;
+                const heroEl = document.getElementById('hero');
+                if (heroEl) {
+                    // Maximum ONE DOM read per animation frame for all interactions
+                    HeroPointer.rect = heroEl.getBoundingClientRect();
+                    HeroPointer.callbacks.forEach(cb => cb(HeroPointer));
+                }
+            });
+        }
+    }, { passive: true });
+
     // ── Lottie Signature ──
     (function initLottieSignature() {
         const container = document.getElementById('sig-lottie');
         if (!container || typeof lottie === 'undefined') return;
         const SIG_CONFIG = HERO_CONFIG.signature;
+        const O_CONFIG = HERO_CONFIG.overlay;
+        const overlay = document.getElementById('hero-visual-overlay');
+        
+        if (overlay && O_CONFIG && O_CONFIG.enabled) {
+            overlay.style.backgroundColor = O_CONFIG.color;
+            overlay.style.opacity = O_CONFIG.startOpacity;
+        }
+
         document.documentElement.style.setProperty('--sig-stroke-color', SIG_CONFIG.strokeColor);
         const anim = lottie.loadAnimation({ container, renderer: 'svg', loop: SIG_CONFIG.loop, autoplay: false, path: SIG_CONFIG.file });
         
@@ -163,6 +199,20 @@ export function initHero() {
                 trigger: '.hero-track', start: 'top top', end: () => '+=' + totalScrollPx, scrub: true,
                 onUpdate: (self) => {
                     const p = self.progress;
+
+                    // 1. Overlay opacity sync
+                    if (overlay && O_CONFIG && O_CONFIG.enabled) {
+                        if (p < O_CONFIG.fadeStart) {
+                            overlay.style.opacity = O_CONFIG.startOpacity;
+                        } else if (p > O_CONFIG.fadeEnd) {
+                            overlay.style.opacity = O_CONFIG.endOpacity;
+                        } else {
+                            const overlayProgress = (p - O_CONFIG.fadeStart) / (O_CONFIG.fadeEnd - O_CONFIG.fadeStart);
+                            overlay.style.opacity = O_CONFIG.startOpacity + (O_CONFIG.endOpacity - O_CONFIG.startOpacity) * overlayProgress;
+                        }
+                    }
+
+                    // 2. Signature animation sync
                     if (p < delay) {
                         anim.goToAndStop(0, true);
                         if (window._cursorPillLocked) {
@@ -241,21 +291,31 @@ export function initHero() {
         if (!hero || !target) return;
         const m = gsap.matchMedia();
         m.add("(min-width: 1024px)", () => {
-            function onMouseMove(e) {
-                const { width, height, left, top } = hero.getBoundingClientRect();
-                const mx = ((e.clientX - left) / width) * 2 - 1;
-                const my = ((e.clientY - top) / height) * 2 - 1;
-                gsap.to(target, { x: 40 + mx * -3, yPercent: 8, y: my * -3, rotateX: my * -2.4, rotateY: mx * 2.4, transformPerspective: 1000, duration: 1.2, ease: 'power2.out', overwrite: 'auto' });
-            }
+            let isHovering = false;
+            HeroPointer.callbacks.push((ptr) => {
+                const { x, y, rect, isVirtual } = ptr;
+                if (!rect) return;
+                const inBounds = (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+                
+                if (inBounds || isVirtual) {
+                    isHovering = true;
+                    const mx = ((x - rect.left) / rect.width) * 2 - 1;
+                    const my = ((y - rect.top) / rect.height) * 2 - 1;
+                    gsap.to(target, { x: 40 + mx * -3, yPercent: 8, y: my * -3, rotateX: my * -2.4, rotateY: mx * 2.4, transformPerspective: 1000, duration: 1.2, ease: 'power2.out', overwrite: 'auto' });
+                } else if (isHovering && !isVirtual) {
+                    isHovering = false;
+                    reset();
+                }
+            });
             function reset() { gsap.to(target, { x: 40, yPercent: 8, y: 0, rotateX: 0, rotateY: 0, duration: 1.5, ease: 'power3.out' }); }
-            hero.addEventListener('mousemove', onMouseMove);
-            hero.addEventListener('mouseleave', reset);
+            hero.addEventListener('mouseleave', (e) => { if (!e._isVirtual) reset(); });
             
             let proxyMode = 'auto', virtualX = 0, virtualY = 0, realTargetX = 0, realTargetY = 0, autoPanTime = 0, proxyRaf, lastRealTarget = null;
             function proxyLoop() {
                 if (proxyMode === 'off') return;
                 let evTarget = target;
-                const r = hero.getBoundingClientRect();
+                const r = HeroPointer.rect || hero.getBoundingClientRect(); // fallback if RAF hasn't fired yet
+                if (!r) return;
                 const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
                 if (proxyMode === 'auto') {
                     autoPanTime += 0.015; virtualX = cx + Math.sin(autoPanTime) * (r.width * 0.25); virtualY = cy;
@@ -280,101 +340,144 @@ export function initHero() {
         });
     }());
 
-    // ── Interactive Independent Particle System Overlay ──
-    (function initDotsCanvas() {
-        const dotCanvas = document.getElementById('dotsCanvas');
-        if (!dotCanvas) return;
-        const ctx = dotCanvas.getContext('2d');
-        const dotSpacing = 24;
-        const repelRadius = 220;
-        const maxDisplacement = 20; 
-        let dots = [];
+    // ── Interactive Background Ripple Grid ──
+    (function initRippleGrid() {
+        const R = HERO_CONFIG.ripple;
+        if (!R || !R.enabled) return;
 
-        function initDots() {
-            const parentRect = dotCanvas.parentElement.getBoundingClientRect();
-            dotCanvas.width = parentRect.width;
-            dotCanvas.height = parentRect.height;
-            dots = [];
-            for (let x = 0; x <= dotCanvas.width; x += dotSpacing) {
-                for (let y = 0; y <= dotCanvas.height; y += dotSpacing) {
-                    dots.push({ ox: x, oy: y, x: x, y: y, vx: 0, vy: 0 });
+        const gridEl  = document.getElementById('rippleGrid');
+        const heroInner = document.querySelector('.hero-inner');
+        if (!gridEl || !heroInner) return;
+
+        let cells = [];
+        let numCols = 0;
+        let numRows = 0;
+
+        // ── Build grid cells ──────────────────────────────────────────────────
+        function buildGrid() {
+            gridEl.innerHTML = '';
+            cells = [];
+
+            const parentRect = gridEl.parentElement.getBoundingClientRect();
+            numCols = Math.ceil(parentRect.width  / R.cellSize) + 1;
+            numRows = Math.ceil(parentRect.height / R.cellSize) + 1;
+
+            // Set CSS grid geometry & color variables at the grid level
+            gridEl.style.gridTemplateColumns = `repeat(${numCols}, ${R.cellSize}px)`;
+            gridEl.style.gridTemplateRows    = `repeat(${numRows}, ${R.cellSize}px)`;
+            gridEl.style.width  = numCols * R.cellSize + 'px';
+            gridEl.style.height = numRows * R.cellSize + 'px';
+            gridEl.style.setProperty('--cell-shadow-rest', R.shadowRest);
+            gridEl.style.setProperty('--cell-shadow-hover', R.shadowHover);
+            gridEl.style.setProperty('--cell-shadow-ripple', R.shadowRipple);
+            gridEl.style.setProperty('--ripple-base-opacity', R.baseOpacity);
+            gridEl.style.setProperty('--ripple-peak-opacity', R.peakOpacity);
+
+            // Build cells in one fragment pass (no reflows during construction)
+            const frag = document.createDocumentFragment();
+            for (let r = 0; r < numRows; r++) {
+                for (let c = 0; c < numCols; c++) {
+                    const el = document.createElement('div');
+                    el.className = 'ripple-cell';
+                    el.style.borderColor = R.borderColor;
+                    // Box shadow is handled by CSS using the grid-level variables
+
+                    frag.appendChild(el);
+                    cells.push({ el, row: r, col: c });
                 }
             }
+            gridEl.appendChild(frag);
         }
 
-        initDots();
-        window.addEventListener('resize', initDots);
+        // ── Trigger ripple wave from origin cell ──────────────────────────────
+        function triggerRipple(originRow, originCol) {
+            // Phase 1: strip all animation classes + set per-cell timing properties
+            cells.forEach(({ el, row, col }) => {
+                const dist     = Math.hypot(originRow - row, originCol - col);
+                const delay    = Math.max(0, dist * R.waveSpeed);
+                const duration = R.pulseDuration + dist * R.pulseDistanceScale;
+                el.classList.remove('is-rippling');
+                el.style.setProperty('--ripple-delay',    delay    + 'ms');
+                el.style.setProperty('--ripple-duration', duration + 'ms');
+            });
 
-        function distToCapsule(px, py, ax, ay, bx, by) {
-            const abx = bx - ax, aby = by - ay;
-            const len2 = abx * abx + aby * aby;
-            if (len2 === 0) return Math.sqrt((px - ax) * (px - ax) + (py - ay) * (py - ay));
-            const t = Math.max(0, Math.min(1, ((px - ax) * abx + (py - ay) * aby) / len2));
-            const cx = ax + t * abx, cy = ay + t * aby;
-            return Math.sqrt((px - cx) * (px - cx) + (py - cy) * (py - cy));
+            // Phase 2: single forced reflow so browser registers class removal
+            void gridEl.offsetWidth;
+
+            // Phase 3: re-apply animation class to all cells simultaneously
+            cells.forEach(({ el }) => el.classList.add('is-rippling'));
         }
 
-        gsap.ticker.add(() => {
-            ctx.clearRect(0, 0, dotCanvas.width, dotCanvas.height);
-            const parentRect = dotCanvas.getBoundingClientRect();
-            const localMouseX = (window.mouseX || 0) - parentRect.left;
-            const localMouseY = (window.mouseY || 0) - parentRect.top;
+        // ── Click delegation on .hero-inner ───────────────────────────────────
+        // Clicks on the Unicorn canvas (z-index 4) bubble up through .hero-inner.
+        heroInner.addEventListener('click', (e) => {
+            const heroEl = document.getElementById('hero');
+            const rect = heroEl.getBoundingClientRect();
             
-            const cursorOutline = document.querySelector('.cursor-outline');
-            const activePill = cursorOutline ? cursorOutline.classList.contains('pill-state') : false;
-            const pillWAttr = activePill && cursorOutline ? parseFloat(getComputedStyle(cursorOutline).getPropertyValue('--pill-w')) || 40 : 40;
-            const outlineRect = cursorOutline ? cursorOutline.getBoundingClientRect() : { left: window.mouseX, top: window.mouseY, width: 40, height: 40 };
+            const localX = e.clientX - rect.left;
+            const localY = e.clientY - rect.top;
             
-            const localOutlineX = outlineRect.left + outlineRect.width / 2 - parentRect.left;
-            const localOutlineY = outlineRect.top + outlineRect.height / 2 - parentRect.top;
-
-            const pillH = 40; 
-            const pillR = pillH / 2;
-            const capsuleAx = localOutlineX - (pillWAttr / 2 - pillR);
-            const capsuleBx = localOutlineX + (pillWAttr / 2 - pillR);
-            const capsuleY  = localOutlineY;
-
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.20)';
-
-            for (let i = 0; i < dots.length; i++) {
-                const dot = dots[i];
-                let dist = 0, dx = 0, dy = 0;
-
-                if (activePill && pillWAttr > 42) {
-                    const dxDot = localMouseX - dot.ox, dyDot = localMouseY - dot.oy;
-                    const distDot = Math.sqrt(dxDot * dxDot + dyDot * dyDot);
-                    const distCap = distToCapsule(dot.ox, dot.oy, capsuleAx, capsuleY, capsuleBx, capsuleY);
-
-                    if (distDot <= distCap) {
-                        dist = distDot; dx = dxDot; dy = dyDot;
-                    } else {
-                        dist = distCap;
-                        const t2 = Math.max(0, Math.min(1, ((dot.ox - capsuleAx) * (capsuleBx - capsuleAx)) / ((capsuleBx - capsuleAx) * (capsuleBx - capsuleAx) || 1)));
-                        dx = (capsuleAx + t2 * (capsuleBx - capsuleAx)) - dot.ox;
-                        dy = capsuleY - dot.oy;
-                    }
-                } else {
-                    dx = localMouseX - dot.ox; dy = localMouseY - dot.oy;
-                    dist = Math.sqrt(dx * dx + dy * dy);
-                }
-
-                let targetX = dot.ox, targetY = dot.oy;
-
-                if (dist < repelRadius && dist > 1) {
-                    const force = Math.pow((repelRadius - dist) / repelRadius, 2);
-                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-                    targetX = dot.ox - (dx / len) * force * maxDisplacement;
-                    targetY = dot.oy - (dy / len) * force * maxDisplacement;
-                }
-
-                dot.vx += (targetX - dot.x) * 0.08; dot.vy += (targetY - dot.y) * 0.08;
-                dot.vx *= 0.82; dot.vy *= 0.82;
-                dot.x += dot.vx; dot.y += dot.vy;
-
-                ctx.beginPath(); ctx.arc(dot.x, dot.y, 1.25, 0, Math.PI * 2); ctx.fill();
+            const scaleX = rect.width / heroEl.offsetWidth;
+            const scaleY = rect.height / heroEl.offsetHeight;
+            
+            const col = Math.floor((localX / scaleX) / R.cellSize);
+            const row = Math.floor((localY / scaleY) / R.cellSize);
+            
+            if (col >= 0 && col < numCols && row >= 0 && row < numRows) {
+                triggerRipple(row, col);
             }
         });
+
+        // ── Hover delegation on .hero-inner ───────────────────────────────────
+        let lastHoveredCell = null;
+        HeroPointer.callbacks.push((ptr) => {
+            if (ptr.isVirtual) return; // Ripple grid doesn't respond to proxy virtual events
+            
+            const { x, y, rect } = ptr;
+            if (!rect) return;
+            
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                const localX = x - rect.left;
+                const localY = y - rect.top;
+                
+                const heroEl = document.getElementById('hero');
+                const scaleX = rect.width / heroEl.offsetWidth;
+                const scaleY = rect.height / heroEl.offsetHeight;
+                
+                const col = Math.floor((localX / scaleX) / R.cellSize);
+                const row = Math.floor((localY / scaleY) / R.cellSize);
+                
+                if (col >= 0 && col < numCols && row >= 0 && row < numRows) {
+                    const targetIdx = row * numCols + col;
+                    const targetCell = cells[targetIdx];
+                    if (targetCell !== lastHoveredCell) {
+                        if (lastHoveredCell) lastHoveredCell.el.classList.remove('is-hovered');
+                        targetCell.el.classList.add('is-hovered');
+                        lastHoveredCell = targetCell;
+                    }
+                }
+            } else if (lastHoveredCell) {
+                lastHoveredCell.el.classList.remove('is-hovered');
+                lastHoveredCell = null;
+            }
+        });
+
+        heroInner.addEventListener('mouseleave', () => {
+            if (lastHoveredCell) {
+                lastHoveredCell.el.classList.remove('is-hovered');
+                lastHoveredCell = null;
+            }
+        });
+
+        // ── Initial build + responsive rebuild ───────────────────────────────
+        buildGrid();
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(buildGrid, 200);
+        });
     }());
+
 
     // ── Phase 3A — New Editorial Manifesto Scrub Engine ──
     (function initMasterHeroScroll() {

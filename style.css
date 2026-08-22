@@ -1010,7 +1010,7 @@ nav.nav--hero .nav-link {
 
 
 
-    /* Hero scale effect: reduce intensity on tablet */
+    /* Ripple grid: loosen mask on tablet so more cells show near edges */
     .hero-grid-overlay {
         -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
         mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
@@ -1081,9 +1081,9 @@ nav.nav--hero .nav-link {
         transform-origin: 50% 0%;
     }
 
-    /* Disable 3D tilt on touch */
-    .hero:hover .hero-grid-overlay {
-        transform: none;
+    /* Ripple grid: no tilt on touch devices */
+    #rippleGrid {
+        pointer-events: none;
     }
 }
 

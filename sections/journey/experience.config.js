@@ -210,6 +210,7 @@ window.JOURNEY_DATA = [
 
         // ScrollTrigger entrance
         initJourneyEntrance();
+        initSwitcherEntrance();
     }
 
     function renderListView() {
@@ -265,76 +266,209 @@ window.JOURNEY_DATA = [
     }
 
     function initViewToggle() {
-        const toggleContainer = document.getElementById('journey-view-toggle');
+        const switcherBtn = document.getElementById('journey-view-switcher');
         const timelineStage = document.getElementById('journey-stage');
         const listStage = document.getElementById('journey-stage-list');
-        if (!toggleContainer || !timelineStage || !listStage) return;
+        if (!switcherBtn || !timelineStage || !listStage) return;
 
-        const toggleBtns = toggleContainer.querySelectorAll('.view-toggle-btn');
+        const wordGrid = switcherBtn.querySelector('.brier-word-grid');
+        const wordList = switcherBtn.querySelector('.brier-word-list');
+        const subWordGrid = switcherBtn.querySelector('.sub-word-grid');
+        const subWordList = switcherBtn.querySelector('.sub-word-list');
 
-        toggleBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetView = btn.getAttribute('data-view');
+        // 4 Equal Square Modules (Monochromatic Design System Palette)
+        const sq1 = switcherBtn.querySelector('.sq-1');
+        const sq2 = switcherBtn.querySelector('.sq-2');
+        const sq3 = switcherBtn.querySelector('.sq-3');
+        const sq4 = switcherBtn.querySelector('.sq-4');
 
-                toggleBtns.forEach(b => {
-                    const isActive = b === btn;
-                    b.classList.toggle('active', isActive);
-                    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
-                });
+        const bar1 = switcherBtn.querySelector('.bar-1');
+        const bar2 = switcherBtn.querySelector('.bar-2');
+        const bar3 = switcherBtn.querySelector('.bar-3');
 
-                if (typeof window.__playHoverSound === 'function') {
-                    window.__playHoverSound();
+        // Current destination state ('list' when Timeline is active, 'grid' when List View is active)
+        let currentDestination = 'list';
+
+        function updateSwitcherGraphic(destination, immediate = false) {
+            const duration = immediate ? 0 : 0.45;
+            const ease = 'power3.inOut';
+
+            if (destination === 'list') {
+                // Timeline active -> Control communicates destination: VIEW LIST
+                switcherBtn.setAttribute('data-destination', 'list');
+                switcherBtn.setAttribute('aria-label', 'Switch to List View');
+
+                if (typeof gsap !== 'undefined') {
+                    // Brier Text Roll: Hide GRID, Show LIST
+                    gsap.to(wordGrid, { yPercent: 100, opacity: 0, duration: duration * 0.75, ease: 'power3.out' });
+                    gsap.to(wordList, { yPercent: 0, opacity: 1, duration: duration * 0.75, ease: 'power3.out' });
+
+                    // Sub-label Text Roll: Hide VIEW (Grid state), Show VIEW (List state)
+                    if (subWordGrid && subWordList) {
+                        gsap.to(subWordGrid, { yPercent: 100, opacity: 0, duration: duration * 0.75, ease: 'power3.out' });
+                        gsap.to(subWordList, { yPercent: 0, opacity: 1, duration: duration * 0.75, ease: 'power3.out' });
+                    }
+
+                    // Monochromatic Physics Movement: 3 Squares form List row thumbnails (6px x 6px); 4th square folds into Row 3
+                    gsap.to(sq1, { attr: { x: 1, y: 1.5, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.70)', opacity: 1, duration, ease });
+                    gsap.to(sq2, { attr: { x: 1, y: 11.0, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.50)', opacity: 1, duration, ease });
+                    gsap.to(sq3, { attr: { x: 1, y: 20.5, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.32)', opacity: 1, duration, ease });
+                    gsap.to(sq4, { attr: { x: 1, y: 20.5, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.18)', opacity: 0, duration, ease });
+
+                    // Reveal 3 Ultra-Thin Wireframe Lines (16px wide x 2.4px high, rx: 0.5px, vertically centered)
+                    gsap.to(bar1, { attr: { x: 10, y: 3.3, width: 16, height: 2.4, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.70)', opacity: 0.85, duration: duration * 0.85, delay: duration * 0.08, ease: 'back.out(1.15)' });
+                    gsap.to(bar2, { attr: { x: 10, y: 12.8, width: 16, height: 2.4, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.50)', opacity: 0.70, duration: duration * 0.85, delay: duration * 0.12, ease: 'back.out(1.15)' });
+                    gsap.to(bar3, { attr: { x: 10, y: 22.3, width: 16, height: 2.4, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.32)', opacity: 0.55, duration: duration * 0.85, delay: duration * 0.16, ease: 'back.out(1.15)' });
+                } else {
+                    if (wordGrid) { wordGrid.style.opacity = '0'; wordGrid.style.transform = 'translateY(100%)'; }
+                    if (wordList) { wordList.style.opacity = '1'; wordList.style.transform = 'translateY(0%)'; }
+                    if (subWordGrid) { subWordGrid.style.opacity = '0'; subWordGrid.style.transform = 'translateY(100%)'; }
+                    if (subWordList) { subWordList.style.opacity = '1'; subWordList.style.transform = 'translateY(0%)'; }
                 }
+            } else {
+                // List View active -> Control communicates destination: VIEW GRID
+                switcherBtn.setAttribute('data-destination', 'grid');
+                switcherBtn.setAttribute('aria-label', 'Switch to Grid View');
 
-                if (targetView === 'timeline') {
-                    if (typeof gsap !== 'undefined') {
-                        gsap.to(listStage, {
-                            opacity: 0,
-                            duration: 0.2,
-                            ease: 'power2.in',
-                            onComplete: () => {
-                                listStage.style.display = 'none';
-                                timelineStage.style.display = 'block';
-                                gsap.fromTo(timelineStage,
-                                    { opacity: 0 },
-                                    { opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'transform' }
-                                );
-                                if (!isUserHovering) {
-                                    updateFromScrollP(currentScrollP);
-                                }
-                            }
-                        });
-                    } else {
-                        listStage.style.display = 'none';
-                        timelineStage.style.display = 'block';
-                        timelineStage.style.opacity = '1';
-                        if (!isUserHovering) {
-                            updateFromScrollP(currentScrollP);
+                if (typeof gsap !== 'undefined') {
+                    // Brier Text Roll: Show GRID, Hide LIST
+                    gsap.to(wordGrid, { yPercent: 0, opacity: 1, duration: duration * 0.75, ease: 'power3.out' });
+                    gsap.to(wordList, { yPercent: -100, opacity: 0, duration: duration * 0.75, ease: 'power3.out' });
+
+                    // Sub-label Text Roll: Show VIEW (Grid state), Hide VIEW (List state)
+                    if (subWordGrid && subWordList) {
+                        gsap.to(subWordGrid, { yPercent: 0, opacity: 1, duration: duration * 0.75, ease: 'power3.out' });
+                        gsap.to(subWordList, { yPercent: -100, opacity: 0, duration: duration * 0.75, ease: 'power3.out' });
+                    }
+
+                    // Collapse Wireframe Content Bars back into squares
+                    gsap.to([bar1, bar2, bar3], { attr: { width: 0 }, opacity: 0, duration: duration * 0.5, ease: 'power2.in' });
+
+                    // Monochromatic Physics Movement: All 4 squares form a single horizontal row [■] [□] [□] [□] (6px x 6px, rx: 0.5px, 3.5px horizontal gap)
+                    gsap.to(sq1, { attr: { x: 1, y: 11, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.70)', opacity: 1, duration, ease });
+                    gsap.to(sq2, { attr: { x: 10.5, y: 11, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.50)', opacity: 1, duration, ease });
+                    gsap.to(sq3, { attr: { x: 20.0, y: 11, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.32)', opacity: 1, duration, ease });
+                    gsap.to(sq4, { attr: { x: 29.5, y: 11, width: 6, height: 6, rx: 0.5 }, fill: 'rgba(229, 228, 224, 0.18)', opacity: 1, duration, ease });
+                } else {
+                    if (wordGrid) { wordGrid.style.opacity = '1'; wordGrid.style.transform = 'translateY(0%)'; }
+                    if (wordList) { wordList.style.opacity = '0'; wordList.style.transform = 'translateY(-100%)'; }
+                    if (subWordGrid) { subWordGrid.style.opacity = '1'; subWordGrid.style.transform = 'translateY(0%)'; }
+                    if (subWordList) { subWordList.style.opacity = '0'; subWordList.style.transform = 'translateY(-100%)'; }
+                }
+            }
+        }
+
+        // Mouse Spotlight Tracking Effect
+        switcherBtn.addEventListener('mousemove', (e) => {
+            const rect = switcherBtn.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            switcherBtn.style.setProperty('--spotlight-x', `${x}px`);
+            switcherBtn.style.setProperty('--spotlight-y', `${y}px`);
+            switcherBtn.style.setProperty('--spotlight-opacity', '0.1');
+        });
+
+        switcherBtn.addEventListener('mouseleave', () => {
+            switcherBtn.style.setProperty('--spotlight-opacity', '0');
+            // Return to exact resting destination state
+            updateSwitcherGraphic(currentDestination);
+        });
+
+        // Initialize default view state (Timeline visible -> control destination is LIST VIEW)
+        updateSwitcherGraphic('list', true);
+
+        switcherBtn.addEventListener('click', () => {
+            if (typeof window.__playHoverSound === 'function') {
+                window.__playHoverSound();
+            }
+
+            if (currentDestination === 'list') {
+                // Switch view from Timeline -> List View
+                currentDestination = 'grid';
+                updateSwitcherGraphic('grid');
+
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(timelineStage, {
+                        opacity: 0,
+                        duration: 0.2,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            timelineStage.style.display = 'none';
+                            listStage.style.display = 'block';
+                            gsap.fromTo(listStage,
+                                { opacity: 0 },
+                                { opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'transform' }
+                            );
                         }
-                    }
-                } else if (targetView === 'list') {
-                    if (typeof gsap !== 'undefined') {
-                        gsap.to(timelineStage, {
-                            opacity: 0,
-                            duration: 0.2,
-                            ease: 'power2.in',
-                            onComplete: () => {
-                                timelineStage.style.display = 'none';
-                                listStage.style.display = 'block';
-                                gsap.fromTo(listStage,
-                                    { opacity: 0 },
-                                    { opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'transform' }
-                                );
+                    });
+                } else {
+                    timelineStage.style.display = 'none';
+                    listStage.style.display = 'block';
+                    listStage.style.opacity = '1';
+                }
+            } else {
+                // Switch view from List View -> Timeline
+                currentDestination = 'list';
+                updateSwitcherGraphic('list');
+
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(listStage, {
+                        opacity: 0,
+                        duration: 0.2,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            listStage.style.display = 'none';
+                            timelineStage.style.display = 'block';
+                            gsap.fromTo(timelineStage,
+                                { opacity: 0 },
+                                { opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'transform' }
+                            );
+                            if (!isUserHovering) {
+                                updateFromScrollP(currentScrollP);
                             }
-                        });
-                    } else {
-                        timelineStage.style.display = 'none';
-                        listStage.style.display = 'block';
-                        listStage.style.opacity = '1';
+                        }
+                    });
+                } else {
+                    listStage.style.display = 'none';
+                    timelineStage.style.display = 'block';
+                    timelineStage.style.opacity = '1';
+                    if (!isUserHovering) {
+                        updateFromScrollP(currentScrollP);
                     }
+                }
+            }
+        });
+    }
+
+    function initSwitcherEntrance() {
+        const switcherBtn = document.getElementById('journey-view-switcher');
+        const section = document.getElementById('my-journey');
+        if (!switcherBtn || !section) return;
+
+        if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+            gsap.set(switcherBtn, { opacity: 0, y: 16, pointerEvents: 'none' });
+
+            ScrollTrigger.create({
+                trigger: section,
+                start: 'top 75%',
+                end: 'bottom+=150% bottom',
+                onEnter: () => {
+                    gsap.to(switcherBtn, { opacity: 1, y: 0, pointerEvents: 'auto', duration: 0.45, ease: 'power2.out' });
+                },
+                onLeave: () => {
+                    gsap.to(switcherBtn, { opacity: 0, y: 12, pointerEvents: 'none', duration: 0.35, ease: 'power2.in' });
+                },
+                onEnterBack: () => {
+                    gsap.to(switcherBtn, { opacity: 1, y: 0, pointerEvents: 'auto', duration: 0.45, ease: 'power2.out' });
+                },
+                onLeaveBack: () => {
+                    gsap.to(switcherBtn, { opacity: 0, y: 12, pointerEvents: 'none', duration: 0.35, ease: 'power2.in' });
                 }
             });
-        });
+        } else {
+            switcherBtn.style.opacity = '1';
+            switcherBtn.style.pointerEvents = 'auto';
+        }
     }
 
     function updateFromScrollP(p) {
