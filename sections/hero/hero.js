@@ -149,6 +149,8 @@ export function initHero() {
         isVirtual: false,
         rafScheduled: false,
         rect: null, // latest getBoundingClientRect() of .hero
+        offsetWidth: 0,
+        offsetHeight: 0,
         callbacks: []
     };
     
@@ -163,8 +165,10 @@ export function initHero() {
                 HeroPointer.rafScheduled = false;
                 const heroEl = document.getElementById('hero');
                 if (heroEl) {
-                    // Maximum ONE DOM read per animation frame for all interactions
+                    // Maximum ONE DOM read batch per animation frame for all interactions
                     HeroPointer.rect = heroEl.getBoundingClientRect();
+                    HeroPointer.offsetWidth = heroEl.offsetWidth;
+                    HeroPointer.offsetHeight = heroEl.offsetHeight;
                     HeroPointer.callbacks.forEach(cb => cb(HeroPointer));
                 }
             });
@@ -358,9 +362,12 @@ export function initHero() {
             gridEl.innerHTML = '';
             cells = [];
 
-            const parentRect = gridEl.parentElement.getBoundingClientRect();
-            numCols = Math.ceil(parentRect.width  / R.cellSize) + 1;
-            numRows = Math.ceil(parentRect.height / R.cellSize) + 1;
+            const heroEl = document.getElementById('hero');
+            const logicalWidth = heroEl.offsetWidth * 1.1;
+            const logicalHeight = heroEl.offsetHeight * 1.1;
+            
+            numCols = Math.ceil(logicalWidth / R.cellSize) + 1;
+            numRows = Math.ceil(logicalHeight / R.cellSize) + 1;
 
             // Set CSS grid geometry & color variables at the grid level
             gridEl.style.gridTemplateColumns = `repeat(${numCols}, ${R.cellSize}px)`;
@@ -413,11 +420,20 @@ export function initHero() {
         // ── Click delegation on .hero-inner ───────────────────────────────────
         // Clicks on the Unicorn canvas (z-index 4) bubble up through .hero-inner.
         heroInner.addEventListener('click', (e) => {
-            const gridRect = gridEl.getBoundingClientRect();
-            if (!gridRect.width || !gridRect.height) return;
+            const heroRect = HeroPointer.rect;
+            if (!heroRect || !HeroPointer.offsetWidth || !HeroPointer.offsetHeight) return;
             
-            const normX = (e.clientX - gridRect.left) / gridRect.width;
-            const normY = (e.clientY - gridRect.top) / gridRect.height;
+            const scaleX = heroRect.width / HeroPointer.offsetWidth;
+            const scaleY = heroRect.height / HeroPointer.offsetHeight;
+            
+            const gridRenderedLeft = heroRect.left - (heroRect.width * 0.05);
+            const gridRenderedTop = heroRect.top - (heroRect.height * 0.05);
+            
+            const gridRenderedWidth = (numCols * R.cellSize) * scaleX;
+            const gridRenderedHeight = (numRows * R.cellSize) * scaleY;
+            
+            const normX = (e.clientX - gridRenderedLeft) / gridRenderedWidth;
+            const normY = (e.clientY - gridRenderedTop) / gridRenderedHeight;
             
             let col = Math.floor(normX * numCols);
             let row = Math.floor(normY * numRows);
@@ -434,18 +450,36 @@ export function initHero() {
         HeroPointer.callbacks.push((ptr) => {
             if (ptr.isVirtual) return; // Ripple grid doesn't respond to proxy virtual events
             
-            const { x, y } = ptr;
-            const gridRect = gridEl.getBoundingClientRect();
-            if (!gridRect.width || !gridRect.height) return;
+            const { x, y, rect: heroRect, offsetWidth, offsetHeight } = ptr;
+            if (!heroRect || !offsetWidth || !offsetHeight) return;
             
-            if (x >= gridRect.left && x <= gridRect.right && y >= gridRect.top && y <= gridRect.bottom) {
-                const normX = (x - gridRect.left) / gridRect.width;
-                const normY = (y - gridRect.top) / gridRect.height;
-                
-                let col = Math.floor(normX * numCols);
-                let row = Math.floor(normY * numRows);
-                if (col >= numCols) col = numCols - 1;
-                if (row >= numRows) row = numRows - 1;
+            // Early bailout: if pointer is outside the hero container + overhang buffer
+            if (x < heroRect.left - heroRect.width * 0.1 || x > heroRect.right + heroRect.width * 0.1 ||
+                y < heroRect.top - heroRect.height * 0.1 || y > heroRect.bottom + heroRect.height * 0.1) {
+                if (lastHoveredCell) {
+                    lastHoveredCell.el.classList.remove('is-hovered');
+                    lastHoveredCell = null;
+                }
+                return;
+            }
+            
+            const scaleX = heroRect.width / offsetWidth;
+            const scaleY = heroRect.height / offsetHeight;
+            
+            // Reconstruct grid geometry purely using CSS matching offsets (top: -5%, left: -5%)
+            const gridRenderedLeft = heroRect.left - (heroRect.width * 0.05);
+            const gridRenderedTop = heroRect.top - (heroRect.height * 0.05);
+            
+            const gridRenderedWidth = (numCols * R.cellSize) * scaleX;
+            const gridRenderedHeight = (numRows * R.cellSize) * scaleY;
+            
+            const normX = (x - gridRenderedLeft) / gridRenderedWidth;
+            const normY = (y - gridRenderedTop) / gridRenderedHeight;
+            
+            let col = Math.floor(normX * numCols);
+            let row = Math.floor(normY * numRows);
+            if (col >= numCols) col = numCols - 1;
+            if (row >= numRows) row = numRows - 1;
                 
                 if (col >= 0 && col < numCols && row >= 0 && row < numRows) {
                     const targetIdx = row * numCols + col;
@@ -456,10 +490,6 @@ export function initHero() {
                         lastHoveredCell = targetCell;
                     }
                 }
-            } else if (lastHoveredCell) {
-                lastHoveredCell.el.classList.remove('is-hovered');
-                lastHoveredCell = null;
-            }
         });
 
         heroInner.addEventListener('mouseleave', () => {

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.3] - Ripple Grid Pointer Architecture Optimization
+
+### Fixes
+- Optimized `sections/hero/hero.js` pointer architecture by caching `offsetWidth` and `offsetHeight` inside `HeroPointer` during the single-RAF batch read.
+- Refined scale factor ($s_x, s_y$) and `-5%` offset calculations in grid hover and click handlers to eliminate layout thrashing while maintaining pixel-exact cursor alignment.
+
 ## [2.3.2] - Hero Lottie Signature Sizing Refinement
 
 ### Fixes
